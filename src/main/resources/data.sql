@@ -1,10 +1,21 @@
---Datos para carga inicial de la base de datos
+INSERT INTO AGENCIA_PRENSA(nombre) VALUES ('Agencia Norte'), ('Agencia Sur');
 
---Para giis.demo.tkrun:
-delete from carreras;
-insert into carreras(id,inicio,fin,fecha,descr) values 
-	(100,'2016-10-05','2016-10-25','2016-11-09','finalizada'),
-	(101,'2016-10-05','2016-10-25','2016-11-10','en fase 3'),
-	(102,'2016-11-05','2016-11-09','2016-11-20','en fase 2'),
-	(103,'2016-11-10','2016-11-15','2016-11-21','en fase 1'),
-	(104,'2016-11-11','2016-11-15','2016-11-22','antes inscripcion');
+
+INSERT INTO EVENTO(id_agencia, nombre, fecha_evento) VALUES
+(1,'Final Copa','2026-03-01'),
+(1,'Rueda de prensa','2026-03-01'),
+(1,'Concierto','2026-03-10');
+
+
+INSERT INTO EVENTO(id_agencia, nombre, fecha_evento) VALUES
+(2,'Maratón','2026-03-01');
+
+
+INSERT INTO REPORTERO(id_agencia, nombre) VALUES
+(1,'Ana'),(1,'Luis'),(1,'Marta'),(1,'Pablo');
+
+
+INSERT INTO REPORTERO(id_agencia, nombre) VALUES
+(2,'Sergio'),(2,'Clara');
+
+INSERT INTO ASIGNACION_REPORTERO(id_evento, id_reportero) VALUES (1, 1);

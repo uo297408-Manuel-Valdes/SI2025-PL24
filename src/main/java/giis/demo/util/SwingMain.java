@@ -6,7 +6,11 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
+import giis.demo.controller.AsignarReporterosAEventosController;
+import giis.demo.model.AsignarReporterosAEventosModel;
 import giis.demo.tkrun.*;
+import giis.demo.view.AsignarReporterosAEventosView;
 
 /**
  * Punto de entrada principal que incluye botones para la ejecucion de las pantallas 
@@ -51,17 +55,18 @@ public class SwingMain {
 		frame.setBounds(0, 0, 287, 185);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
-		JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
+		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
 		btnEjecutarTkrun.addActionListener(new ActionListener() { //NOSONAR codigo autogenerado
 			public void actionPerformed(ActionEvent e) {
 				CarrerasController controller=new CarrerasController(new CarrerasModel(), new CarrerasView());
 				controller.initController();
 			}
 		});
-		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 		frame.getContentPane().add(btnEjecutarTkrun);
+		*/
 		
-			
+		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+
 		JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
 		btnInicializarBaseDeDatos.addActionListener(new ActionListener() { //NOSONAR codigo autogenerado
 			public void actionPerformed(ActionEvent e) {
@@ -80,6 +85,20 @@ public class SwingMain {
 			}
 		});
 		frame.getContentPane().add(btnCargarDatosIniciales);
+
+		
+		JButton btnHU33550 = new JButton("HU 33550 - Asignar reporteros");
+		btnHU33550.addActionListener(e -> {
+			AsignarReporterosAEventosController controller =
+				new AsignarReporterosAEventosController(
+					new AsignarReporterosAEventosModel(),
+					new AsignarReporterosAEventosView()
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33550);
+
+			
 	}
 
 	public JFrame getFrame() { return this.frame; }

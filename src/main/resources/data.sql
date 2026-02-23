@@ -27,6 +27,7 @@ VALUES (1, 'Rueda de prensa Gobierno', '2026-03-10');
 INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (1, 'Manifestación centro ciudad', '2026-03-11');
 
+
 -- Agencia Sur
 INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (2, 'Presentación resultados empresa', '2026-03-10');

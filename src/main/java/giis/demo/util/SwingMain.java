@@ -14,6 +14,9 @@ import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
 import giis.demo.tkrun.*;
 import giis.demo.view.AsignarReporterosAEventosView;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
+import giis.demo.controller.GestionarOfrecimientosRecibidosController;
+import giis.demo.model.GestionarOfrecimientosRecibidosModel;
+import giis.demo.view.GestionarOfrecimientosRecibidosView;
 
 /**
  * Punto de entrada principal que incluye botones para la ejecucion de las pantallas 
@@ -111,6 +114,17 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33552);
+		
+		JButton btnHU33553 = new JButton("HU 33553 - Gestionar ofrecimientos");
+		btnHU33553.addActionListener(e -> {
+			GestionarOfrecimientosRecibidosController controller =
+				new GestionarOfrecimientosRecibidosController(
+					new GestionarOfrecimientosRecibidosModel(),
+					new GestionarOfrecimientosRecibidosView()
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33553);
 			
 	}
 

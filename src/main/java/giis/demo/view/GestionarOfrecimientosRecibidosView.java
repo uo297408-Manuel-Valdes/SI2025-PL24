@@ -33,13 +33,12 @@ public class GestionarOfrecimientosRecibidosView {
 	}
 
 	private void initialize() {
-		frame = new JFrame("HU 33553 - Gestionar ofrecimientos recibidos (Empresa de comunicación)");
+		frame = new JFrame("HU 33553 - Gestionar ofrecimientos recibidos ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(980, 600);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
-		// ---------------- Cabecera ----------------
 		JLabel lblEmpresa = new JLabel("Empresa de comunicación:");
 		lblEmpresa.setBounds(20, 15, 170, 20);
 		frame.getContentPane().add(lblEmpresa);
@@ -53,14 +52,12 @@ public class GestionarOfrecimientosRecibidosView {
 		lblInfo.setBounds(20, 45, 400, 18);
 		frame.getContentPane().add(lblInfo);
 
-		// ---------------- Tabla ofrecimientos ----------------
 		JLabel lblTabla = new JLabel("Ofrecimientos pendientes");
 		lblTabla.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblTabla.setBounds(20, 70, 300, 20);
 		frame.getContentPane().add(lblTabla);
 
-		// Columnas visibles: Evento, Fecha, Agencia
-		// Columnas ocultas: id_ofrecimiento, id_evento, id_agencia, id_empresa
+	
 		tmOfrecimientos = new DefaultTableModel(
 				new Object[] { "Evento", "Fecha", "Agencia", "id_ofrecimiento", "id_evento", "id_agencia", "id_empresa" }, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
@@ -74,18 +71,17 @@ public class GestionarOfrecimientosRecibidosView {
 		sp.setBounds(20, 95, 930, 230);
 		frame.getContentPane().add(sp);
 
-		// Ocultar ids
+		
 		ocultarColumna(tblOfrecimientos, 3);
 		ocultarColumna(tblOfrecimientos, 4);
 		ocultarColumna(tblOfrecimientos, 5);
 		ocultarColumna(tblOfrecimientos, 6);
 
-		// Ajuste ancho
+		
 		tblOfrecimientos.getColumnModel().getColumn(0).setPreferredWidth(520);
 		tblOfrecimientos.getColumnModel().getColumn(1).setPreferredWidth(150);
 		tblOfrecimientos.getColumnModel().getColumn(2).setPreferredWidth(260);
 
-		// ---------------- Panel detalle ----------------
 		JPanel detail = new JPanel();
 		detail.setLayout(null);
 		detail.setBounds(20, 340, 930, 150);
@@ -121,7 +117,6 @@ public class GestionarOfrecimientosRecibidosView {
 		lblDecision.setBounds(630, 65, 150, 20);
 		detail.add(lblDecision);
 
-		// ---------------- Botones ----------------
 		btnAceptar = new JButton("Aceptar ofrecimiento");
 		btnAceptar.setBounds(520, 105, 190, 28);
 		detail.add(btnAceptar);
@@ -130,7 +125,6 @@ public class GestionarOfrecimientosRecibidosView {
 		btnRechazar.setBounds(720, 105, 190, 28);
 		detail.add(btnRechazar);
 
-		// Al inicio deshabilitados hasta que selecciones una fila
 		setDecisionButtonsEnabled(false);
 
 		frame.setLocationRelativeTo(null);
@@ -143,7 +137,6 @@ public class GestionarOfrecimientosRecibidosView {
 		table.getColumnModel().getColumn(colIndex).setPreferredWidth(0);
 	}
 
-	// ---------------- setters (cargar datos) ----------------
 
 	public void setEmpresas(List<EmpresaDTO> empresas) {
 		DefaultComboBoxModel<EmpresaDTO> model = new DefaultComboBoxModel<>();
@@ -164,14 +157,12 @@ public class GestionarOfrecimientosRecibidosView {
 					o.getIdEmpresa()
 			});
 		}
-		// re-ocultar por si se recrea modelo
 		ocultarColumna(tblOfrecimientos, 3);
 		ocultarColumna(tblOfrecimientos, 4);
 		ocultarColumna(tblOfrecimientos, 5);
 		ocultarColumna(tblOfrecimientos, 6);
 	}
 
-	// ---------------- getters selección ----------------
 
 	public EmpresaDTO getEmpresaSeleccionada() {
 		return (EmpresaDTO) cbEmpresas.getSelectedItem();
@@ -203,8 +194,7 @@ public class GestionarOfrecimientosRecibidosView {
 
 	public JFrame getFrame() { return frame; }
 
-	// ---------------- detalle UI ----------------
-
+	
 	public void setDetalle(String evento, String fecha, String agencia, String decision) {
 		lblEvento.setText(evento == null ? "-" : evento);
 		lblFecha.setText(fecha == null ? "-" : fecha);
@@ -217,7 +207,6 @@ public class GestionarOfrecimientosRecibidosView {
 		btnRechazar.setEnabled(enabled);
 	}
 
-	// ---------------- listeners ----------------
 
 	public void addEmpresaChangedListener(ActionListener l) {
 		cbEmpresas.addActionListener(l);
@@ -235,7 +224,6 @@ public class GestionarOfrecimientosRecibidosView {
 		btnRechazar.addActionListener(l);
 	}
 
-	// ---------------- dialogs ----------------
 
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
@@ -245,4 +233,14 @@ public class GestionarOfrecimientosRecibidosView {
 		int opt = JOptionPane.showConfirmDialog(frame, msg, title, JOptionPane.YES_NO_OPTION);
 		return opt == JOptionPane.YES_OPTION;
 	}
+	
+	public void removeFilaSeleccionada() {
+		int row = tblOfrecimientos.getSelectedRow();
+		if (row >= 0) tmOfrecimientos.removeRow(row);
+	}
+
+	public boolean hayFilasEnTabla() {
+		return tmOfrecimientos.getRowCount() > 0;
+	}
+
 }

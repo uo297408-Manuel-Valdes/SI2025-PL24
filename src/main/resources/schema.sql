@@ -1,12 +1,13 @@
 
-DROP TABLE IF EXISTS Carreras;
+DROP TABLE IF EXISTS version_reportaje;
+DROP TABLE IF EXISTS reportaje;
+DROP TABLE IF EXISTS acceso_reportaje;
+DROP TABLE IF EXISTS ofrecer_reportaje;
 DROP TABLE IF EXISTS asignacion_reportero;
 DROP TABLE IF EXISTS reportero;
 DROP TABLE IF EXISTS evento;
-DROP TABLE IF EXISTS agencia_prensa;
 DROP TABLE IF EXISTS empresa;
-DROP TABLE IF EXISTS ofrecer_reportaje;
-DROP TABLE IF EXISTS acceso_reportaje;
+DROP TABLE IF EXISTS agencia_prensa;
 
 CREATE TABLE agencia_prensa (
   id_agencia     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,18 +42,40 @@ CREATE TABLE empresa (
   nombre         TEXT NOT NULL UNIQUE
 );
 
+
 CREATE TABLE ofrecer_reportaje (
-  id_evento      INTEGER NOT NULL,
-  id_empresa   INTEGER NOT NULL,
-  PRIMARY KEY (id_evento, id_empresa),
+  id_ofrecimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_evento       INTEGER NOT NULL,
+  id_empresa      INTEGER NOT NULL,
+  decision        TEXT NULL CHECK (decision IN ('ACEPTADO','RECHAZADO') OR decision IS NULL),
+  UNIQUE (id_evento, id_empresa),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
-  FOREIGN KEY (id_empresa) REFERENCES reportero(id_empresa)
+  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
 );
 
 CREATE TABLE acceso_reportaje (
-  id_evento      INTEGER NOT NULL,
-  id_empresa   INTEGER NOT NULL,
-  PRIMARY KEY (id_evento, id_empresa),
+  id_acceso  INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_evento  INTEGER NOT NULL,
+  id_empresa INTEGER NOT NULL,
+  UNIQUE (id_evento, id_empresa),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
-  FOREIGN KEY (id_empresa) REFERENCES reportero(id_empresa)
+  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
+);
+
+CREATE TABLE reportaje (
+  id_reportaje         INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_evento            INTEGER NOT NULL UNIQUE,
+  titulo               TEXT NOT NULL UNIQUE,
+  id_reportero_entrega INTEGER NOT NULL,
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
+  FOREIGN KEY (id_reportero_entrega) REFERENCES reportero(id_reportero)
+);
+ 
+CREATE TABLE version_reportaje (
+  id_version    INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_reportaje  INTEGER NOT NULL,
+  subtitulo     TEXT NOT NULL,
+  cuerpo        TEXT NOT NULL,
+  cambios       TEXT NOT NULL,
+  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
 );

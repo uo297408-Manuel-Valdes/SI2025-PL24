@@ -9,7 +9,6 @@ import giis.demo.model.AgenciaDTO;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
 import giis.demo.model.EventoDTO;
-import giis.demo.model.ReporteroDTO;
 import giis.demo.util.SwingUtil;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
 
@@ -75,7 +74,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 
 		seleccionados = new ArrayList<>();
 
-		disponibles = model.getEmpresasDisponibles();
+		disponibles = model.getEmpresasDisponibles(idEvento);
 
 		view.setDisponibles(disponibles);
 		view.setAsignados(seleccionados);

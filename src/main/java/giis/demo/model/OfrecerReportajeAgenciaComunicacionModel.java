@@ -43,15 +43,15 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		return res;
 	}
 
-	public List<EmpresaDTO> getEmpresasDisponibles() {
+	public List<EmpresaDTO> getEmpresasDisponibles(int idEvento) {
 		String sql =
 			"SELECT r.id_empresa, r.nombre " +
 			"FROM EMPRESA r " +
 			"WHERE NOT EXISTS ( " +
 			"  SELECT 1 " +
-			"  FROM ACCESO_REPORTAJE ar " +
-			"  JOIN EVENTO e2 ON e2.id_evento = ar.id_evento " +
+			"  FROM OFRECER_REPORTAJE ar " +
 			"  WHERE ar.id_empresa = r.id_empresa " +
+			"  AND ar.id_evento=?"+
 			") " +
 			"ORDER BY r.nombre";
 
@@ -71,7 +71,7 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		if (idsEmpresas == null || idsEmpresas.isEmpty())
 			throw new ApplicationException("Debes asignar al menos un reportero.");
 
-		EventoDTO evento = getEventoById(idEvento);
+		
 
 		if (!eventoTieneAsignaciones(idEvento)) {
 			throw new ApplicationException("No se puede asignar: el evento no tiene reporteros asignados.");
@@ -80,29 +80,15 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		for (Integer idEmpresa : idsEmpresas) {
 			if (idEmpresa == null) continue;
 
-			if (empresaAccesoReportaje(idEmpresa, evento.getIdAgencia())) {
-				throw new ApplicationException("Esta empresa ya tiene acceso a este reportaje.");
+			if (empresaAccesoReportaje(idEmpresa, idEvento)) {
+				throw new ApplicationException("Esta empresa ya tiene ofrecido este reportaje.");
 			}
 		}
 
-		String insert = "INSERT INTO ACCESO_REPORTAJE(id_evento, id_empresa) VALUES (?, ?)";
+		String insert = "INSERT INTO OFRECER_REPORTAJE(id_evento, id_empresa) VALUES (?, ?)";
 		for (Integer idEmpresa : idsEmpresas) {
 			db.executeUpdate(insert, idEvento, idEmpresa);
 		}
-	}
-	
-	private EventoDTO getEventoById(int idEvento) {
-		String sql = "SELECT id_evento, id_agencia, nombre, fecha_evento FROM EVENTO WHERE id_evento = ?";
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-		if (rows.isEmpty())
-			throw new ApplicationException("El reportaje seleccionado ya no existe.");
-		Object[] r = rows.get(0);
-		return new EventoDTO(
-			((Number) r[0]).intValue(),
-			((Number) r[1]).intValue(),
-			(String) r[2],
-			(String) r[3]
-		);
 	}
 	
 	private boolean eventoTieneAsignaciones(int idEvento) {
@@ -111,7 +97,7 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 	}
 
 	private boolean empresaAccesoReportaje(int idEmpresa, int idEvento) {
-		String sql = "SELECT 1 FROM ACCESO_REPORTAJE WHERE id_empresa = ? AND id_evento = ? LIMIT 1";
+		String sql = "SELECT 1 FROM OFRECER_REPORTAJE WHERE id_empresa = ? AND id_evento = ? LIMIT 1";
 		return !db.executeQueryArray(sql, idEmpresa, idEvento).isEmpty();
 	}
 

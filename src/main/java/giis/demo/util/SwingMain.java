@@ -8,11 +8,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
 import giis.demo.controller.AsignarReporterosAEventosController;
+import giis.demo.controller.EntregarReportajesDeEventosController;
 import giis.demo.controller.OfrecerReportajeAgenciaComunicacionController;
 import giis.demo.model.AsignarReporterosAEventosModel;
+import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
 import giis.demo.tkrun.*;
 import giis.demo.view.AsignarReporterosAEventosView;
+import giis.demo.view.EntregarReportajesDeEventosView;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
 
 /**
@@ -100,6 +103,20 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33550);
+		
+		
+		JButton btnHU33551 = new JButton("HU 33551 - Entregar Reportajes");
+		btnHU33551.addActionListener(e -> {
+			EntregarReportajesDeEventosController controller =
+				new EntregarReportajesDeEventosController(
+					new EntregarReportajesDeEventosModel(),
+					new EntregarReportajesDeEventosView(),1
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33551);
+		
+		
 
 		JButton btnHU33552 = new JButton("HU 33552 - Ofrecer reportajes");
 		btnHU33552.addActionListener(e -> {

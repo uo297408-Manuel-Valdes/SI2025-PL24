@@ -41,5 +41,50 @@ public class AccederReportajesModel {
 				}
 			return res;
 	}
+	
+	public ReportajeDTO getInfoReportaje(int idEvento) {
+		String sql=
+				"SELECT r.id_reportaje,r.id_evento, r.id_reportero_entrega, r.titulo " +
+				"FROM REPORTAJE r " +
+				"WHERE r.id_evento=?"+
+				"LIMIT 1";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		ReportajeDTO res = null;
+		
+		for (Object[] r : rows) {
+			int idreportaje= ((Number) r[0]).intValue();
+			int idevento=((Number) r[1]).intValue();
+			int idreportero=((Number) r[2]).intValue();
+			String titulo = (String) r[3];
+			res=new ReportajeDTO(idreportaje,idevento,idreportero,titulo);
+		}
+		
+		return res;
+	}
 
+	public VersionDTO getVersion(int idReportaje) {
+		String sql=
+				"SELECT v.id_version,v.id_reportaje,v.subtitulo,v.cuerpo,v.cambios " +
+				"FROM VERSION_REPORTAJE v " +
+				"WHERE v.id_reportaje=?"+
+				"ORDER BY v.id_version DESC"+
+				"LIMIT 1";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
+		
+		VersionDTO res = null;
+		
+		for (Object[] r : rows) {
+			int idversion=((Number) r[0]).intValue();
+			int idreportaje= ((Number) r[1]).intValue();
+			String subtitulo = (String) r[2];
+			String cuerpo = (String) r[3];
+			String cambio = (String) r[4];
+			res=new VersionDTO(idversion,idreportaje,subtitulo,cuerpo,cambio);
+		}
+		
+		return res;
+	}
+	
 }

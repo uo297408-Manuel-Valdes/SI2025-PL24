@@ -101,7 +101,6 @@ public class AccederReportajesView {
 		lblCuerpo.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblCuerpo.setBounds(300, 600, 350, 20);
 		frame.getContentPane().add(lblCuerpo);
-		
 		btnFinalizar = new JButton("Finalizar visualización");
 		btnFinalizar.setBounds(400, 800, 170, 30);
 		frame.getContentPane().add(btnFinalizar);

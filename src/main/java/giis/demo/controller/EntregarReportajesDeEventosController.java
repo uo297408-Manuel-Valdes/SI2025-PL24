@@ -1,130 +1,157 @@
 package giis.demo.controller;
 
-
 import java.util.List;
 
 import javax.swing.event.ListSelectionEvent;
 
-import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.EventoDTO;
-
+import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.ReportajeDTO;
+import giis.demo.model.VersionReportajeDTO;
 import giis.demo.util.SwingUtil;
 import giis.demo.view.EntregarReportajesDeEventosView;
 
 public class EntregarReportajesDeEventosController {
 
-    private final EntregarReportajesDeEventosModel model;
-    private final EntregarReportajesDeEventosView view;
+	private final EntregarReportajesDeEventosModel model;
+	private final EntregarReportajesDeEventosView  view;
 
-    /** Id del reportero que está usando la interfaz */
-    private final int idReportero;
+	/** Reportero que está usando la interfaz */
+	private final int    idReportero;
+	private final String nombreReportero;
 
-    private List<EventoDTO> eventos;
-    private EventoDTO eventoSeleccionado;
+	private List<EventoDTO> eventos;
+	private EventoDTO       eventoSeleccionado;
 
-    public EntregarReportajesDeEventosController(EntregarReportajesDeEventosModel model,
-    		EntregarReportajesDeEventosView view,
-                                        int idReportero) {
-        this.model      = model;
-        this.view       = view;
-        this.idReportero = idReportero;
-    }
+	public EntregarReportajesDeEventosController(EntregarReportajesDeEventosModel model,
+	                                    EntregarReportajesDeEventosView  view,
+	                                    int idReportero) {
+		this.model       = model;
+		this.view        = view;
+		this.idReportero = idReportero;
+		// Obtenemos el nombre del reportero para mostrarlo en el campo Autor
+		this.nombreReportero = model.getNombreReportero(idReportero);
+	}
 
-    public void initController() {
-        view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
-        view.addValidarTituloListener(e -> SwingUtil.exceptionWrapper(() -> onValidarTitulo()));
-        view.addEntregarListener(e -> SwingUtil.exceptionWrapper(() -> onEntregar()));
+	public void initController() {
+		view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
+		view.addValidarTituloListener   (e -> SwingUtil.exceptionWrapper(() -> onValidarTitulo()));
+		view.addEntregarListener        (e -> SwingUtil.exceptionWrapper(() -> onEntregar()));
 
-        SwingUtil.exceptionWrapper(() -> cargarEventos());
+		SwingUtil.exceptionWrapper(() -> cargarEventos());
+	}
 
-        view.setVisible(true);
-    }
 
-    // ── Carga inicial ────────────────────────────────────────────────────
+	private void cargarEventos() {
+		eventos = model.getEventosAsignadosAReportero(idReportero);
+		view.setEventos(eventos);
+		// El autor siempre es el reportero logueado (de momento Ana Pérez idReportero=1)
+		view.setAutor(nombreReportero);
+		view.limpiarFormulario();
+		view.setAutor(nombreReportero);
+	}
 
-    private void cargarEventos() {
-        eventos = model.getEventosAsignadosAReportero(idReportero);
-        view.setEventos(eventos);
-        view.limpiarFormulario();
-    }
+	private void onEventoSeleccionado(ListSelectionEvent e) {
+		if (e.getValueIsAdjusting()) return;
 
-    // ── Selección de evento ──────────────────────────────────────────────
+		int fila = view.getIdEventoSeleccionado() != null
+				? buscarFila(view.getIdEventoSeleccionado())
+				: -1;
 
-    private void onEventoSeleccionado(ListSelectionEvent e) {
-        if (e.getValueIsAdjusting()) return;
+		// Resolvemos el evento seleccionado desde la tabla
+		int selectedRow = getSelectedRow();
+		if (selectedRow < 0 || selectedRow >= eventos.size()) {
+			eventoSeleccionado = null;
+			view.limpiarFormulario();
+			view.setAutor(nombreReportero);
+			return;
+		}
 
-        //int fila = view.getFilaEventoSeleccionada();
-        int fila=1;
-        if (fila < 0 || fila >= eventos.size()) {
-            eventoSeleccionado = null;
-            view.limpiarFormulario();
-            return;
-        }
+		eventoSeleccionado = eventos.get(selectedRow);
+		view.setLabelEventoSeleccionado(eventoSeleccionado.getNombre());
+		view.setAutor(nombreReportero);
 
-        eventoSeleccionado = eventos.get(fila);
-        view.setLabelEventoSeleccionado(eventoSeleccionado.getNombre());
+		// Cargamos reportaje existente si lo hay
+		ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento());
+		if (reportaje != null) {
+			view.setTitulo(reportaje.getTitulo());
 
-        // Cargar reportaje existente si lo hay
-        ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento(), idReportero);
-        if (reportaje != null) {
-            view.setAutor(reportaje.getAutor());
-            view.setTitulo(reportaje.getTitulo());
-            view.setSubtitulo(reportaje.getSubtitulo());
-            view.setCuerpo(reportaje.getCuerpo());
-        } else {
-            view.setAutor("");
-            view.setTitulo("");
-            view.setSubtitulo("");
-            view.setCuerpo("");
-        }
-    }
+			// Cargamos la última versión para prerellenar subtítulo y cuerpo
+			VersionReportajeDTO ultimaVersion = model.getUltimaVersion(reportaje.getIdReportaje());
+			if (ultimaVersion != null) {
+				view.setSubtitulo(ultimaVersion.getSubtitulo());
+				view.setCuerpo(ultimaVersion.getCuerpo());
+			} else {
+				view.setSubtitulo("");
+				view.setCuerpo("");
+			}
+		} else {
+			view.setTitulo("");
+			view.setSubtitulo("");
+			view.setCuerpo("");
+		}
+		// El campo cambios siempre empieza vacío (describe los cambios de esta nueva entrega)
+		view.setCambios("");
+	}
 
-    // ── Validar título ───────────────────────────────────────────────────
+	private int getSelectedRow() {
+		Integer id = view.getIdEventoSeleccionado();
+		if (id == null) return -1;
+		for (int i = 0; i < eventos.size(); i++) {
+			if (eventos.get(i).getIdEvento() == id) return i;
+		}
+		return -1;
+	}
 
-    private void onValidarTitulo() {
-        try {
-            model.validarTitulo(view.getTitulo());
-            view.showInfo("El título es válido.");
-        } catch (Exception ex) {
-            view.showError(ex.getMessage());
-        }
-    }
+	private int buscarFila(int idEvento) {
+		for (int i = 0; i < eventos.size(); i++) {
+			if (eventos.get(i).getIdEvento() == idEvento) return i;
+		}
+		return -1;
+	}
 
-    // ── Entregar reportaje ───────────────────────────────────────────────
+	
+	private void onValidarTitulo() {
+		try {
+			model.validarTitulo(view.getTitulo());
+			view.showInfo("El título es válido.");
+		} catch (Exception ex) {
+			view.showError(ex.getMessage());
+		}
+	}
 
-    private void onEntregar() {
-        if (eventoSeleccionado == null) {
-            view.showInfo("Selecciona un evento primero.");
-            return;
-        }
+	
+	private void onEntregar() {
+		if (eventoSeleccionado == null) {
+			view.showInfo("Selecciona un evento primero.");
+			return;
+		}
 
-        String autor     = view.getAutor();
-        String titulo    = view.getTitulo();
-        String subtitulo = view.getSubtitulo();
-        String cuerpo    = view.getCuerpo();
+		String titulo    = view.getTitulo();
+		String subtitulo = view.getSubtitulo();
+		String cuerpo    = view.getCuerpo();
+		String cambios   = view.getCambios();
 
-        String msg = "Vas a entregar el reportaje:\n\n"
-                + "Evento:    " + eventoSeleccionado.getNombre()
-                + " (" + eventoSeleccionado.getFechaEvento() + ")\n"
-                + "Autor:     " + autor + "\n"
-                + "Título:    " + titulo + "\n\n"
-                + "¿Confirmas la entrega?";
+		// Determinar si es primera entrega o nueva versión
+		ReportajeDTO existente = model.getReportaje(eventoSeleccionado.getIdEvento());
+		String tipoEntrega     = (existente == null) ? "primera entrega" : "nueva versión";
 
-        if (!view.confirm(msg, "Confirmar entrega")) return;
+		String msg = "Vas a registrar la " + tipoEntrega + " del reportaje:\n\n"
+				+ "Evento:    " + eventoSeleccionado.getNombre()
+				+ " (" + eventoSeleccionado.getFechaEvento() + ")\n"
+				+ "Autor:     " + nombreReportero + "\n"
+				+ "Título:    " + titulo + "\n"
+				+ "Cambios:   " + cambios + "\n\n"
+				+ "¿Confirmas la entrega?";
 
-        model.entregarReportaje(
-            eventoSeleccionado.getIdEvento(), idReportero,
-            autor, titulo, subtitulo, cuerpo
-        );
+		if (!view.confirm(msg, "Confirmar entrega")) return;
 
-        view.showInfo("Reportaje entregado correctamente.");
-        view.getFrame().dispose();
-    }
+		model.entregarReportaje(
+			eventoSeleccionado.getIdEvento(), idReportero,
+			titulo, subtitulo, cuerpo, cambios
+		);
+
+		view.showInfo("Reportaje entregado correctamente.");
+		view.getFrame().dispose();
+	}
 }
-
-
-
-
-
-

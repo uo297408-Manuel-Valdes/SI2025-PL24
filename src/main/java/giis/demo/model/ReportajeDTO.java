@@ -1,30 +1,25 @@
 package giis.demo.model;
 
+/**
+ * Representa una fila de la tabla REPORTAJE.
+ * El autor es el reportero que entregó el reportaje (id_reportero_entrega).
+ */
 public class ReportajeDTO {
-    private int idReportaje;
-    private int idEvento;
-    private int idReportero;
-    private String autor;
-    private String titulo;
-    private String subtitulo;
-    private String cuerpo;
 
-    public ReportajeDTO(int idReportaje, int idEvento, int idReportero,
-                        String autor, String titulo, String subtitulo, String cuerpo) {
-        this.idReportaje = idReportaje;
-        this.idEvento = idEvento;
-        this.idReportero = idReportero;
-        this.autor = autor;
-        this.titulo = titulo;
-        this.subtitulo = subtitulo;
-        this.cuerpo = cuerpo;
-    }
+	private int    idReportaje;
+	private int    idEvento;
+	private String titulo;
+	private int    idReporteroEntrega;
 
-    public int getIdReportaje() { return idReportaje; }
-    public int getIdEvento() { return idEvento; }
-    public int getIdReportero() { return idReportero; }
-    public String getAutor() { return autor; }
-    public String getTitulo() { return titulo; }
-    public String getSubtitulo() { return subtitulo; }
-    public String getCuerpo() { return cuerpo; }
+	public ReportajeDTO(int idReportaje, int idEvento, String titulo, int idReporteroEntrega) {
+		this.idReportaje        = idReportaje;
+		this.idEvento           = idEvento;
+		this.titulo             = titulo;
+		this.idReporteroEntrega = idReporteroEntrega;
+	}
+
+	public int    getIdReportaje()        { return idReportaje; }
+	public int    getIdEvento()           { return idEvento; }
+	public String getTitulo()             { return titulo; }
+	public int    getIdReporteroEntrega() { return idReporteroEntrega; }
 }

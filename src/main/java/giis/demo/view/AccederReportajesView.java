@@ -79,7 +79,7 @@ public class AccederReportajesView {
 		
 		lblTitulo= new JLabel("-");
 		lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblTitulo.setBounds(300, 400, 350, 20);
+		lblTitulo.setBounds(100, 400, 450, 20);
 		frame.getContentPane().add(lblTitulo);
 		
 		JLabel l2= new JLabel("Subtítulo");
@@ -89,7 +89,7 @@ public class AccederReportajesView {
 		
 		lblSubtitulo= new JLabel("-");
 		lblSubtitulo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblSubtitulo.setBounds(300, 500, 350, 20);
+		lblSubtitulo.setBounds(100, 500, 450, 20);
 		frame.getContentPane().add(lblSubtitulo);
 		
 		JLabel l3= new JLabel("Cuerpo");
@@ -99,8 +99,9 @@ public class AccederReportajesView {
 		
 		lblCuerpo= new JLabel("-");
 		lblCuerpo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblCuerpo.setBounds(300, 600, 350, 20);
+		lblCuerpo.setBounds(100, 600, 450, 20);
 		frame.getContentPane().add(lblCuerpo);
+		
 		btnFinalizar = new JButton("Finalizar visualización");
 		btnFinalizar.setBounds(400, 800, 170, 30);
 		frame.getContentPane().add(btnFinalizar);

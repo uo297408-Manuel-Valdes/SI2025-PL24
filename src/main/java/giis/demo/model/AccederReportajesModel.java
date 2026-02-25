@@ -46,8 +46,7 @@ public class AccederReportajesModel {
 		String sql=
 				"SELECT r.id_reportaje,r.id_evento, r.id_reportero_entrega, r.titulo " +
 				"FROM REPORTAJE r " +
-				"WHERE r.id_evento=?"+
-				"LIMIT 1";
+				"WHERE r.id_evento=? ";
 		
 		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
 		ReportajeDTO res = null;

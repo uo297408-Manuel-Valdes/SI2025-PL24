@@ -52,14 +52,5 @@ VALUES (2, 1, NULL);
 -- El Diario con acceso a evento 3
 INSERT INTO acceso_reportaje (id_evento, id_empresa)
 VALUES (3,1);
--- ===============================
--- REPORTAJES
--- ===============================
-INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega)
-VALUES(3, 'Presentación resultados empresa', 3)
--- ===============================
--- VERSION
--- ===============================
-INSERT INTO version_reportaje (id_reportaje, subtitulo, cuerpo, cambios)
-VALUES(3, 'Presentación resultados empresa', 'Una empresa presenta sus resultados del ultimo cuatrimestre...', 'creacion')
+
 

@@ -62,6 +62,7 @@ public class AccederReportajesController {
 		}
 
 		ReportajeDTO reportaje=model.getInfoReportaje(idEvento);
+		
 		if (reportaje == null) {
 			view.setInfo(null, null, null);
 			return;

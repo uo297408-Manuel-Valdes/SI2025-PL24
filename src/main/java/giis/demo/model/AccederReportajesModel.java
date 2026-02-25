@@ -49,6 +49,7 @@ public class AccederReportajesModel {
 				"WHERE r.id_evento=? ";
 		
 		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		System.out.print(rows.size());
 		ReportajeDTO res = null;
 		
 		for (Object[] r : rows) {
@@ -67,7 +68,7 @@ public class AccederReportajesModel {
 				"SELECT v.id_version,v.id_reportaje,v.subtitulo,v.cuerpo,v.cambios " +
 				"FROM VERSION_REPORTAJE v " +
 				"WHERE v.id_reportaje=?"+
-				"ORDER BY v.id_version DESC"+
+				"ORDER BY v.id_version DESC "+
 				"LIMIT 1";
 		
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);

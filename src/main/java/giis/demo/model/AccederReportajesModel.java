@@ -57,7 +57,7 @@ public class AccederReportajesModel {
 			int idevento=((Number) r[1]).intValue();
 			int idreportero=((Number) r[2]).intValue();
 			String titulo = (String) r[3];
-			res=new ReportajeDTO(idreportaje,idevento,idreportero,titulo);
+			res=new ReportajeDTO(idreportaje,idevento,titulo,idreportero);
 		}
 		
 		return res;

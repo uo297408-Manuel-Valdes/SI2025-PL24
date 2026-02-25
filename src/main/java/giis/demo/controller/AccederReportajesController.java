@@ -67,7 +67,7 @@ public class AccederReportajesController {
 			view.setInfo(null, null, null);
 			return;
 		}
-		VersionDTO version=model.getVersion(reportaje.getId_reportaje());
+		VersionDTO version=model.getVersion(reportaje.getIdReportaje());
 		
 		if (version == null) {
 			view.setInfo(reportaje.getTitulo(), null, null);

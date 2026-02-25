@@ -1,54 +1,25 @@
 package giis.demo.model;
 
+/**
+ * Representa una fila de la tabla REPORTAJE.
+ * El autor es el reportero que entregó el reportaje (id_reportero_entrega).
+ */
 public class ReportajeDTO {
 
-	private int id_reportaje;
-	private int id_evento;
-	private int id_reportero_entrega;
-	
+	private int    idReportaje;
+	private int    idEvento;
 	private String titulo;
-	
-	public ReportajeDTO(int id_reportaje, int id_evento, int id_reportero_entrega, String titulo) {
-		this.id_reportaje=id_reportaje;
-		this.id_evento=id_evento;
-		this.id_reportero_entrega=id_reportero_entrega;
-		this.titulo=titulo;
-	}
-	
-	public ReportajeDTO() {}
+	private int    idReporteroEntrega;
 
-	public int getId_reportaje() {
-		return id_reportaje;
+	public ReportajeDTO(int idReportaje, int idEvento, String titulo, int idReporteroEntrega) {
+		this.idReportaje        = idReportaje;
+		this.idEvento           = idEvento;
+		this.titulo             = titulo;
+		this.idReporteroEntrega = idReporteroEntrega;
 	}
 
-	public void setId_reportaje(int id_reportaje) {
-		this.id_reportaje = id_reportaje;
-	}
-
-	public int getId_evento() {
-		return id_evento;
-	}
-
-	public void setId_evento(int id_evento) {
-		this.id_evento = id_evento;
-	}
-
-	public int getId_reportero_entrega() {
-		return id_reportero_entrega;
-	}
-
-	public void setId_reportero_entrega(int id_reportero_entrega) {
-		this.id_reportero_entrega = id_reportero_entrega;
-	}
-
-	public String getTitulo() {
-		return titulo;
-	}
-
-	public void setTitulo(String titulo) {
-		this.titulo = titulo;
-	}
-	
-	
-	
+	public int    getIdReportaje()        { return idReportaje; }
+	public int    getIdEvento()           { return idEvento; }
+	public String getTitulo()             { return titulo; }
+	public int    getIdReporteroEntrega() { return idReporteroEntrega; }
 }

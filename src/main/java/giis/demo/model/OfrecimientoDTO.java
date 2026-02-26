@@ -31,6 +31,18 @@ public class OfrecimientoDTO {
 		this.nombreAgencia = nombreAgencia;
 		this.decision = decision;
 	}
+	
+	public OfrecimientoDTO(
+			int idOfrecimiento,
+			int idEvento,
+			int idEmpresa,
+			String decision) {
+
+		this.idOfrecimiento = idOfrecimiento;
+		this.idEvento = idEvento;
+		this.idEmpresa = idEmpresa;
+		this.decision = decision;
+	}
 
 	public OfrecimientoDTO() {
 	}

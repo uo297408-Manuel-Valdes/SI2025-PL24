@@ -93,7 +93,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnCargarDatosIniciales);
 
 		
-		JButton btnHU33550 = new JButton("HU 33550 - Asignar reporteros");
+		JButton btnHU33550 = new JButton("HU 33550/33556 - Asignar reporteros");
 		btnHU33550.addActionListener(e -> {
 			AsignarReporterosAEventosController controller =
 				new AsignarReporterosAEventosController(

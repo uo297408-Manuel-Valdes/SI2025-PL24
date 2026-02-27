@@ -7,12 +7,18 @@ import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
+import giis.demo.controller.AccederReportajesController;
 import giis.demo.controller.AsignarReporterosAEventosController;
+import giis.demo.controller.EntregarReportajesDeEventosController;
 import giis.demo.controller.OfrecerReportajeAgenciaComunicacionController;
+import giis.demo.model.AccederReportajesModel;
 import giis.demo.model.AsignarReporterosAEventosModel;
+import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
 import giis.demo.tkrun.*;
+import giis.demo.view.AccederReportajesView;
 import giis.demo.view.AsignarReporterosAEventosView;
+import giis.demo.view.EntregarReportajesDeEventosView;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
 import giis.demo.controller.GestionarOfrecimientosRecibidosController;
 import giis.demo.model.GestionarOfrecimientosRecibidosModel;
@@ -58,7 +64,7 @@ public class SwingMain {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("Main");
-		frame.setBounds(0, 0, 287, 185);
+		frame.setBounds(0, 0, 287, 230);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
@@ -103,6 +109,20 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33550);
+		
+		
+		JButton btnHU33551 = new JButton("HU 33551 - Entregar Reportajes");
+		btnHU33551.addActionListener(e -> {
+			EntregarReportajesDeEventosController controller =
+				new EntregarReportajesDeEventosController(
+					new EntregarReportajesDeEventosModel(),
+					new EntregarReportajesDeEventosView(),1
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33551);
+		
+		
 
 		JButton btnHU33552 = new JButton("HU 33552 - Ofrecer reportajes");
 		btnHU33552.addActionListener(e -> {
@@ -125,6 +145,17 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33553);
+		
+		JButton btnHU33555 = new JButton("HU 33555 - Acceder a reportajes");
+		btnHU33555.addActionListener(e -> {
+			AccederReportajesController controller =
+				new AccederReportajesController(
+					new AccederReportajesModel(),
+					new AccederReportajesView()
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33555);
 			
 	}
 

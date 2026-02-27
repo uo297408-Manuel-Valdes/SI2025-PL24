@@ -41,3 +41,21 @@ INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (2, 'Presentación futbolista', '2026-03-11');
 
 
+-- Evento 2 ofrecido solo a El Diario
+INSERT INTO ofrecer_reportaje (id_evento, id_empresa, decision)
+VALUES (2, 1, NULL);
+
+-- ===============================
+-- ACCESO REPORTAJES
+-- ===============================
+-- El Diario con acceso a evento 3
+INSERT INTO acceso_reportaje (id_evento, id_empresa)
+VALUES (1,1);
+
+-- ===============================
+-- REPORTAJES
+-- ===============================
+INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega) 
+VALUES (1, 'Duras declaraciones en la rueda de prensa gubernamental',1);
+
+

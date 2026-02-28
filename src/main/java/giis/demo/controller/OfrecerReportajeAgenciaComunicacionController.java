@@ -184,8 +184,16 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		if (!view.confirm(msg, "Confirmar")) return;
 		
 		List<Integer> ids = seleccionados.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
+		for(Integer idEmpresa:ids) {
+			OfrecimientoDTO of=new OfrecimientoDTO();
+			of=model.getOfrecimiento(idEmpresa,idEvento);
+			if(of!=null) {
+				if(of.getDecision()!=null && of.getDecision().equals("ACEPTADO")) {
+					view.showInfo("Una o varias empresas ya aceptaron el ofrecimiento, se les mandara un correo notificando el cambio");
+				}
+			}
+		}
 		model.quitarOfrecimiento(idEvento, ids);
-		
 		for(Integer idEmpresa:ids) {
 			OfrecimientoDTO of=new OfrecimientoDTO();
 			of=model.getOfrecimiento(idEmpresa,idEvento);

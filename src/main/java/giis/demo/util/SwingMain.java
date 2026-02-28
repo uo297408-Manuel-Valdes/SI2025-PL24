@@ -124,7 +124,7 @@ public class SwingMain {
 		
 		
 
-		JButton btnHU33552 = new JButton("HU 33552 - Ofrecer reportajes");
+		JButton btnHU33552 = new JButton("HU 33552/33557 - Ofrecer reportajes");
 		btnHU33552.addActionListener(e -> {
 			OfrecerReportajeAgenciaComunicacionController controller =
 				new OfrecerReportajeAgenciaComunicacionController(

@@ -47,10 +47,6 @@ public class GestionarOfrecimientosRecibidosView {
 		cbEmpresas.setBounds(190, 15, 360, 22);
 		frame.getContentPane().add(cbEmpresas);
 
-		JLabel lblInfo = new JLabel("Mostrando solo ofrecimientos PENDIENTES (sin decisión)");
-		lblInfo.setFont(new Font("Tahoma", Font.ITALIC, 12));
-		lblInfo.setBounds(20, 45, 400, 18);
-		frame.getContentPane().add(lblInfo);
 
 		JLabel lblTabla = new JLabel("Ofrecimientos pendientes");
 		lblTabla.setFont(new Font("Tahoma", Font.BOLD, 12));

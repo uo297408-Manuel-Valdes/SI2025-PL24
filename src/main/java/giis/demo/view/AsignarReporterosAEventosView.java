@@ -17,6 +17,7 @@ public class AsignarReporterosAEventosView {
 	private JFrame frame;
 
 	private JComboBox<AgenciaDTO> cbAgencias;
+	private JComboBox<String> cbFiltro; 
 
 	private JTable tblEventos;
 	private DefaultTableModel tmEventos;
@@ -28,16 +29,17 @@ public class AsignarReporterosAEventosView {
 	private DefaultTableModel tmAsignados;
 
 	private JButton btnAsignar;
-	private JButton btnAceptar;
+	private JButton btnEliminar;
+	private JButton btnGuardar;
 
 	public AsignarReporterosAEventosView() {
 		initialize();
 	}
 
 	private void initialize() {
-		frame = new JFrame(" Asignar reporteros a eventos ");
+		frame = new JFrame("HU 33550/33556 - Asignar reporteros a eventos");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(980, 650);
+		frame.setSize(980, 680);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -46,10 +48,21 @@ public class AsignarReporterosAEventosView {
 		frame.getContentPane().add(lblAgencia);
 
 		cbAgencias = new JComboBox<>();
-		cbAgencias.setBounds(160, 15, 350, 22);
+		cbAgencias.setBounds(160, 15, 330, 22);
 		frame.getContentPane().add(cbAgencias);
 
-		JLabel lblEventos = new JLabel("Eventos sin reporteros asignados");
+		JLabel lblFiltro = new JLabel("Filtro eventos:");
+		lblFiltro.setBounds(510, 15, 90, 20);
+		frame.getContentPane().add(lblFiltro);
+
+		cbFiltro = new JComboBox<>(new String[] {
+				"Eventos SIN reporteros asignados",
+				"Eventos CON reporteros asignados"
+		});
+		cbFiltro.setBounds(600, 15, 350, 22);
+		frame.getContentPane().add(cbFiltro);
+
+		JLabel lblEventos = new JLabel("Eventos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblEventos.setBounds(20, 50, 350, 20);
 		frame.getContentPane().add(lblEventos);
@@ -57,13 +70,12 @@ public class AsignarReporterosAEventosView {
 		tmEventos = new DefaultTableModel(new Object[] { "Nombre", "Fecha", "id_evento" }, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
 		};
-
 		tblEventos = new JTable(tmEventos);
 		tblEventos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tblEventos.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spEventos = new JScrollPane(tblEventos);
-		spEventos.setBounds(20, 75, 930, 180);
+		spEventos.setBounds(20, 75, 930, 200);
 		frame.getContentPane().add(spEventos);
 
 		ocultarColumna(tblEventos, 2);
@@ -72,12 +84,12 @@ public class AsignarReporterosAEventosView {
 
 		JLabel lblDisp = new JLabel("Reporteros disponibles");
 		lblDisp.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblDisp.setBounds(20, 270, 200, 20);
+		lblDisp.setBounds(20, 290, 200, 20);
 		frame.getContentPane().add(lblDisp);
 
-		JLabel lblAsig = new JLabel("Reporteros asignados (selección)");
+		JLabel lblAsig = new JLabel("Reporteros asignados al evento");
 		lblAsig.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblAsig.setBounds(500, 270, 300, 20);
+		lblAsig.setBounds(558, 290, 222, 20);
 		frame.getContentPane().add(lblAsig);
 
 		tmDisponibles = new DefaultTableModel(new Object[] { "Nombre", "id_reportero" }, 0) {
@@ -85,11 +97,10 @@ public class AsignarReporterosAEventosView {
 		};
 		tblDisponibles = new JTable(tmDisponibles);
 		tblDisponibles.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
 		tblDisponibles.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spDisp = new JScrollPane(tblDisponibles);
-		spDisp.setBounds(20, 295, 450, 240);
+		spDisp.setBounds(20, 315, 378, 250);
 		frame.getContentPane().add(spDisp);
 		ocultarColumna(tblDisponibles, 1);
 
@@ -101,7 +112,7 @@ public class AsignarReporterosAEventosView {
 		tblAsignados.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spAsig = new JScrollPane(tblAsignados);
-		spAsig.setBounds(500, 295, 450, 240);
+		spAsig.setBounds(558, 315, 392, 250);
 		frame.getContentPane().add(spAsig);
 		ocultarColumna(tblAsignados, 1);
 
@@ -109,12 +120,18 @@ public class AsignarReporterosAEventosView {
 		instalarTooltipsTabla(tblAsignados);
 
 		btnAsignar = new JButton("Asignar ->");
-		btnAsignar.setBounds(390, 545, 140, 30);
+		btnAsignar.setBounds(427, 358, 110, 32);
 		frame.getContentPane().add(btnAsignar);
 
-		btnAceptar = new JButton("Aceptar");
-		btnAceptar.setBounds(810, 545, 140, 30);
-		frame.getContentPane().add(btnAceptar);
+		btnEliminar = new JButton("<- Eliminar");
+		btnEliminar.setBounds(427, 409, 110, 32);
+		frame.getContentPane().add(btnEliminar);
+
+		btnGuardar = new JButton("Aceptar");
+		btnGuardar.setBounds(810, 590, 140, 30);
+		frame.getContentPane().add(btnGuardar);
+
+		setAccionesEnabled(false);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -154,8 +171,6 @@ public class AsignarReporterosAEventosView {
 			tmEventos.addRow(new Object[] { e.getNombre(), e.getFechaEvento(), e.getIdEvento() });
 		}
 		ocultarColumna(tblEventos, 2);
-		tblEventos.getColumnModel().getColumn(0).setPreferredWidth(750);
-		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(150);
 	}
 
 	public void setDisponibles(List<ReporteroDTO> reporteros) {
@@ -175,8 +190,14 @@ public class AsignarReporterosAEventosView {
 	}
 
 
+	public JFrame getFrame() { return frame; }
+
 	public AgenciaDTO getAgenciaSeleccionada() {
 		return (AgenciaDTO) cbAgencias.getSelectedItem();
+	}
+
+	public int getFiltroSeleccionado() {
+		return cbFiltro.getSelectedIndex(); 
 	}
 
 	public Integer getIdEventoSeleccionado() {
@@ -201,17 +222,36 @@ public class AsignarReporterosAEventosView {
 		return tblDisponibles.getSelectedRows();
 	}
 
+	public int[] getFilasAsignadosSeleccionadas() {
+		return tblAsignados.getSelectedRows();
+	}
+
 	public ReporteroDTO getReporteroDisponibleEnFila(int row) {
 		String nombre = (String) tmDisponibles.getValueAt(row, 0);
 		int id = ((Number) tmDisponibles.getValueAt(row, 1)).intValue();
 		return new ReporteroDTO(id, 0, nombre);
 	}
 
-	public JFrame getFrame() { return frame; }
+	public ReporteroDTO getReporteroAsignadoEnFila(int row) {
+		String nombre = (String) tmAsignados.getValueAt(row, 0);
+		int id = ((Number) tmAsignados.getValueAt(row, 1)).intValue();
+		return new ReporteroDTO(id, 0, nombre);
+	}
+
+
+	public void setAccionesEnabled(boolean enabled) {
+		btnAsignar.setEnabled(enabled);
+		btnEliminar.setEnabled(enabled);
+		btnGuardar.setEnabled(enabled);
+	}
 
 
 	public void addAgenciaChangedListener(ActionListener l) {
 		cbAgencias.addActionListener(l);
+	}
+
+	public void addFiltroChangedListener(ActionListener l) {
+		cbFiltro.addActionListener(l);
 	}
 
 	public void addEventosSelectionListener(ListSelectionListener l) {
@@ -222,11 +262,15 @@ public class AsignarReporterosAEventosView {
 		btnAsignar.addActionListener(l);
 	}
 
-	public void addAceptarListener(ActionListener l) {
-		btnAceptar.addActionListener(l);
+	public void addEliminarListener(ActionListener l) {
+		btnEliminar.addActionListener(l);
 	}
 
+	public void addGuardarListener(ActionListener l) {
+		btnGuardar.addActionListener(l);
+	}
 
+	
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
 	}

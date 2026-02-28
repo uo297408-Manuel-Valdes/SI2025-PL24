@@ -9,15 +9,18 @@ import java.awt.event.ActionEvent;
 
 import giis.demo.controller.AccederReportajesController;
 import giis.demo.controller.AsignarReporterosAEventosController;
+import giis.demo.controller.ConcederAccesoController;
 import giis.demo.controller.EntregarReportajesDeEventosController;
 import giis.demo.controller.OfrecerReportajeAgenciaComunicacionController;
 import giis.demo.model.AccederReportajesModel;
 import giis.demo.model.AsignarReporterosAEventosModel;
+import giis.demo.model.ConcederAccesoModel;
 import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
 import giis.demo.tkrun.*;
 import giis.demo.view.AccederReportajesView;
 import giis.demo.view.AsignarReporterosAEventosView;
+import giis.demo.view.ConcederAccesoView;
 import giis.demo.view.EntregarReportajesDeEventosView;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
 import giis.demo.controller.GestionarOfrecimientosRecibidosController;
@@ -145,6 +148,17 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33553);
+		
+		JButton btnHU33554 = new JButton("HU 33554 - Conceder Acceso");
+		btnHU33554.addActionListener(e -> {
+			ConcederAccesoController controller =
+				new ConcederAccesoController(
+					new ConcederAccesoModel(),
+					new ConcederAccesoView()
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU33554);
 		
 		JButton btnHU33555 = new JButton("HU 33555 - Acceder a reportajes");
 		btnHU33555.addActionListener(e -> {

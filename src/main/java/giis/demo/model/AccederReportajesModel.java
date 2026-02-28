@@ -49,7 +49,7 @@ public class AccederReportajesModel {
 				"WHERE r.id_evento=? ";
 		
 		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-		System.out.print(rows.size());
+
 		ReportajeDTO res = null;
 		
 		for (Object[] r : rows) {

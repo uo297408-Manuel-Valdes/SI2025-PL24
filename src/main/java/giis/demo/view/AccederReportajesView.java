@@ -42,7 +42,7 @@ public class AccederReportajesView {
 	private void initialize() {
 		frame = new JFrame(" Acceder a reportajes de un evento ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(600, 900);
+		frame.setSize(900, 600);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 		
@@ -68,42 +68,42 @@ public class AccederReportajesView {
 		tblReportajes.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spReportajes = new JScrollPane(tblReportajes);
-		spReportajes.setBounds(20, 90, 500, 250);
+		spReportajes.setBounds(20, 90, 250, 250);
 		frame.getContentPane().add(spReportajes);
 		ocultarColumna(tblReportajes, 2);
 		
 		JLabel l1= new JLabel("Título");
 		l1.setFont(new Font("Tahoma", Font.BOLD, 12));
-		l1.setBounds(20, 400, 350, 20);
+		l1.setBounds(350, 90, 350, 20);
 		frame.getContentPane().add(l1);
 		
 		lblTitulo= new JLabel("-");
 		lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblTitulo.setBounds(100, 400, 450, 20);
+		lblTitulo.setBounds(430, 90, 450, 20);
 		frame.getContentPane().add(lblTitulo);
 		
 		JLabel l2= new JLabel("Subtítulo");
 		l2.setFont(new Font("Tahoma", Font.BOLD, 12));
-		l2.setBounds(20, 500, 450, 20);
+		l2.setBounds(350, 150, 450, 20);
 		frame.getContentPane().add(l2);
 		
 		lblSubtitulo= new JLabel("-");
 		lblSubtitulo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblSubtitulo.setBounds(100, 500, 450, 20);
+		lblSubtitulo.setBounds(430, 150, 450, 20);
 		frame.getContentPane().add(lblSubtitulo);
 		
 		JLabel l3= new JLabel("Cuerpo");
 		l3.setFont(new Font("Tahoma", Font.BOLD, 12));
-		l3.setBounds(20, 600, 550, 20);
+		l3.setBounds(350, 220, 550, 20);
 		frame.getContentPane().add(l3);
 		
 		lblCuerpo= new JLabel("-");
 		lblCuerpo.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblCuerpo.setBounds(100, 600, 450, 20);
+		lblCuerpo.setBounds(430, 220, 450, 20);
 		frame.getContentPane().add(lblCuerpo);
 		
 		btnFinalizar = new JButton("Finalizar visualización");
-		btnFinalizar.setBounds(400, 800, 170, 30);
+		btnFinalizar.setBounds(700, 500, 170, 30);
 		frame.getContentPane().add(btnFinalizar);
 		
 		frame.setLocationRelativeTo(null);

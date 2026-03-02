@@ -52,10 +52,6 @@ VALUES (2, 1, NULL);
 INSERT INTO acceso_reportaje (id_evento, id_empresa)
 VALUES (1,1);
 
--- ===============================
--- REPORTAJES
--- ===============================
-INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega) 
-VALUES (1, 'Duras declaraciones en la rueda de prensa gubernamental',1);
+
 
 

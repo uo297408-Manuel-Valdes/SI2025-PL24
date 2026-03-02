@@ -67,7 +67,7 @@ public class SwingMain {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("Main");
-		frame.setBounds(0, 0, 287, 300);
+		frame.setBounds(0, 0, 287, 250);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");

@@ -24,7 +24,6 @@ public class AsignarReporterosAEventosModel {
 		return res;
 	}
 
-	
 	public List<EventoDTO> getEventosSinAsignacion(int idAgencia) {
 		String sql =
 			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento " +
@@ -41,12 +40,14 @@ public class AsignarReporterosAEventosModel {
 			int idAg = ((Number) r[1]).intValue();
 			String nombre = (String) r[2];
 			String fecha = (String) r[3];
-			events.add(new EventoDTO(idEvento, idAg, nombre, fecha));
+			String tematicas = getTematicasEventoTexto(idEvento);
+
+			events.add(new EventoDTO(idEvento, idAg, nombre, fecha, tematicas));
 		}
 		return events;
 	}
-	
-	public List<EventoDTO> getEventosConAsignacion(int idAgencia){
+
+	public List<EventoDTO> getEventosConAsignacion(int idAgencia) {
 		String sql =
 			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento " +
 			"FROM EVENTO e " +
@@ -57,57 +58,93 @@ public class AsignarReporterosAEventosModel {
 		List<Object[]> rows = db.executeQueryArray(sql, idAgencia);
 
 		List<EventoDTO> events = new ArrayList<>();
-		for(Object[] r : rows) {
-			events.add(new EventoDTO(
-				((Number) r[0]).intValue(),
-				((Number) r[1]).intValue(),
-				(String) r[2],
-				(String) r[3]
-			));
+		for (Object[] r : rows) {
+			int idEvento = ((Number) r[0]).intValue();
+			int idAg = ((Number) r[1]).intValue();
+			String nombre = (String) r[2];
+			String fecha = (String) r[3];
+			String tematicas = getTematicasEventoTexto(idEvento);
+
+			events.add(new EventoDTO(idEvento, idAg, nombre, fecha, tematicas));
 		}
 		return events;
 	}
-	
-	public List<ReporteroDTO> getReporterosdeEvento(int idEvento){
-		String sql = 
-				"SELECT r.id_reportero, r.id_agencia, r.nombre " +
-				"FROM ASIGNACION_REPORTERO ar " +
-				"JOIN REPORTERO r ON r.id_reportero = ar.id_reportero " +
-				"WHERE ar.id_evento = ? " +
-				"ORDER BY r.nombre";
+
+	public List<ReporteroDTO> getReporterosdeEvento(int idEvento) {
+		String sql =
+			"SELECT r.id_reportero, r.id_agencia, r.nombre " +
+			"FROM ASIGNACION_REPORTERO ar " +
+			"JOIN REPORTERO r ON r.id_reportero = ar.id_reportero " +
+			"WHERE ar.id_evento = ? " +
+			"ORDER BY r.nombre";
+
 		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-		List<ReporteroDTO> eventos = new ArrayList<>();
+		List<ReporteroDTO> reporteros = new ArrayList<>();
+
 		for (Object[] r : rows) {
-			eventos.add(new ReporteroDTO(
-				((Number) r[0]).intValue(),
-				((Number) r[1]).intValue(),
-				(String) r[2]
-			));
+			int idReportero = ((Number) r[0]).intValue();
+			int idAgencia = ((Number) r[1]).intValue();
+			String nombre = (String) r[2];
+			String tematicas = getTematicasReporteroTexto(idReportero);
+
+			reporteros.add(new ReporteroDTO(idReportero, idAgencia, nombre, tematicas));
 		}
-		return eventos;
+		return reporteros;
 	}
 
-	
-	public List<ReporteroDTO> getReporterosDisponiblesParaEvento(int idEvento) {
+	public List<ReporteroDTO> getReporterosDisponiblesParaEvento(int idEvento, boolean soloEspecialistas) {
 		EventoDTO evento = getEventoById(idEvento);
-		String sql =
-				"SELECT r.id_reportero, r.id_agencia, r.nombre " +
-				"FROM REPORTERO r " +
-				"WHERE r.id_agencia = ? " +
-				"AND NOT EXISTS (SELECT 1 FROM ASIGNACION_REPORTERO ar0 WHERE ar0.id_evento = ? AND ar0.id_reportero = r.id_reportero) " +
-				"AND NOT EXISTS (SELECT 1 FROM ASIGNACION_REPORTERO ar " +
-						"JOIN EVENTO e2 ON e2.id_evento = ar.id_evento " +
-						"WHERE ar.id_reportero = r.id_reportero AND e2.fecha_evento = ? AND ar.id_evento <> ? ) " +
-				"ORDER BY r.nombre";
 
-		List<Object[]> rows = db.executeQueryArray(sql,evento.getIdAgencia(),idEvento,evento.getFechaEvento(),idEvento);
-		
+		String sql =
+			"SELECT DISTINCT r.id_reportero, r.id_agencia, r.nombre " +
+			"FROM REPORTERO r ";
+
+		if (soloEspecialistas) {
+			sql +=
+				"JOIN REPORTERO_TEMATICA rt ON rt.id_reportero = r.id_reportero " +
+				"JOIN EVENTO_TEMATICA et ON et.id_tematica = rt.id_tematica AND et.id_evento = ? ";
+		}
+
+		sql +=
+			"WHERE r.id_agencia = ? " +
+			"AND NOT EXISTS ( " +
+				"SELECT 1 FROM ASIGNACION_REPORTERO ar0 " +
+				"WHERE ar0.id_evento = ? AND ar0.id_reportero = r.id_reportero " +
+			") " +
+			"AND NOT EXISTS ( " +
+				"SELECT 1 " +
+				"FROM ASIGNACION_REPORTERO ar " +
+				"JOIN EVENTO e2 ON e2.id_evento = ar.id_evento " +
+				"WHERE ar.id_reportero = r.id_reportero " +
+				"AND e2.fecha_evento = ? " +
+				"AND ar.id_evento <> ? " +
+			") " +
+			"ORDER BY r.nombre";
+
+		List<Object[]> rows;
+		if (soloEspecialistas) {
+			rows = db.executeQueryArray(sql,
+				idEvento,
+				evento.getIdAgencia(),
+				idEvento,
+				evento.getFechaEvento(),
+				idEvento);
+		} else {
+			rows = db.executeQueryArray(sql,
+				evento.getIdAgencia(),
+				idEvento,
+				evento.getFechaEvento(),
+				idEvento);
+		}
+
 		List<ReporteroDTO> rep = new ArrayList<>();
 		for (Object[] r : rows) {
 			int idRep = ((Number) r[0]).intValue();
 			int idAg = ((Number) r[1]).intValue();
 			String nombre = (String) r[2];
-			rep.add(new ReporteroDTO(idRep, idAg, nombre));
+			String tematicas = getTematicasReporteroTexto(idRep);
+
+			rep.add(new ReporteroDTO(idRep, idAg, nombre, tematicas));
 		}
 		return rep;
 	}
@@ -117,16 +154,45 @@ public class AsignarReporterosAEventosModel {
 		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
 		if (rows.isEmpty())
 			throw new ApplicationException("El evento seleccionado ya no existe.");
+
 		Object[] r = rows.get(0);
-		return new EventoDTO(
-			((Number) r[0]).intValue(),
-			((Number) r[1]).intValue(),
-			(String) r[2],
-			(String) r[3]
-		);
+		int id = ((Number) r[0]).intValue();
+		int idAgencia = ((Number) r[1]).intValue();
+		String nombre = (String) r[2];
+		String fecha = (String) r[3];
+		String tematicas = getTematicasEventoTexto(id);
+
+		return new EventoDTO(id, idAgencia, nombre, fecha, tematicas);
 	}
 
-	
+	private String getTematicasEventoTexto(int idEvento) {
+		String sql =
+			"SELECT GROUP_CONCAT(t.nombre, ', ') " +
+			"FROM EVENTO_TEMATICA et " +
+			"JOIN TEMATICA t ON t.id_tematica = et.id_tematica " +
+			"WHERE et.id_evento = ?";
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+
+		if (rows.isEmpty() || rows.get(0)[0] == null)
+			return "";
+
+		return (String) rows.get(0)[0];
+	}
+
+	private String getTematicasReporteroTexto(int idReportero) {
+		String sql =
+			"SELECT GROUP_CONCAT(t.nombre, ', ') " +
+			"FROM REPORTERO_TEMATICA rt " +
+			"JOIN TEMATICA t ON t.id_tematica = rt.id_tematica " +
+			"WHERE rt.id_reportero = ?";
+		List<Object[]> rows = db.executeQueryArray(sql, idReportero);
+
+		if (rows.isEmpty() || rows.get(0)[0] == null)
+			return "";
+
+		return (String) rows.get(0)[0];
+	}
+
 	public void asignarInicial(int idEvento, List<Integer> idsReporteros) {
 		if (idsReporteros == null || idsReporteros.isEmpty())
 			throw new ApplicationException("Debes asignar al menos un reportero.");
@@ -145,7 +211,7 @@ public class AsignarReporterosAEventosModel {
 			db.executeUpdate(insert, idEvento, idReportero);
 		}
 	}
-	
+
 	public void guardarAsignacionFinal(int idEvento, List<Integer> idsFinales) {
 		EventoDTO evento = getEventoById(idEvento);
 		if (idsFinales == null) idsFinales = new ArrayList<>();
@@ -160,8 +226,7 @@ public class AsignarReporterosAEventosModel {
 			db.executeUpdate(insert, idEvento, idReportero);
 		}
 	}
-	
-	
+
 	private void validarListaFinal(EventoDTO evento, int idEvento, List<Integer> idsFinales) {
 		Set<Integer> set = new HashSet<>();
 		for (Integer id : idsFinales) {
@@ -183,8 +248,6 @@ public class AsignarReporterosAEventosModel {
 			}
 		}
 	}
-	
-	
 
 	private boolean eventoTieneAsignaciones(int idEvento) {
 		String sql = "SELECT 1 FROM ASIGNACION_REPORTERO WHERE id_evento = ? LIMIT 1";

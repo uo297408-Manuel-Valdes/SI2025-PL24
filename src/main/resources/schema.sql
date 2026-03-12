@@ -8,6 +8,12 @@ DROP TABLE IF EXISTS reportero;
 DROP TABLE IF EXISTS evento;
 DROP TABLE IF EXISTS empresa;
 DROP TABLE IF EXISTS agencia_prensa;
+DROP TABLE IF EXISTS tematica;
+DROP TABLE IF EXISTS evento_tematica;
+DROP TABLE IF EXISTS reportero_tematica;
+
+
+
 
 CREATE TABLE agencia_prensa (
   id_agencia     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,4 +84,24 @@ CREATE TABLE version_reportaje (
   cuerpo        TEXT NOT NULL,
   cambios       TEXT NOT NULL,
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
+);
+CREATE TABLE tematica (
+  id_tematica   INTEGER PRIMARY KEY AUTOINCREMENT,
+  nombre        TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE evento_tematica (
+  id_evento     INTEGER NOT NULL,
+  id_tematica   INTEGER NOT NULL,
+  PRIMARY KEY (id_evento, id_tematica),
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
+  FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
+);
+
+CREATE TABLE reportero_tematica (
+  id_reportero  INTEGER NOT NULL,
+  id_tematica   INTEGER NOT NULL,
+  PRIMARY KEY (id_reportero, id_tematica),
+  FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero),
+  FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );

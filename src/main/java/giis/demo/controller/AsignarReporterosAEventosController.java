@@ -28,9 +28,9 @@ public class AsignarReporterosAEventosController {
 	}
 
 	public void initController() {
-
 		view.addAgenciaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
-		view.addFiltroChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addFiltroEventosChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addSoloEspecialistasChangedListener(e -> SwingUtil.exceptionWrapper(() -> recargarDisponiblesSegunFiltros()));
 		view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
 
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> moverDisponiblesAAsignados()));
@@ -51,7 +51,7 @@ public class AsignarReporterosAEventosController {
 			return;
 		}
 
-		int filtro = view.getFiltroSeleccionado(); // 0 / 1
+		int filtro = view.getFiltroEventosSeleccionado();
 
 		if (filtro == 0) {
 			eventos = model.getEventosSinAsignacion(ag.getIdAgencia());
@@ -81,13 +81,23 @@ public class AsignarReporterosAEventosController {
 		}
 
 		asignados = model.getReporterosdeEvento(idEvento);
-		disponibles = model.getReporterosDisponiblesParaEvento(idEvento);
+
+		boolean soloEspecialistas = view.isFiltroSoloEspecialistasActivo();
+		disponibles = model.getReporterosDisponiblesParaEvento(idEvento, soloEspecialistas);
 
 		view.setAsignados(asignados);
 		view.setDisponibles(disponibles);
 		view.setAccionesEnabled(true);
 	}
 
+	private void recargarDisponiblesSegunFiltros() {
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) return;
+
+		boolean soloEspecialistas = view.isFiltroSoloEspecialistasActivo();
+		disponibles = model.getReporterosDisponiblesParaEvento(idEvento, soloEspecialistas);
+		view.setDisponibles(disponibles);
+	}
 
 	private void moverDisponiblesAAsignados() {
 		int[] selectedRows = view.getFilasDisponiblesSeleccionadas();
@@ -97,14 +107,19 @@ public class AsignarReporterosAEventosController {
 		}
 
 		List<ReporteroDTO> aMover = new ArrayList<>();
-		for (int row : selectedRows) aMover.add(view.getReporteroDisponibleEnFila(row));
+		for (int row : selectedRows) {
+			aMover.add(view.getReporteroDisponibleEnFila(row));
+		}
 
 		for (ReporteroDTO r : aMover) {
 			boolean yaEsta = asignados.stream().anyMatch(x -> x.getIdReportero() == r.getIdReportero());
 			if (!yaEsta) asignados.add(r);
 		}
 
-		List<Integer> idsMovidos = aMover.stream().map(ReporteroDTO::getIdReportero).collect(Collectors.toList());
+		List<Integer> idsMovidos = aMover.stream()
+				.map(ReporteroDTO::getIdReportero)
+				.collect(Collectors.toList());
+
 		disponibles = disponibles.stream()
 				.filter(r -> !idsMovidos.contains(r.getIdReportero()))
 				.collect(Collectors.toList());
@@ -121,14 +136,19 @@ public class AsignarReporterosAEventosController {
 		}
 
 		List<ReporteroDTO> aMover = new ArrayList<>();
-		for (int row : selectedRows) aMover.add(view.getReporteroAsignadoEnFila(row));
+		for (int row : selectedRows) {
+			aMover.add(view.getReporteroAsignadoEnFila(row));
+		}
 
 		for (ReporteroDTO r : aMover) {
 			boolean yaEsta = disponibles.stream().anyMatch(x -> x.getIdReportero() == r.getIdReportero());
 			if (!yaEsta) disponibles.add(r);
 		}
 
-		List<Integer> idsMovidos = aMover.stream().map(ReporteroDTO::getIdReportero).collect(Collectors.toList());
+		List<Integer> idsMovidos = aMover.stream()
+				.map(ReporteroDTO::getIdReportero)
+				.collect(Collectors.toList());
+
 		asignados = asignados.stream()
 				.filter(r -> !idsMovidos.contains(r.getIdReportero()))
 				.collect(Collectors.toList());
@@ -137,7 +157,6 @@ public class AsignarReporterosAEventosController {
 		view.setAsignados(asignados);
 	}
 
-
 	private void guardar() {
 		Integer idEvento = view.getIdEventoSeleccionado();
 		if (idEvento == null) {
@@ -145,14 +164,16 @@ public class AsignarReporterosAEventosController {
 			return;
 		}
 
-		int filtro = view.getFiltroSeleccionado(); // 0 = sin asignación (HU 33550), 1 = con asignación (HU 33556)
+		int filtro = view.getFiltroEventosSeleccionado();
 
 		String evento = view.getNombreEventoSeleccionado();
 		String fecha = view.getFechaEventoSeleccionado();
 
 		String lista = asignados.isEmpty()
 				? "(ninguno)"
-				: asignados.stream().map(ReporteroDTO::getNombre).collect(Collectors.joining(", "));
+				: asignados.stream()
+						.map(ReporteroDTO::getNombre)
+						.collect(Collectors.joining(", "));
 
 		String msg = "Vas a guardar la asignación:\n\n"
 				+ "Evento: " + evento + " (" + fecha + ")\n"
@@ -161,12 +182,13 @@ public class AsignarReporterosAEventosController {
 
 		if (!view.confirm(msg, "Confirmar")) return;
 
-		List<Integer> idsFinales = asignados.stream().map(ReporteroDTO::getIdReportero).collect(Collectors.toList());
+		List<Integer> idsFinales = asignados.stream()
+				.map(ReporteroDTO::getIdReportero)
+				.collect(Collectors.toList());
 
 		if (filtro == 0) {
 			model.asignarInicial(idEvento, idsFinales);
-		}
-		else {
+		} else {
 			model.guardarAsignacionFinal(idEvento, idsFinales);
 		}
 

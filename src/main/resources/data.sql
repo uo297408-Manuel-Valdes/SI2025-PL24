@@ -41,17 +41,27 @@ INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (2, 'Presentación futbolista', '2026-03-11');
 
 
--- Evento 2 ofrecido solo a El Diario
-INSERT INTO ofrecer_reportaje (id_evento, id_empresa, decision)
-VALUES (2, 1, NULL);
-
--- ===============================
--- ACCESO REPORTAJES
--- ===============================
--- El Diario con acceso a evento 3
-INSERT INTO acceso_reportaje (id_evento, id_empresa)
-VALUES (1,1);
 
 
 
 
+
+--Temáticas
+INSERT INTO tematica (nombre) VALUES ('Deportes');
+INSERT INTO tematica (nombre) VALUES ('Moda');
+INSERT INTO tematica (nombre) VALUES ('Política');
+INSERT INTO tematica (nombre) VALUES ('Economía');
+
+-- Temáticas de eventos
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (1, 3); -- Rueda de prensa  Política
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (2, 3); -- Manifestación  Política
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (3, 1); -- Partido Champions  Deportes
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (4, 4); -- Presentación resultados  Economía
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (5, 1); -- Presentación futbolista  Deportes
+
+-- Temáticas de reporteros
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (1, 3); -- Ana  Política
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (2, 1); -- Luis  Deportes
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (3, 4); -- Marta  Economía
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 1); -- Laura  Deportes
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 3); -- Laura  Política

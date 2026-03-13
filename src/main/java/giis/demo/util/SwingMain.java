@@ -67,7 +67,7 @@ public class SwingMain {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("Main");
-		frame.setBounds(0, 0, 287, 250);
+		frame.setBounds(0, 0, 300, 270);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
@@ -102,7 +102,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnCargarDatosIniciales);
 
 		
-		JButton btnHU33550 = new JButton("HU 33550/33556 - Asignar reporteros");
+		JButton btnHU33550 = new JButton("HU 33550/33556/34024 - Asignar reporteros");
 		btnHU33550.addActionListener(e -> {
 			AsignarReporterosAEventosController controller =
 				new AsignarReporterosAEventosController(

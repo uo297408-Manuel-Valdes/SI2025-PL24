@@ -81,7 +81,6 @@ public class AsignarReporterosAEventosController {
 		}
 
 		asignados = model.getReporterosdeEvento(idEvento);
-
 		boolean soloEspecialistas = view.isFiltroSoloEspecialistasActivo();
 		disponibles = model.getReporterosDisponiblesParaEvento(idEvento, soloEspecialistas);
 
@@ -113,7 +112,9 @@ public class AsignarReporterosAEventosController {
 
 		for (ReporteroDTO r : aMover) {
 			boolean yaEsta = asignados.stream().anyMatch(x -> x.getIdReportero() == r.getIdReportero());
-			if (!yaEsta) asignados.add(r);
+			if (!yaEsta) {
+				asignados.add(r);
+			}
 		}
 
 		List<Integer> idsMovidos = aMover.stream()
@@ -142,7 +143,9 @@ public class AsignarReporterosAEventosController {
 
 		for (ReporteroDTO r : aMover) {
 			boolean yaEsta = disponibles.stream().anyMatch(x -> x.getIdReportero() == r.getIdReportero());
-			if (!yaEsta) disponibles.add(r);
+			if (!yaEsta) {
+				disponibles.add(r);
+			}
 		}
 
 		List<Integer> idsMovidos = aMover.stream()

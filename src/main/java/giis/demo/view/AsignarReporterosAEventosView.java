@@ -38,7 +38,7 @@ public class AsignarReporterosAEventosView {
 	}
 
 	private void initialize() {
-		frame = new JFrame("HU 34024 - Asignar reporteros a eventos");
+		frame = new JFrame("Asignar reporteros a eventos con temática");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(1180, 720);
 		frame.setResizable(false);
@@ -65,6 +65,7 @@ public class AsignarReporterosAEventosView {
 
 		chkSoloEspecialistas = new JCheckBox("Mostrar solo reporteros especialistas en temáticas del evento");
 		chkSoloEspecialistas.setBounds(20, 45, 430, 22);
+		chkSoloEspecialistas.setEnabled(true);
 		frame.getContentPane().add(chkSoloEspecialistas);
 
 		JLabel lblEventos = new JLabel("Eventos");
@@ -272,21 +273,22 @@ public class AsignarReporterosAEventosView {
 
 	public ReporteroDTO getReporteroDisponibleEnFila(int row) {
 		String nombre = (String) tmDisponibles.getValueAt(row, 0);
+		String tematicas = (String) tmDisponibles.getValueAt(row, 1);
 		int id = ((Number) tmDisponibles.getValueAt(row, 2)).intValue();
-		return new ReporteroDTO(id, 0, nombre);
+		return new ReporteroDTO(id, 0, nombre, tematicas);
 	}
 
 	public ReporteroDTO getReporteroAsignadoEnFila(int row) {
 		String nombre = (String) tmAsignados.getValueAt(row, 0);
+		String tematicas = (String) tmAsignados.getValueAt(row, 1);
 		int id = ((Number) tmAsignados.getValueAt(row, 2)).intValue();
-		return new ReporteroDTO(id, 0, nombre);
+		return new ReporteroDTO(id, 0, nombre, tematicas);
 	}
 
 	public void setAccionesEnabled(boolean enabled) {
 		btnAsignar.setEnabled(enabled);
 		btnEliminar.setEnabled(enabled);
 		btnGuardar.setEnabled(enabled);
-		chkSoloEspecialistas.setEnabled(enabled);
 	}
 
 	public void addAgenciaChangedListener(ActionListener l) {

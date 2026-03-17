@@ -86,5 +86,28 @@ public class AccederReportajesModel {
 		
 		return res;
 	}
+
+	public List<MultimediaDTO> getMultimedia(int idReportaje) {
+		String sql=
+				"SELECT m.id_multimedia, m.id_reportero, m.id_reportaje, m.tipo, m.estado, m.ruta "+
+				"FROM MULTIMEDIA m "+
+				"WHERE m.id_reportaje=? AND m.estado= 'DEFINITIVO'";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
+		
+		List<MultimediaDTO> res=new ArrayList<>();
+		
+		for (Object[] r : rows) {
+			int idmultimedia=((Number) r[0]).intValue();
+			int idreportero=((Number) r[1]).intValue();
+			int idreportaje= ((Number) r[2]).intValue();
+			String tipo = (String) r[3];
+			String estado = (String) r[4];
+			String ruta = (String) r[5];
+			res.add(new MultimediaDTO(idmultimedia,idreportero,idreportaje,tipo,estado,ruta));
+		}
+		
+		return res;
+	}
 	
 }

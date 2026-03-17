@@ -44,9 +44,6 @@ INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (2, 'Presentación futbolista', '2026-03-11');
 
 
-
-
-
 INSERT INTO tematica (nombre) VALUES ('Deportes');
 INSERT INTO tematica (nombre) VALUES ('Política');
 INSERT INTO tematica (nombre) VALUES ('Economía');
@@ -65,4 +62,9 @@ INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (2, 1);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (3, 3);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 1);
 
-
+--Temporal
+INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega) VALUES (1, 'Temporal',1);
+INSERT INTO acceso_reportaje (id_evento, id_empresa) VALUES (1,1);
+INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'VIDEO', 'DEFINITIVO', 'a');
+INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'IMAGEN', 'DEFINITIVO', 'b');
+INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'VIDEO', 'PROVISIONAL', 'c');

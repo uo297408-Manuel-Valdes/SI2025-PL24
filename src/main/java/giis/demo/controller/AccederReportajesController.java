@@ -9,6 +9,7 @@ import giis.demo.model.AccederReportajesModel;
 import giis.demo.model.AgenciaDTO;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.EventoDTO;
+import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReportajeDTO;
 import giis.demo.model.VersionDTO;
 import giis.demo.util.SwingUtil;
@@ -31,6 +32,7 @@ public class AccederReportajesController {
 		view.addEmpresaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReportajes()));
 		view.addReportajesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onReportajeSeleccionado(e)));
 		view.addFinalizarListener(e -> SwingUtil.exceptionWrapper(() -> finalizar()));
+		//view.addDescargarListener(e -> SwingUtil.exceptionWrapper(() -> descargar()));
 
 		SwingUtil.exceptionWrapper(() -> {
 			List<EmpresaDTO> empresas = model.getEmpresas();
@@ -50,6 +52,17 @@ public class AccederReportajesController {
 		view.setReportajes(eventos);
 	}
 	
+	private void cargarMultimedia(int id) {
+		List<MultimediaDTO> multimedia=model.getMultimedia(id);
+		
+		if (multimedia == null) {
+			view.setMultimedia(new ArrayList<>());
+			return;
+		}
+		view.setMultimedia(multimedia);
+		
+	}
+	
 	private void onReportajeSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
 
@@ -67,6 +80,9 @@ public class AccederReportajesController {
 			view.setInfo(null, null, null);
 			return;
 		}
+		
+		cargarMultimedia(reportaje.getIdReportaje());
+		
 		VersionDTO version=model.getVersion(reportaje.getIdReportaje());
 		
 		if (version == null) {

@@ -12,6 +12,8 @@ public class EntregarReportajesDeEventosModel {
 
 	private final Database db = new Database();
 
+
+
 	public List<ReporteroDTO> getReporteros() {
 		String sql = "SELECT id_reportero, id_agencia, nombre FROM REPORTERO ORDER BY nombre";
 		List<Object[]> rows = db.executeQueryArray(sql);
@@ -88,16 +90,83 @@ public class EntregarReportajesDeEventosModel {
 		return !db.executeQueryArray(sql, idEvento, idReportero).isEmpty();
 	}
 
-	public void validarTitulo(String titulo, int idReportajeExcluido) {
-	    if (titulo == null || titulo.trim().isEmpty())
-	        throw new ApplicationException("El título no puede estar vacío.");
-	    if (tituloExiste(titulo.trim(), idReportajeExcluido))
-	        throw new ApplicationException("Ya existe otro reportaje con ese título.");
+
+	/**
+	 * Devuelve todos los elementos multimedia asociados a un reportaje.
+	 */
+	public List<MultimediaDTO> getMultimedia(int idReportaje) {
+		String sql =
+			"SELECT id_multimedia, id_reportaje, path, tipo " +
+			"FROM MULTIMEDIA_REPORTAJE " +
+			"WHERE id_reportaje = ? " +
+			"ORDER BY id_multimedia";
+		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
+		List<MultimediaDTO> res = new ArrayList<>();
+		for (Object[] r : rows) {
+			res.add(new MultimediaDTO(
+				((Number) r[0]).intValue(),
+				((Number) r[1]).intValue(),
+				(String)  r[2],
+				(String)  r[3]
+			));
+		}
+		return res;
+	}
+
+	/**
+	 * Añade un elemento multimedia al reportaje.
+	 * Cualquier reportero asignado al evento puede añadir.
+	 * El path no puede repetirse en todo el sistema.
+	 */
+	public void addMultimedia(int idReportaje, int idReportero, int idEvento,
+	                           String path, String tipo) {
+
+		if (path == null || path.trim().isEmpty())
+			throw new ApplicationException("El path no puede estar vacio.");
+		if (tipo == null || (!tipo.equals("IMAGEN") && !tipo.equals("VIDEO")))
+			throw new ApplicationException("El tipo debe ser IMAGEN o VIDEO.");
+
+		// Cualquier reportero asignado al evento puede añadir multimedia
+		String checkAsig = "SELECT 1 FROM ASIGNACION_REPORTERO WHERE id_evento = ? AND id_reportero = ? LIMIT 1";
+		if (db.executeQueryArray(checkAsig, idEvento, idReportero).isEmpty())
+			throw new ApplicationException("El reportero no tiene asignacion para este evento.");
+
+		// El path no puede repetirse en todo el sistema
+		String checkPath = "SELECT 1 FROM MULTIMEDIA_REPORTAJE WHERE path = ? LIMIT 1";
+		if (!db.executeQueryArray(checkPath, path.trim()).isEmpty())
+			throw new ApplicationException("El path introducido ya existe en el sistema.");
+
+		String insert = "INSERT INTO MULTIMEDIA_REPORTAJE(id_reportaje, path, tipo) VALUES (?, ?, ?)";
+		db.executeUpdate(insert, idReportaje, path.trim(), tipo);
+	}
+
+	/**
+	 * Elimina un elemento multimedia por su id.
+	 */
+	public void removeMultimedia(int idMultimedia) {
+		if (idMultimedia <= 0)
+			throw new ApplicationException("Selecciona un elemento multimedia para eliminar.");
+		String delete = "DELETE FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ?";
+		db.executeUpdate(delete, idMultimedia);
 	}
 
 
+	public void validarTitulo(String titulo, int idReportajeExcluido) {
+		if (titulo == null || titulo.trim().isEmpty())
+			throw new ApplicationException("El titulo no puede estar vacio.");
+		if (tituloExiste(titulo.trim(), idReportajeExcluido))
+			throw new ApplicationException("Ya existe otro reportaje con ese titulo.");
+	}
+
+
+	/**
+	 * Persiste la entrega del reportaje.
+	 * Los cambios (subtitulo y/o cuerpo) y la fecha/hora se generan automaticamente.
+	 * En modificacion: solo puede el reportero original; el titulo no cambia.
+	 */
 	public void entregarReportaje(int idEvento, int idReportero,
 	                               String titulo, String subtitulo, String cuerpo) {
+
 		if (titulo    == null || titulo.trim().isEmpty())
 			throw new ApplicationException("El campo Titulo no puede estar vacio.");
 		if (subtitulo == null || subtitulo.trim().isEmpty())
@@ -124,12 +193,14 @@ public class EntregarReportajesDeEventosModel {
 		} else {
 			if (!reporteroPuedeModificar(idEvento, idReportero))
 				throw new ApplicationException("Solo el reportero que hizo la entrega original puede modificar el reportaje.");
+			// El titulo no se puede cambiar en modificacion
 		}
 
 		String cambiosAuto = generarCambios(reportaje, subtituloTrim, cuerpoTrim);
 		String insertVer = "INSERT INTO VERSION_REPORTAJE(id_reportaje, subtitulo, cuerpo, cambios) VALUES (?, ?, ?, ?)";
 		db.executeUpdate(insertVer, reportaje.getIdReportaje(), subtituloTrim, cuerpoTrim, cambiosAuto);
 	}
+
 
 	private String generarCambios(ReportajeDTO reportaje, String nuevoSubtitulo, String nuevoCuerpo) {
 		String ahora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));

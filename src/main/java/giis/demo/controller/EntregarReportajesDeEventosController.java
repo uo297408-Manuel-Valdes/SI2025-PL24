@@ -7,6 +7,7 @@ import javax.swing.event.ListSelectionEvent;
 
 import giis.demo.model.EventoDTO;
 import giis.demo.model.EntregarReportajesDeEventosModel;
+import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReportajeDTO;
 import giis.demo.model.ReporteroDTO;
 import giis.demo.model.VersionReportajeDTO;
@@ -21,6 +22,9 @@ public class EntregarReportajesDeEventosController {
 	private List<EventoDTO> eventos = new ArrayList<>();
 	private EventoDTO       eventoSeleccionado;
 
+	// Id del reportaje del evento actualmente seleccionado (-1 si no hay)
+	private int idReportajeActual = -1;
+
 	public EntregarReportajesDeEventosController(EntregarReportajesDeEventosModel model,
 	                                              EntregarReportajesDeEventosView  view) {
 		this.model = model;
@@ -28,11 +32,13 @@ public class EntregarReportajesDeEventosController {
 	}
 
 	public void initController() {
-		view.addReporteroChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
-		view.addFiltroChangedListener   (e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
-		view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
-		view.addValidarTituloListener   (e -> SwingUtil.exceptionWrapper(() -> onValidarTitulo()));
-		view.addEntregarListener        (e -> SwingUtil.exceptionWrapper(() -> onEntregar()));
+		view.addReporteroChangedListener   (e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addFiltroChangedListener      (e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addEventosSelectionListener   (e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
+		view.addValidarTituloListener      (e -> SwingUtil.exceptionWrapper(() -> onValidarTitulo()));
+		view.addEntregarListener           (e -> SwingUtil.exceptionWrapper(() -> onEntregar()));
+		view.addAnadirMultimediaListener   (e -> SwingUtil.exceptionWrapper(() -> onAnadirMultimedia()));
+		view.addEliminarMultimediaListener (e -> SwingUtil.exceptionWrapper(() -> onEliminarMultimedia()));
 
 		SwingUtil.exceptionWrapper(() -> {
 			List<ReporteroDTO> reporteros = model.getReporteros();
@@ -40,6 +46,7 @@ public class EntregarReportajesDeEventosController {
 			cargarEventos();
 		});
 	}
+
 
 	private void cargarEventos() {
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
@@ -53,10 +60,10 @@ public class EntregarReportajesDeEventosController {
 		eventos = model.getEventosAsignadosAReportero(reportero.getIdReportero(), conReportaje);
 		view.setEventos(eventos);
 		view.setAutor(reportero.getNombre());
-		eventoSeleccionado = null;
+		eventoSeleccionado  = null;
+		idReportajeActual   = -1;
 		view.limpiarFormulario();
 	}
-
 
 
 	private void onEventoSeleccionado(ListSelectionEvent e) {
@@ -65,6 +72,7 @@ public class EntregarReportajesDeEventosController {
 		int selectedRow = getSelectedRow();
 		if (selectedRow < 0 || selectedRow >= eventos.size()) {
 			eventoSeleccionado = null;
+			idReportajeActual  = -1;
 			view.limpiarFormulario();
 			ReporteroDTO rep = view.getReporteroSeleccionado();
 			if (rep != null) view.setAutor(rep.getNombre());
@@ -78,8 +86,11 @@ public class EntregarReportajesDeEventosController {
 		if (rep != null) view.setAutor(rep.getNombre());
 
 		ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento());
-		if (reportaje != null) {
 
+		if (reportaje != null) {
+			idReportajeActual = reportaje.getIdReportaje();
+
+			// Titulo bloqueado, cargar contenido existente
 			view.setTitulo(reportaje.getTitulo());
 			view.setTituloEditable(false);
 
@@ -92,16 +103,25 @@ public class EntregarReportajesDeEventosController {
 				view.setCuerpo("");
 			}
 
-	
+			// Cargar multimedia del reportaje
+			cargarMultimedia();
+
+			// Multimedia habilitada para cualquier reportero asignado
+			view.setMultimediaEnabled(true);
+
+			// Avisar si no puede modificar el contenido textual
 			if (rep != null && !model.reporteroPuedeModificar(eventoSeleccionado.getIdEvento(), rep.getIdReportero()))
-				view.showInfo("Solo puedes consultar este reportaje. No eres el reportero que realizo la entrega original.");
+				view.showInfo("Solo puedes consultar y añadir multimedia a este reportaje. No eres el reportero que realizo la entrega original.");
 
 		} else {
-
+			idReportajeActual = -1;
 			view.setTitulo("");
 			view.setSubtitulo("");
 			view.setCuerpo("");
 			view.setTituloEditable(true);
+			// Sin reportaje aun: multimedia deshabilitada
+			view.setMultimediaEnabled(false);
+			view.setMultimedia(new ArrayList<>());
 		}
 	}
 
@@ -114,20 +134,66 @@ public class EntregarReportajesDeEventosController {
 	}
 
 
+	private void cargarMultimedia() {
+		if (idReportajeActual <= 0) {
+			view.setMultimedia(new ArrayList<>());
+			return;
+		}
+		List<MultimediaDTO> lista = model.getMultimedia(idReportajeActual);
+		view.setMultimedia(lista);
+	}
+
+	private void onAnadirMultimedia() {
+		if (idReportajeActual <= 0) {
+			view.showInfo("Primero debe existir un reportaje entregado para añadir multimedia.");
+			return;
+		}
+
+		ReporteroDTO reportero = view.getReporteroSeleccionado();
+		if (reportero == null) {
+			view.showInfo("Selecciona un reportero primero.");
+			return;
+		}
+
+		String[] datos = view.mostrarDialogoAnadir();
+		if (datos == null) return;  // Cancelado
+
+		String path = datos[0];
+		String tipo = datos[1];
+
+		model.addMultimedia(idReportajeActual, reportero.getIdReportero(),
+		                    eventoSeleccionado.getIdEvento(), path, tipo);
+
+		cargarMultimedia();
+	}
+
+	private void onEliminarMultimedia() {
+		int idMultimedia = view.getIdMultimediaSeleccionado();
+		if (idMultimedia <= 0) {
+			view.showInfo("Selecciona un elemento multimedia para eliminar.");
+			return;
+		}
+
+		if (!view.confirm("Vas a eliminar el elemento multimedia seleccionado.\n¿Confirmas?",
+				"Confirmar eliminacion")) return;
+
+		model.removeMultimedia(idMultimedia);
+		cargarMultimedia();
+	}
+
 
 	private void onValidarTitulo() {
-	    try {
-	       
-	        int idExcluido = -1;
-	        if (eventoSeleccionado != null) {
-	            ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento());
-	            if (reportaje != null) idExcluido = reportaje.getIdReportaje();
-	        }
-	        model.validarTitulo(view.getTitulo(), idExcluido);
-	        view.showInfo("El título es válido y no está repetido.");
-	    } catch (Exception ex) {
-	        view.showError(ex.getMessage());
-	    }
+		try {
+			int idExcluido = -1;
+			if (eventoSeleccionado != null) {
+				ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento());
+				if (reportaje != null) idExcluido = reportaje.getIdReportaje();
+			}
+			model.validarTitulo(view.getTitulo(), idExcluido);
+			view.showInfo("El titulo es valido y no esta repetido.");
+		} catch (Exception ex) {
+			view.showError(ex.getMessage());
+		}
 	}
 
 
@@ -163,6 +229,14 @@ public class EntregarReportajesDeEventosController {
 			eventoSeleccionado.getIdEvento(), reportero.getIdReportero(),
 			titulo, subtitulo, cuerpo
 		);
+
+		// Tras la primera entrega habilitamos multimedia
+		ReportajeDTO reportajeNuevo = model.getReportaje(eventoSeleccionado.getIdEvento());
+		if (reportajeNuevo != null) {
+			idReportajeActual = reportajeNuevo.getIdReportaje();
+			view.setMultimediaEnabled(true);
+			view.setTituloEditable(false);
+		}
 
 		view.showInfo("Reportaje entregado correctamente.");
 		view.getFrame().dispose();

@@ -9,31 +9,40 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import giis.demo.model.EventoDTO;
+import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReporteroDTO;
 
 public class EntregarReportajesDeEventosView {
 
 	private JFrame frame;
 
-
+	// Combo reportero (arriba izquierda)
 	private JComboBox<ReporteroDTO> cbReporteros;
 
-
+	// Combo filtro
 	private JComboBox<String> cbFiltro;
 
-
+	// Tabla de eventos (izquierda arriba)
 	private JTable            tblEventos;
 	private DefaultTableModel tmEventos;
 
+	// Lista multimedia (izquierda abajo)
+	private JTable            tblMultimedia;
+	private DefaultTableModel tmMultimedia;
+	private JButton           btnAnadir;
+	private JButton           btnEliminar;
 
+	// Cabecera derecha
 	private JLabel lblEventoSeleccionado;
 
-	private JTextField txtAutor;       
-	private JTextField txtTitulo;      
+	// Campos del formulario (derecha)
+	private JTextField txtAutor;
+	private JTextField txtTitulo;
 	private JButton    btnValidarTitulo;
 	private JTextArea  txtSubtitulo;
 	private JTextArea  txtCuerpo;
-	
+
+	// Boton principal
 	private JButton btnEntregar;
 
 	public EntregarReportajesDeEventosView() {
@@ -41,10 +50,10 @@ public class EntregarReportajesDeEventosView {
 	}
 
 	private void initialize() {
-	
+		// FRAME PRIMERO
 		frame = new JFrame(" Entregar Reportajes De Eventos ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(780, 680);
+		frame.setSize(780, 760);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -57,11 +66,9 @@ public class EntregarReportajesDeEventosView {
 		cbReporteros.setBounds(115, 15, 350, 22);
 		frame.getContentPane().add(cbReporteros);
 
-
 		cbFiltro = new JComboBox<>(new String[]{"Eventos SIN reportaje", "Eventos CON reportaje"});
 		cbFiltro.setBounds(20, 45, 240, 22);
 		frame.getContentPane().add(cbFiltro);
-
 
 		JLabel lblEventos = new JLabel("Lista de Eventos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
@@ -76,19 +83,49 @@ public class EntregarReportajesDeEventosView {
 		tblEventos.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spEventos = new JScrollPane(tblEventos);
-		spEventos.setBounds(20, 102, 280, 510);
+		spEventos.setBounds(20, 100, 280, 200);
 		frame.getContentPane().add(spEventos);
 
 		ocultarColumna(tblEventos, 2);
 		tblEventos.getColumnModel().getColumn(0).setPreferredWidth(170);
 		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(90);
 
-	
+		JLabel lblMultimedia = new JLabel("Lista de contenidos multimedia");
+		lblMultimedia.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblMultimedia.setBounds(20, 315, 280, 20);
+		frame.getContentPane().add(lblMultimedia);
+
+		tmMultimedia = new DefaultTableModel(new Object[]{"Path", "Tipo", "id_multimedia"}, 0) {
+			@Override public boolean isCellEditable(int row, int col) { return false; }
+		};
+		tblMultimedia = new JTable(tmMultimedia);
+		tblMultimedia.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tblMultimedia.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+
+		JScrollPane spMultimedia = new JScrollPane(tblMultimedia);
+		spMultimedia.setBounds(20, 338, 280, 180);
+		frame.getContentPane().add(spMultimedia);
+
+		ocultarColumna(tblMultimedia, 2);
+		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(200);
+		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
+
+		btnAnadir = new JButton("Añadir");
+		btnAnadir.setBounds(20, 528, 130, 26);
+		frame.getContentPane().add(btnAnadir);
+
+		btnEliminar = new JButton("Eliminar");
+		btnEliminar.setBounds(165, 528, 130, 26);
+		frame.getContentPane().add(btnEliminar);
+
+
+		// Evento seleccionado
 		lblEventoSeleccionado = new JLabel("Evento seleccionado: (ninguno)");
 		lblEventoSeleccionado.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblEventoSeleccionado.setBounds(320, 78, 430, 20);
 		frame.getContentPane().add(lblEventoSeleccionado);
 
+		// Autor (solo lectura)
 		JLabel lblAutor = new JLabel("Autor:");
 		lblAutor.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblAutor.setBounds(320, 108, 60, 22);
@@ -100,6 +137,7 @@ public class EntregarReportajesDeEventosView {
 		txtAutor.setBounds(390, 108, 350, 22);
 		frame.getContentPane().add(txtAutor);
 
+		// Titulo
 		JLabel lblTitulo = new JLabel("Titulo:");
 		lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblTitulo.setBounds(320, 145, 60, 22);
@@ -116,6 +154,7 @@ public class EntregarReportajesDeEventosView {
 		btnValidarTitulo.setBounds(649, 143, 91, 26);
 		frame.getContentPane().add(btnValidarTitulo);
 
+		// Subtitulo
 		JLabel lblSubtitulo = new JLabel("Subtitulo");
 		lblSubtitulo.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblSubtitulo.setBounds(320, 182, 80, 20);
@@ -128,7 +167,7 @@ public class EntregarReportajesDeEventosView {
 		spSubtitulo.setBounds(320, 205, 420, 80);
 		frame.getContentPane().add(spSubtitulo);
 
-
+		// Cuerpo
 		JLabel lblCuerpo = new JLabel("Cuerpo");
 		lblCuerpo.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblCuerpo.setBounds(320, 298, 80, 20);
@@ -138,24 +177,24 @@ public class EntregarReportajesDeEventosView {
 		txtCuerpo.setLineWrap(true);
 		txtCuerpo.setWrapStyleWord(true);
 		JScrollPane spCuerpo = new JScrollPane(txtCuerpo);
-		spCuerpo.setBounds(320, 320, 420, 270);
+		spCuerpo.setBounds(320, 320, 420, 265);
 		frame.getContentPane().add(spCuerpo);
 
-
+		// Boton Entregar
 		btnEntregar = new JButton("Entregar");
-		btnEntregar.setBounds(560, 608, 140, 30);
+		btnEntregar.setBounds(560, 600, 140, 30);
 		frame.getContentPane().add(btnEntregar);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
 
+
 	private void ocultarColumna(JTable table, int colIndex) {
 		table.getColumnModel().getColumn(colIndex).setMaxWidth(0);
 		table.getColumnModel().getColumn(colIndex).setMinWidth(0);
 		table.getColumnModel().getColumn(colIndex).setPreferredWidth(0);
 	}
-
 
 
 	public void setReporteros(List<ReporteroDTO> reporteros) {
@@ -173,6 +212,15 @@ public class EntregarReportajesDeEventosView {
 		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(90);
 	}
 
+	public void setMultimedia(List<MultimediaDTO> lista) {
+		tmMultimedia.setRowCount(0);
+		for (MultimediaDTO m : lista)
+			tmMultimedia.addRow(new Object[]{m.getPath(), m.getTipo(), m.getId_multimedia()});
+		ocultarColumna(tblMultimedia, 2);
+		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(200);
+		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
+	}
+
 	public void setLabelEventoSeleccionado(String nombreEvento) {
 		lblEventoSeleccionado.setText("Evento seleccionado: " + nombreEvento);
 	}
@@ -182,7 +230,6 @@ public class EntregarReportajesDeEventosView {
 	public void setSubtitulo(String v)     { txtSubtitulo.setText(v); }
 	public void setCuerpo(String v)        { txtCuerpo.setText(v); }
 
-	
 	public void setTituloEditable(boolean editable) {
 		txtTitulo.setEditable(editable);
 		txtTitulo.setBackground(editable
@@ -190,14 +237,21 @@ public class EntregarReportajesDeEventosView {
 			: new java.awt.Color(240, 240, 240));
 	}
 
+	/** Habilita o deshabilita los botones de multimedia. */
+	public void setMultimediaEnabled(boolean enabled) {
+		btnAnadir.setEnabled(enabled);
+		btnEliminar.setEnabled(enabled);
+	}
+
 	public void limpiarFormulario() {
 		txtTitulo.setText("");
 		txtSubtitulo.setText("");
 		txtCuerpo.setText("");
 		setTituloEditable(true);
+		setMultimediaEnabled(false);
+		tmMultimedia.setRowCount(0);
 		lblEventoSeleccionado.setText("Evento seleccionado: (ninguno)");
 	}
-
 
 
 	public ReporteroDTO getReporteroSeleccionado() {
@@ -226,11 +280,44 @@ public class EntregarReportajesDeEventosView {
 		return (String) tmEventos.getValueAt(row, 1);
 	}
 
+	/** Devuelve el id_multimedia de la fila seleccionada, o -1 si no hay ninguna. */
+	public int getIdMultimediaSeleccionado() {
+		int row = tblMultimedia.getSelectedRow();
+		if (row < 0) return -1;
+		return ((Number) tmMultimedia.getValueAt(row, 2)).intValue();
+	}
+
 	public String getTitulo()    { return txtTitulo.getText(); }
 	public String getSubtitulo() { return txtSubtitulo.getText(); }
 	public String getCuerpo()    { return txtCuerpo.getText(); }
 
 	public JFrame getFrame() { return frame; }
+
+
+	/**
+	 * Muestra un dialogo para introducir path y tipo de multimedia.
+	 * Devuelve String[]{path, tipo} o null si se cancela.
+	 */
+	public String[] mostrarDialogoAnadir() {
+		JTextField txtPath = new JTextField(30);
+		JComboBox<String> cbTipo = new JComboBox<>(new String[]{"IMAGEN", "VIDEO"});
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new java.awt.GridLayout(2, 2, 6, 6));
+		panel.add(new JLabel("Path:"));
+		panel.add(txtPath);
+		panel.add(new JLabel("Tipo:"));
+		panel.add(cbTipo);
+
+		int result = JOptionPane.showConfirmDialog(frame, panel,
+			"Añadir contenido multimedia", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+		if (result != JOptionPane.OK_OPTION) return null;
+
+		String path = txtPath.getText().trim();
+		String tipo = (String) cbTipo.getSelectedItem();
+		return new String[]{path, tipo};
+	}
 
 
 	public void addReporteroChangedListener(ActionListener l) {
@@ -253,7 +340,15 @@ public class EntregarReportajesDeEventosView {
 		btnEntregar.addActionListener(l);
 	}
 
+	public void addAnadirMultimediaListener(ActionListener l) {
+		btnAnadir.addActionListener(l);
+	}
 
+	public void addEliminarMultimediaListener(ActionListener l) {
+		btnEliminar.addActionListener(l);
+	}
+
+	// ── Dialogos ──────────────────────────────────────────────────────────
 
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Informacion", JOptionPane.INFORMATION_MESSAGE);

@@ -198,7 +198,7 @@ public class AccederReportajesView {
 	public void setMultimedia(List<MultimediaDTO> Multimedia) {
 		tmMultimedia.setRowCount(0);
 		for (MultimediaDTO e : Multimedia) {
-			tmMultimedia.addRow(new Object[] { e.getRuta(), e.getTipo()});
+			tmMultimedia.addRow(new Object[] { e.getPath(), e.getTipo()});
 		}
 		
 	}

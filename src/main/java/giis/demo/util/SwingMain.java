@@ -114,7 +114,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnHU33550);
 		
 		
-		JButton btnHU33551 = new JButton("HU 33551/HU 33558 - Entregar Reportajes");
+		JButton btnHU33551 = new JButton("HU 33551/33558/34025 - Entregar Reportajes");
 		btnHU33551.addActionListener(e -> {
 			EntregarReportajesDeEventosController controller =
 				new EntregarReportajesDeEventosController(

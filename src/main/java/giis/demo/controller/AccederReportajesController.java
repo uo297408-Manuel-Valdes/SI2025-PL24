@@ -139,7 +139,7 @@ public class AccederReportajesController {
             if(multimedia!=null) {
             	datos.put("Ruta ", "Tipo");
             	for(int i=0; i<multimedia.size(); i++) {
-            		datos.put(multimedia.get(i).getRuta(),multimedia.get(i).getTipo());
+            		datos.put(multimedia.get(i).getPath(),multimedia.get(i).getTipo());
             	}
             }
 

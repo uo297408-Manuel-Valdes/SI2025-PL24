@@ -5,15 +5,24 @@ public class MultimediaDTO {
 	private int id_reportaje;
 	private int id_reportero;
 	private String tipo;
-	private String ruta;
+	private String path;
 	private String estado;
+	
+	public MultimediaDTO(int id_multimedia,int id_reportero, int id_reportaje, String tipo, String ruta) {
+		this.id_multimedia=id_multimedia;
+		this.id_reportero=id_reportero;
+		this.id_reportaje=id_reportaje;
+		this.tipo=tipo;
+		this.path=ruta;
+		this.estado=null;
+	}
 	
 	public MultimediaDTO(int id_multimedia,int id_reportero, int id_reportaje, String tipo, String estado, String ruta) {
 		this.id_multimedia=id_multimedia;
 		this.id_reportero=id_reportero;
 		this.id_reportaje=id_reportaje;
 		this.tipo=tipo;
-		this.ruta=ruta;
+		this.path=ruta;
 		this.estado=estado;
 	}
 	
@@ -33,8 +42,8 @@ public class MultimediaDTO {
 		return tipo;
 	}
 
-	public String getRuta() {
-		return ruta;
+	public String getPath() {
+		return path;
 	}
 
 	public String getEstado() {

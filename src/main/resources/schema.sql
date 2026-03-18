@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS empresa;
 DROP TABLE IF EXISTS tematica;
 DROP TABLE IF EXISTS agencia_prensa;
 DROP TABLE IF EXISTS multimedia_reportaje;
+DROP TABLE IF EXISTS empresa_tematica;
 
 CREATE TABLE agencia_prensa (
   id_agencia INTEGER PRIMARY KEY AUTOINCREMENT,

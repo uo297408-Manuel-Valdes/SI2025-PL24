@@ -38,7 +38,7 @@ public class AsignarReporterosAEventosView {
 	}
 
 	private void initialize() {
-		frame = new JFrame("Asignar reporteros a eventos con temática");
+		frame = new JFrame("34024 - Asignar reporteros a eventos con temática");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(1180, 720);
 		frame.setResizable(false);

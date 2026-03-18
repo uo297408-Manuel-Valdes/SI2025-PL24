@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS evento;
 DROP TABLE IF EXISTS empresa;
 DROP TABLE IF EXISTS tematica;
 DROP TABLE IF EXISTS agencia_prensa;
-DROP TABLE IF EXISTS multimedia;
+DROP TABLE IF EXISTS multimedia_reportaje;
 
 CREATE TABLE agencia_prensa (
   id_agencia INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +61,7 @@ CREATE TABLE acceso_reportaje (
   id_acceso INTEGER PRIMARY KEY AUTOINCREMENT,
   id_evento INTEGER NOT NULL,
   id_empresa INTEGER NOT NULL,
+  descargado INTEGER DEFAULT 0 CHECK (descargado IN (0,1)),
   UNIQUE (id_evento, id_empresa),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
@@ -105,13 +106,14 @@ CREATE TABLE reportero_tematica (
   FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
-CREATE TABLE multimedia (
-	id_multimedia INTEGER PRIMARY KEY AUTOINCREMENT,
-	id_reportero INTEGER NOT NULL,
-	id_reportaje INTEGER NOT NULL,
-	tipo TEXT NOT NULL CHECK (tipo IN ('VIDEO','IMAGEN')),
-	estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','PROVISIONAL')),
-	ruta TEXT NOT NULL UNIQUE,
-  	FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero),
- 	FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
+CREATE TABLE multimedia_reportaje (
+  id_multimedia  INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_reportaje   INTEGER NOT NULL,
+  id_reportero INTEGER NOT NULL,
+  path           TEXT NOT NULL UNIQUE,
+  tipo           TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
+  estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','BORRADOR')),
+  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
+  FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
+

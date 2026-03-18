@@ -65,6 +65,6 @@ INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 1);
 --Temporal
 INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega) VALUES (1, 'Temporal',1);
 INSERT INTO acceso_reportaje (id_evento, id_empresa) VALUES (1,1);
-INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'VIDEO', 'DEFINITIVO', 'a');
-INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'IMAGEN', 'DEFINITIVO', 'b');
-INSERT INTO multimedia (id_reportero, id_reportaje, tipo, estado, ruta) VALUES (1, 1, 'VIDEO', 'PROVISIONAL', 'c');
+INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'DEFINITIVO', 'a');
+INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'IMAGEN', 'DEFINITIVO', 'b');
+INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'BORRADOR', 'c');

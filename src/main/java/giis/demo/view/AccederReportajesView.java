@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -208,8 +209,9 @@ public class AccederReportajesView {
 		return ((Number) tmReportajes.getValueAt(row, 2)).intValue();
 	}
 
-	
-	
+	public void showInfo(String msg) {
+		JOptionPane.showMessageDialog(frame, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
+	}
 	
 	
 }

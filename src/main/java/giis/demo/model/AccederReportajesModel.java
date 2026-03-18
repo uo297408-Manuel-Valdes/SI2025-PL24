@@ -89,8 +89,8 @@ public class AccederReportajesModel {
 
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql=
-				"SELECT m.id_multimedia, m.id_reportero, m.id_reportaje, m.tipo, m.estado, m.ruta "+
-				"FROM MULTIMEDIA m "+
+				"SELECT m.id_multimedia, m.id_reportaje, m.id_reportero, m.path, m.tipo, m.estado "+
+				"FROM MULTIMEDIA_REPORTAJE m "+
 				"WHERE m.id_reportaje=? AND m.estado= 'DEFINITIVO'";
 		
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
@@ -99,15 +99,23 @@ public class AccederReportajesModel {
 		
 		for (Object[] r : rows) {
 			int idmultimedia=((Number) r[0]).intValue();
-			int idreportero=((Number) r[1]).intValue();
-			int idreportaje= ((Number) r[2]).intValue();
-			String tipo = (String) r[3];
-			String estado = (String) r[4];
-			String ruta = (String) r[5];
+			int idreportaje= ((Number) r[1]).intValue();
+			int idreportero=((Number) r[2]).intValue();
+			String ruta = (String) r[3];
+			String tipo = (String) r[4];
+			String estado = (String) r[5];
 			res.add(new MultimediaDTO(idmultimedia,idreportero,idreportaje,tipo,estado,ruta));
 		}
 		
 		return res;
+	}
+
+	public void descargar(int idEmpresa, int idReportaje) {
+		String sql=
+				"UPDATE ACCESO_REPORTAJE "+
+				"SET descargado=1 "+
+				"WHERE id_evento=? AND id_empresa=?";
+		db.executeUpdate(sql, idEmpresa, idReportaje);
 	}
 	
 }

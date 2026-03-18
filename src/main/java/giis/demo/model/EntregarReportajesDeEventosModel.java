@@ -96,7 +96,7 @@ public class EntregarReportajesDeEventosModel {
 	 */
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
-			"SELECT id_multimedia, id_reportaje, path, tipo " +
+			"SELECT id_multimedia, id_reportaje, id_reportero, path, tipo " +
 			"FROM MULTIMEDIA_REPORTAJE " +
 			"WHERE id_reportaje = ? " +
 			"ORDER BY id_multimedia";
@@ -106,8 +106,9 @@ public class EntregarReportajesDeEventosModel {
 			res.add(new MultimediaDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
-				(String)  r[2],
-				(String)  r[3]
+				((Number) r[2]).intValue(),
+				(String)  r[3],
+				(String)  r[4]
 			));
 		}
 		return res;
@@ -118,7 +119,7 @@ public class EntregarReportajesDeEventosModel {
 	 * Cualquier reportero asignado al evento puede añadir.
 	 * El path no puede repetirse en todo el sistema.
 	 */
-	public void addMultimedia(int idReportaje, int idReportero, int idEvento,
+	public void addMultimedia(int idReportaje, int idReportero,int idEvento,
 	                           String path, String tipo) {
 
 		if (path == null || path.trim().isEmpty())
@@ -136,8 +137,8 @@ public class EntregarReportajesDeEventosModel {
 		if (!db.executeQueryArray(checkPath, path.trim()).isEmpty())
 			throw new ApplicationException("El path introducido ya existe en el sistema.");
 
-		String insert = "INSERT INTO MULTIMEDIA_REPORTAJE(id_reportaje, path, tipo) VALUES (?, ?, ?)";
-		db.executeUpdate(insert, idReportaje, path.trim(), tipo);
+		String insert = "INSERT INTO MULTIMEDIA_REPORTAJE(id_reportaje, id_reportero, path, tipo) VALUES (?, ?, ?, ?)";
+		db.executeUpdate(insert, idReportaje, idReportero,path.trim(), tipo);
 	}
 
 	/**

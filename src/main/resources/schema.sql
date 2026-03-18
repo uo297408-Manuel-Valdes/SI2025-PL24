@@ -108,9 +108,11 @@ CREATE TABLE reportero_tematica (
 CREATE TABLE multimedia_reportaje (
   id_multimedia  INTEGER PRIMARY KEY AUTOINCREMENT,
   id_reportaje   INTEGER NOT NULL,
+  id_reportero INTEGER NOT NULL,
   path           TEXT NOT NULL UNIQUE,
   tipo           TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
+  FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
 
 

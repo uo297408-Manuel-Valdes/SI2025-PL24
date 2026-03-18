@@ -1,37 +1,38 @@
 package giis.demo.model;
 
 public class EmpresaDTO {
-
 	private int idEmpresa;
 	private String nombre;
+	private String tematicasTexto;
 
 	public EmpresaDTO(int idEmpresa, String nombre) {
-		this.idEmpresa = idEmpresa;
-		this.nombre = nombre;
+		this(idEmpresa, nombre, "");
 	}
 
-	public EmpresaDTO() {
+	public EmpresaDTO(int idEmpresa, String nombre, String tematicasTexto) {
+		this.idEmpresa = idEmpresa;
+		this.nombre = nombre;
+		this.tematicasTexto = tematicasTexto;
 	}
 
 	public int getIdEmpresa() {
 		return idEmpresa;
 	}
 
-	public void setIdEmpresa(int idEmpresa) {
-		this.idEmpresa = idEmpresa;
-	}
-
 	public String getNombre() {
 		return nombre;
 	}
 
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
+	public String getTematicasTexto() {
+		return tematicasTexto;
 	}
 
-	
+	public void setTematicasTexto(String tematicasTexto) {
+		this.tematicasTexto = tematicasTexto;
+	}
+
+	@Override
 	public String toString() {
 		return nombre;
 	}
 }
-

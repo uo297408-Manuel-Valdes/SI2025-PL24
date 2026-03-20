@@ -39,6 +39,7 @@ public class EntregarReportajesDeEventosController {
 		view.addEntregarListener           (e -> SwingUtil.exceptionWrapper(() -> onEntregar()));
 		view.addAnadirMultimediaListener   (e -> SwingUtil.exceptionWrapper(() -> onAnadirMultimedia()));
 		view.addEliminarMultimediaListener (e -> SwingUtil.exceptionWrapper(() -> onEliminarMultimedia()));
+		view.addCambiarEstadoListener(e -> SwingUtil.exceptionWrapper(() -> onCambiarEstado()));
 
 		SwingUtil.exceptionWrapper(() -> {
 			List<ReporteroDTO> reporteros = model.getReporteros();
@@ -173,11 +174,12 @@ public class EntregarReportajesDeEventosController {
 			view.showInfo("Selecciona un elemento multimedia para eliminar.");
 			return;
 		}
-
+		ReporteroDTO reportero=view.getReporteroSeleccionado();
+		if(reportero==null) return;
 		if (!view.confirm("Vas a eliminar el elemento multimedia seleccionado.\n¿Confirmas?",
 				"Confirmar eliminacion")) return;
 
-		model.removeMultimedia(idMultimedia);
+		model.removeMultimedia(idMultimedia, reportero.getIdReportero());
 		cargarMultimedia();
 	}
 
@@ -195,7 +197,25 @@ public class EntregarReportajesDeEventosController {
 			view.showError(ex.getMessage());
 		}
 	}
+	
+	private void onCambiarEstado() {
+	    int idMultimedia = view.getIdMultimediaSeleccionado();
+	    if (idMultimedia <= 0) {
+	        view.showInfo("Selecciona un elemento multimedia.");
+	        return;
+	    }
+	    ReporteroDTO reportero = view.getReporteroSeleccionado();
+	    if (reportero == null) return;
 
+	    String estadoActual = view.getEstadoMultimediaSeleccionado();
+	    String nuevoEstado  = "BORRADOR".equals(estadoActual) ? "DEFINITIVO" : "BORRADOR";
+
+	    if (!view.confirm("Vas a cambiar el estado a " + nuevoEstado + ".\n¿Confirmas?",
+	            "Cambiar estado")) return;
+
+	    model.cambiarEstadoMultimedia(idMultimedia, reportero.getIdReportero(), nuevoEstado);
+	    cargarMultimedia();
+	}
 
 	private void onEntregar() {
 		if (eventoSeleccionado == null) {

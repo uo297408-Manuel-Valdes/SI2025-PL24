@@ -44,6 +44,7 @@ public class EntregarReportajesDeEventosView {
 
 	// Boton principal
 	private JButton btnEntregar;
+	private JButton btnCambiarEstado;
 
 	public EntregarReportajesDeEventosView() {
 		initialize();
@@ -95,7 +96,7 @@ public class EntregarReportajesDeEventosView {
 		lblMultimedia.setBounds(20, 315, 280, 20);
 		frame.getContentPane().add(lblMultimedia);
 
-		tmMultimedia = new DefaultTableModel(new Object[]{"Path", "Tipo", "id_multimedia"}, 0) {
+		tmMultimedia = new DefaultTableModel(new Object[]{"Path", "Tipo", "Estado", "id_multimedia"}, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
 		};
 		tblMultimedia = new JTable(tmMultimedia);
@@ -106,7 +107,7 @@ public class EntregarReportajesDeEventosView {
 		spMultimedia.setBounds(20, 338, 280, 180);
 		frame.getContentPane().add(spMultimedia);
 
-		ocultarColumna(tblMultimedia, 2);
+		ocultarColumna(tblMultimedia, 3);
 		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(200);
 		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
 
@@ -185,8 +186,19 @@ public class EntregarReportajesDeEventosView {
 		btnEntregar.setBounds(560, 600, 140, 30);
 		frame.getContentPane().add(btnEntregar);
 
+		btnCambiarEstado = new JButton("Cambiar Estado");
+		btnCambiarEstado.setBounds(20, 558, 280, 26);
+		frame.getContentPane().add(btnCambiarEstado);
+		
+		
+		
+		
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+		
+		
+		
+		
 	}
 
 
@@ -215,8 +227,8 @@ public class EntregarReportajesDeEventosView {
 	public void setMultimedia(List<MultimediaDTO> lista) {
 		tmMultimedia.setRowCount(0);
 		for (MultimediaDTO m : lista)
-			tmMultimedia.addRow(new Object[]{m.getPath(), m.getTipo(), m.getId_multimedia()});
-		ocultarColumna(tblMultimedia, 2);
+			tmMultimedia.addRow(new Object[]{m.getPath(), m.getTipo(), m.getEstado(), m.getId_multimedia()});
+		ocultarColumna(tblMultimedia, 3);
 		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(200);
 		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
 	}
@@ -241,6 +253,7 @@ public class EntregarReportajesDeEventosView {
 	public void setMultimediaEnabled(boolean enabled) {
 		btnAnadir.setEnabled(enabled);
 		btnEliminar.setEnabled(enabled);
+		btnCambiarEstado.setEnabled(enabled);
 	}
 
 	public void limpiarFormulario() {
@@ -284,7 +297,7 @@ public class EntregarReportajesDeEventosView {
 	public int getIdMultimediaSeleccionado() {
 		int row = tblMultimedia.getSelectedRow();
 		if (row < 0) return -1;
-		return ((Number) tmMultimedia.getValueAt(row, 2)).intValue();
+		return ((Number) tmMultimedia.getValueAt(row, 3)).intValue();
 	}
 
 	public String getTitulo()    { return txtTitulo.getText(); }
@@ -347,7 +360,20 @@ public class EntregarReportajesDeEventosView {
 	public void addEliminarMultimediaListener(ActionListener l) {
 		btnEliminar.addActionListener(l);
 	}
+	
+	// Nuevo getter
+	public String getEstadoMultimediaSeleccionado() {
+	    int row = tblMultimedia.getSelectedRow();
+	    if (row < 0) return null;
+	    return (String) tmMultimedia.getValueAt(row, 2);
+	}
 
+	// Nuevo listener
+	public void addCambiarEstadoListener(ActionListener l) {
+	    btnCambiarEstado.addActionListener(l);
+	}
+	
+	
 	// ── Dialogos ──────────────────────────────────────────────────────────
 
 	public void showInfo(String msg) {
@@ -363,3 +389,5 @@ public class EntregarReportajesDeEventosView {
 				JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}
 }
+
+

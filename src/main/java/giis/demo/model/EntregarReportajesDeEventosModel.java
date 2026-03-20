@@ -96,7 +96,7 @@ public class EntregarReportajesDeEventosModel {
 	 */
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
-			"SELECT id_multimedia, id_reportaje, id_reportero, path, tipo " +
+			"SELECT id_multimedia, id_reportaje, id_reportero, path, tipo, estado " +
 			"FROM MULTIMEDIA_REPORTAJE " +
 			"WHERE id_reportaje = ? " +
 			"ORDER BY id_multimedia";
@@ -108,7 +108,8 @@ public class EntregarReportajesDeEventosModel {
 				((Number) r[1]).intValue(),
 				((Number) r[2]).intValue(),
 				(String)  r[3],
-				(String)  r[4]
+				(String)  r[4],
+				(String)  r[5]		
 			));
 		}
 		return res;
@@ -137,21 +138,54 @@ public class EntregarReportajesDeEventosModel {
 		if (!db.executeQueryArray(checkPath, path.trim()).isEmpty())
 			throw new ApplicationException("El path introducido ya existe en el sistema.");
 
-		String insert = "INSERT INTO MULTIMEDIA_REPORTAJE(id_reportaje, id_reportero, path, tipo) VALUES (?, ?, ?, ?)";
-		db.executeUpdate(insert, idReportaje, idReportero,path.trim(), tipo);
+		String insert = "INSERT INTO MULTIMEDIA_REPORTAJE(id_reportaje, id_reportero, path, tipo, estado) VALUES (?, ?, ?, ?, ?)";
+		db.executeUpdate(insert, idReportaje, idReportero,path.trim(), tipo, "BORRADOR");
 	}
 
 	/**
 	 * Elimina un elemento multimedia por su id.
 	 */
-	public void removeMultimedia(int idMultimedia) {
-		if (idMultimedia <= 0)
-			throw new ApplicationException("Selecciona un elemento multimedia para eliminar.");
-		String delete = "DELETE FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ?";
-		db.executeUpdate(delete, idMultimedia);
+	public void removeMultimedia(int idMultimedia, int idReportero) {
+	    // Verificar que existe y obtener su estado y autor
+	    String sql = "SELECT estado, id_reportero FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ? LIMIT 1";
+	    List<Object[]> rows = db.executeQueryArray(sql, idMultimedia);
+	    if (rows.isEmpty())
+	        throw new ApplicationException("El elemento multimedia no existe.");
+
+	    String estado       = (String)  rows.get(0)[0];
+	    int    autorSubida  = ((Number) rows.get(0)[1]).intValue();
+
+	    if (!estado.equals("BORRADOR"))
+	        throw new ApplicationException("Solo se pueden eliminar elementos en estado BORRADOR.");
+	    if (autorSubida != idReportero)
+	        throw new ApplicationException("Solo el reportero que subió el contenido puede eliminarlo.");
+
+	    db.executeUpdate("DELETE FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ?", idMultimedia);
 	}
 
+	public void cambiarEstadoMultimedia(int idMultimedia, int idReportero, String nuevoEstado) {
+	    if (!nuevoEstado.equals("BORRADOR") && !nuevoEstado.equals("DEFINITIVO"))
+	        throw new ApplicationException("Estado no válido.");
 
+	    String sql = "SELECT estado, id_reportero FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ? LIMIT 1";
+	    List<Object[]> rows = db.executeQueryArray(sql, idMultimedia);
+	    if (rows.isEmpty())
+	        throw new ApplicationException("El elemento multimedia no existe.");
+
+	    String estadoActual = (String)  rows.get(0)[0];
+	    int    autorSubida  = ((Number) rows.get(0)[1]).intValue();
+
+	    if (!estadoActual.equals("BORRADOR"))
+	        throw new ApplicationException("Solo se puede cambiar el estado de elementos en estado BORRADOR.");
+	    if (autorSubida != idReportero)
+	        throw new ApplicationException("Solo el reportero que subió el contenido puede cambiar su estado.");
+
+	    db.executeUpdate("UPDATE MULTIMEDIA_REPORTAJE SET estado = ? WHERE id_multimedia = ?",
+	                     nuevoEstado, idMultimedia);
+	}
+	
+	
+	
 	public void validarTitulo(String titulo, int idReportajeExcluido) {
 		if (titulo == null || titulo.trim().isEmpty())
 			throw new ApplicationException("El titulo no puede estar vacio.");

@@ -1,7 +1,17 @@
 package giis.demo.controller;
 
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.event.ListSelectionEvent;
 
@@ -9,6 +19,7 @@ import giis.demo.model.AccederReportajesModel;
 import giis.demo.model.AgenciaDTO;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.EventoDTO;
+import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReportajeDTO;
 import giis.demo.model.VersionDTO;
 import giis.demo.util.SwingUtil;
@@ -21,6 +32,10 @@ public class AccederReportajesController {
 	
 	private List<EventoDTO> eventos = new ArrayList<>();
 	
+	private ReportajeDTO reportaje;
+	private VersionDTO version;
+	List<MultimediaDTO> multimedia;
+	
 	public AccederReportajesController(AccederReportajesModel model, AccederReportajesView view) {
 		this.model=model;
 		this.view=view;
@@ -31,6 +46,7 @@ public class AccederReportajesController {
 		view.addEmpresaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReportajes()));
 		view.addReportajesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onReportajeSeleccionado(e)));
 		view.addFinalizarListener(e -> SwingUtil.exceptionWrapper(() -> finalizar()));
+		view.addDescargarListener(e -> SwingUtil.exceptionWrapper(() -> descargar()));
 
 		SwingUtil.exceptionWrapper(() -> {
 			List<EmpresaDTO> empresas = model.getEmpresas();
@@ -50,6 +66,17 @@ public class AccederReportajesController {
 		view.setReportajes(eventos);
 	}
 	
+	private void cargarMultimedia(int id) {
+		multimedia=model.getMultimedia(id);
+		
+		if (multimedia == null) {
+			view.setMultimedia(new ArrayList<>());
+			return;
+		}
+		view.setMultimedia(multimedia);
+		
+	}
+	
 	private void onReportajeSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
 
@@ -61,13 +88,16 @@ public class AccederReportajesController {
 			return;
 		}
 
-		ReportajeDTO reportaje=model.getInfoReportaje(idEvento);
+		reportaje=model.getInfoReportaje(idEvento);
 		
 		if (reportaje == null) {
 			view.setInfo(null, null, null);
 			return;
 		}
-		VersionDTO version=model.getVersion(reportaje.getIdReportaje());
+		
+		cargarMultimedia(reportaje.getIdReportaje());
+		
+		version=model.getVersion(reportaje.getIdReportaje());
 		
 		if (version == null) {
 			view.setInfo(reportaje.getTitulo(), null, null);
@@ -81,6 +111,54 @@ public class AccederReportajesController {
 		view.getFrame().dispose();
 	}
 
+	private void descargar() {
+		if(reportaje==null) {
+			view.showInfo("Selecciona un evento.");
+			return;
+		}
+		try {
 
+			String userHome = System.getProperty("user.home");
+            Path rutaDescargas = Paths.get(userHome, "Downloads");
+
+            Path rutaArchivo = rutaDescargas.resolve(reportaje.getTitulo() + ".json");
+            
+            Map<String, String> datos=new LinkedHashMap<>();
+            datos.put("Titulo: ", reportaje.getTitulo());
+            
+            if(version!=null) {
+            	if(version.getSubtitulo()!=null) {
+            		datos.put("Subtitulo: ", version.getSubtitulo());
+            	}
+            	
+            	if(version.getCuerpo()!=null) {
+            		datos.put("Cuerpo: ", version.getCuerpo());
+            	}
+            }
+			
+            if(multimedia!=null) {
+            	datos.put("Ruta ", "Tipo");
+            	for(int i=0; i<multimedia.size(); i++) {
+            		datos.put(multimedia.get(i).getPath(),multimedia.get(i).getTipo());
+            	}
+            }
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(datos);
+
+            FileWriter writer = new FileWriter(rutaArchivo.toFile());
+            writer.write(json);
+            writer.close();
+
+            view.showInfo("Archivo guardado en: "+ rutaArchivo);
+            
+            EmpresaDTO empresa = view.getEmpresaSeleccionada();
+            model.descargar(empresa.getIdEmpresa(), reportaje.getIdEvento());
+            
+		} catch (IOException e) {
+			view.showInfo("Ocurrio un error durante la descarga.");
+           
+		}
+	}
 	
 }

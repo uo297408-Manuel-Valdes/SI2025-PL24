@@ -63,6 +63,7 @@ CREATE TABLE acceso_reportaje (
   id_acceso INTEGER PRIMARY KEY AUTOINCREMENT,
   id_evento INTEGER NOT NULL,
   id_empresa INTEGER NOT NULL,
+  descargado INTEGER DEFAULT 0 CHECK (descargado IN (0,1)),
   UNIQUE (id_evento, id_empresa),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
@@ -113,16 +114,8 @@ CREATE TABLE multimedia_reportaje (
   id_reportero INTEGER NOT NULL,
   path           TEXT NOT NULL UNIQUE,
   tipo           TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
-  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
+  estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','BORRADOR')),
+  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
-
-CREATE TABLE empresa_tematica (
-  id_empresa INTEGER NOT NULL,
-  id_tematica INTEGER NOT NULL,
-  PRIMARY KEY (id_empresa, id_tematica),
-  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa),
-  FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
-);
-
 

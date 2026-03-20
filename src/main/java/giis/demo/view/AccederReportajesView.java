@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -19,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import giis.demo.model.AgenciaDTO;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.EventoDTO;
+import giis.demo.model.MultimediaDTO;
 
 public class AccederReportajesView {
 	
@@ -28,12 +30,16 @@ public class AccederReportajesView {
 
 	private JTable tblReportajes;
 	private DefaultTableModel tmReportajes;
+	
+	private JTable tblMultimedia;
+	private DefaultTableModel tmMultimedia;
 
 	private JLabel lblTitulo;
 	private JLabel lblSubtitulo;
 	private JLabel lblCuerpo;
 
 	private JButton btnFinalizar;
+	private JButton btnDescargar;
 	
 	public AccederReportajesView() {
 		initialize();
@@ -42,7 +48,7 @@ public class AccederReportajesView {
 	private void initialize() {
 		frame = new JFrame(" Acceder a reportajes de un evento ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(900, 600);
+		frame.setSize(1000, 600);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 		
@@ -71,6 +77,25 @@ public class AccederReportajesView {
 		spReportajes.setBounds(20, 90, 250, 250);
 		frame.getContentPane().add(spReportajes);
 		ocultarColumna(tblReportajes, 2);
+		
+		JLabel lblMultimedia = new JLabel("Contenido Multimdeia");
+		lblMultimedia.setFont(new Font("Tahoma", Font.BOLD, 12));
+		lblMultimedia.setBounds(650, 50, 350, 20);
+		frame.getContentPane().add(lblMultimedia);
+		
+		tmMultimedia = new DefaultTableModel(new Object[] { "Ruta", "Tipo"}, 0) {
+			@Override public boolean isCellEditable(int row, int col) { return false; }
+		};
+		
+		tblMultimedia = new JTable(tmMultimedia);
+		tblMultimedia.setRowSelectionAllowed(false);
+		tblMultimedia.setColumnSelectionAllowed(false);
+		tblMultimedia.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+		
+		JScrollPane spMultimedia = new JScrollPane(tblMultimedia);
+		spMultimedia.setBounds(650, 90, 250, 250);
+		frame.getContentPane().add(spMultimedia);
+
 		
 		JLabel l1= new JLabel("Título");
 		l1.setFont(new Font("Tahoma", Font.BOLD, 12));
@@ -103,8 +128,12 @@ public class AccederReportajesView {
 		frame.getContentPane().add(lblCuerpo);
 		
 		btnFinalizar = new JButton("Finalizar visualización");
-		btnFinalizar.setBounds(700, 500, 170, 30);
+		btnFinalizar.setBounds(600, 500, 170, 30);
 		frame.getContentPane().add(btnFinalizar);
+		
+		btnDescargar = new JButton("Descargar reportaje");
+		btnDescargar.setBounds(800, 500, 170, 30);
+		frame.getContentPane().add(btnDescargar);
 		
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -135,6 +164,11 @@ public class AccederReportajesView {
 		
 	}
 	
+	public void addDescargarListener(ActionListener l) {
+		btnDescargar.addActionListener(l);
+		
+	}
+	
 	public void setInfo(String titulo, String subtitulo, String cuerpo) {
 		lblTitulo.setText(titulo == null ? "-" : titulo);
 		lblSubtitulo.setText(subtitulo == null ? "-" : subtitulo);
@@ -160,6 +194,14 @@ public class AccederReportajesView {
 		ocultarColumna(tblReportajes, 1);
 		
 	}
+	
+	public void setMultimedia(List<MultimediaDTO> Multimedia) {
+		tmMultimedia.setRowCount(0);
+		for (MultimediaDTO e : Multimedia) {
+			tmMultimedia.addRow(new Object[] { e.getPath(), e.getTipo()});
+		}
+		
+	}
 
 	public Integer getIdReportajeSeleccionado() {
 		int row = tblReportajes.getSelectedRow();
@@ -167,8 +209,9 @@ public class AccederReportajesView {
 		return ((Number) tmReportajes.getValueAt(row, 2)).intValue();
 	}
 
-	
-	
+	public void showInfo(String msg) {
+		JOptionPane.showMessageDialog(frame, msg, "Información", JOptionPane.INFORMATION_MESSAGE);
+	}
 	
 	
 }

@@ -215,7 +215,7 @@ public class EntregarReportajesDeEventosView {
 	public void setMultimedia(List<MultimediaDTO> lista) {
 		tmMultimedia.setRowCount(0);
 		for (MultimediaDTO m : lista)
-			tmMultimedia.addRow(new Object[]{m.getPath(), m.getTipo(), m.getIdMultimedia()});
+			tmMultimedia.addRow(new Object[]{m.getPath(), m.getTipo(), m.getId_multimedia()});
 		ocultarColumna(tblMultimedia, 2);
 		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(200);
 		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);

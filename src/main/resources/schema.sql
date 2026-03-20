@@ -119,3 +119,11 @@ CREATE TABLE multimedia_reportaje (
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
 
+CREATE TABLE empresa_tematica (
+  id_empresa INTEGER NOT NULL,
+  id_tematica INTEGER NOT NULL,
+  PRIMARY KEY (id_empresa, id_tematica),
+  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa),
+  FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
+);
+

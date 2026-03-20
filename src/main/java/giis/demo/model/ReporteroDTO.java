@@ -7,7 +7,7 @@ public class ReporteroDTO {
 	private String tematicasTexto;
 	private String tipoReportero;
 
-	public ReporteroDTO(int idReportero, int idAgencia, String nombre) {
+	/*public ReporteroDTO(int idReportero, int idAgencia, String nombre) {
 		super();
 		this.idReportero = idReportero;
 		this.idAgencia = idAgencia;
@@ -23,7 +23,7 @@ public class ReporteroDTO {
 		this.nombre = nombre;
 		this.tematicasTexto = tematicasTexto;
 		this.tipoReportero = "";
-	}
+	}*/
 
 	public ReporteroDTO(int idReportero, int idAgencia, String nombre, String tematicasTexto, String tipoReportero) {
 		super();

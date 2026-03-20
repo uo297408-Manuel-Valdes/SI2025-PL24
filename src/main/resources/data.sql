@@ -62,6 +62,11 @@ INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (1, 4);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (2, 1);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (3, 3);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 1);
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (5, 2);
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (6, 3);
+
+
+
 
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 1);
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 3);

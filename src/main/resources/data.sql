@@ -15,11 +15,12 @@ INSERT INTO empresa (nombre) VALUES ('La Nueva España');
 -- ===============================
 -- REPORTEROS
 -- ===============================
-INSERT INTO reportero (id_agencia, nombre) VALUES (1, 'Ana Pérez');
-INSERT INTO reportero (id_agencia, nombre) VALUES (1, 'Luis Gómez');
-INSERT INTO reportero (id_agencia, nombre) VALUES (2, 'Marta Ruiz');
-INSERT INTO reportero (id_agencia, nombre) VALUES (2, 'Laura Martínez');
-
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Ana Pérez', 'Básico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Luis Gómez', 'Gráfico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (2, 'Marta Ruiz', 'Camarógrafo');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (2, 'Laura Martínez', 'Básico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Carlos Vega', 'Camarógrafo');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Lucía Díaz', 'Básico');
 
 -- ===============================
 -- EVENTOS

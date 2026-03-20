@@ -32,6 +32,7 @@ CREATE TABLE reportero (
   id_reportero INTEGER PRIMARY KEY AUTOINCREMENT,
   id_agencia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
+  tipo_reportero TEXT NOT NULL CHECK (tipo_reportero IN ('Básico', 'Gráfico', 'Camarógrafo')),
   FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
 );
 

@@ -15,14 +15,15 @@ public class EntregarReportajesDeEventosModel {
 
 
 	public List<ReporteroDTO> getReporteros() {
-		String sql = "SELECT id_reportero, id_agencia, nombre FROM REPORTERO ORDER BY nombre";
+		String sql = "SELECT id_reportero, id_agencia, nombre, tipo_reportero  FROM REPORTERO ORDER BY nombre";
 		List<Object[]> rows = db.executeQueryArray(sql);
 		List<ReporteroDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
 			res.add(new ReporteroDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
-				(String)  r[2]
+				(String)  r[2], "",
+				(String)  r[3]
 			));
 		}
 		return res;
@@ -105,11 +106,11 @@ public class EntregarReportajesDeEventosModel {
 		for (Object[] r : rows) {
 			res.add(new MultimediaDTO(
 				((Number) r[0]).intValue(),
-				((Number) r[1]).intValue(),
 				((Number) r[2]).intValue(),
-				(String)  r[3],
+				((Number) r[1]).intValue(),
 				(String)  r[4],
-				(String)  r[5]		
+				(String)  r[5],
+				(String)  r[3]		
 			));
 		}
 		return res;

@@ -8,6 +8,7 @@ public class MultimediaDTO {
 	private String path;
 	private String estado;
 	
+	/*
 	public MultimediaDTO(int id_multimedia,int id_reportero, int id_reportaje, String tipo, String ruta) {
 		this.id_multimedia=id_multimedia;
 		this.id_reportero=id_reportero;
@@ -16,6 +17,7 @@ public class MultimediaDTO {
 		this.path=ruta;
 		this.estado=null;
 	}
+	*/
 	
 	public MultimediaDTO(int id_multimedia,int id_reportero, int id_reportaje, String tipo, String estado, String ruta) {
 		this.id_multimedia=id_multimedia;

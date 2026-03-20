@@ -259,6 +259,6 @@ public class EntregarReportajesDeEventosController {
 		}
 
 		view.showInfo("Reportaje entregado correctamente.");
-		view.getFrame().dispose();
+		cargarMultimedia();
 	}
 }

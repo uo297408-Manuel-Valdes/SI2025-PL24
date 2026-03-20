@@ -5,13 +5,15 @@ public class ReporteroDTO {
 	private int idAgencia;
 	private String nombre;
 	private String tematicasTexto;
+	private String tipoReportero;
 
-	public ReporteroDTO(int idReportero, int idAgencia, String nombre) {
+	/*public ReporteroDTO(int idReportero, int idAgencia, String nombre) {
 		super();
 		this.idReportero = idReportero;
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
 		this.tematicasTexto = "";
+		this.tipoReportero = "";
 	}
 
 	public ReporteroDTO(int idReportero, int idAgencia, String nombre, String tematicasTexto) {
@@ -20,6 +22,16 @@ public class ReporteroDTO {
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
 		this.tematicasTexto = tematicasTexto;
+		this.tipoReportero = "";
+	}*/
+
+	public ReporteroDTO(int idReportero, int idAgencia, String nombre, String tematicasTexto, String tipoReportero) {
+		super();
+		this.idReportero = idReportero;
+		this.idAgencia = idAgencia;
+		this.nombre = nombre;
+		this.tematicasTexto = tematicasTexto;
+		this.tipoReportero = tipoReportero;
 	}
 
 	public ReporteroDTO() {
@@ -56,6 +68,14 @@ public class ReporteroDTO {
 
 	public void setTematicasTexto(String tematicasTexto) {
 		this.tematicasTexto = tematicasTexto;
+	}
+
+	public String getTipoReportero() {
+		return tipoReportero;
+	}
+
+	public void setTipoReportero(String tipoReportero) {
+		this.tipoReportero = tipoReportero;
 	}
 
 	@Override

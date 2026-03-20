@@ -15,11 +15,12 @@ INSERT INTO empresa (nombre) VALUES ('La Nueva España');
 -- ===============================
 -- REPORTEROS
 -- ===============================
-INSERT INTO reportero (id_agencia, nombre) VALUES (1, 'Ana Pérez');
-INSERT INTO reportero (id_agencia, nombre) VALUES (1, 'Luis Gómez');
-INSERT INTO reportero (id_agencia, nombre) VALUES (2, 'Marta Ruiz');
-INSERT INTO reportero (id_agencia, nombre) VALUES (2, 'Laura Martínez');
-
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Ana Pérez', 'Básico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Luis Gómez', 'Gráfico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (2, 'Marta Ruiz', 'Camarógrafo');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (2, 'Laura Martínez', 'Básico');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Carlos Vega', 'Camarógrafo');
+INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Lucía Díaz', 'Básico');
 
 -- ===============================
 -- EVENTOS
@@ -61,6 +62,11 @@ INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (1, 4);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (2, 1);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (3, 3);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (4, 1);
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (5, 2);
+INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (6, 3);
+
+
+
 
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 1);
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 3);

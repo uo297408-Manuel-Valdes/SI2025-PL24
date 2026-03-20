@@ -102,7 +102,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnCargarDatosIniciales);
 
 		
-		JButton btnHU33550 = new JButton("HU 33550/33556/34024 - Asignar reporteros");
+		JButton btnHU33550 = new JButton("HU 33550/33556/34024/34034 - Asignar reporteros");
 		btnHU33550.addActionListener(e -> {
 			AsignarReporterosAEventosController controller =
 				new AsignarReporterosAEventosController(
@@ -138,7 +138,7 @@ public class SwingMain {
 		});
 		frame.getContentPane().add(btnHU33552);
 		
-		JButton btnHU33553 = new JButton("HU 33553 - Gestionar ofrecimientos");
+		JButton btnHU33553 = new JButton("HU 33553/34029 - Gestionar ofrecimientos");
 		btnHU33553.addActionListener(e -> {
 			GestionarOfrecimientosRecibidosController controller =
 				new GestionarOfrecimientosRecibidosController(

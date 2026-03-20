@@ -103,7 +103,7 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 			int idEv = ((Number) r[1]).intValue();
 			int idEm = ((Number) r[2]).intValue();
 			String decision = (String) r[3];
-			res=new OfrecimientoDTO(idOf,idEv,idEm,idEm, decision, decision, decision, decision, decision);
+			res=new OfrecimientoDTO(idOf,idEv,idEm,idEm);
 			//Ejemplo para que me funcione, hay que cambiar cuando hagas tu hu
 		}
 		return res;

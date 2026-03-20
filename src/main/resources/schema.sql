@@ -32,6 +32,7 @@ CREATE TABLE reportero (
   id_reportero INTEGER PRIMARY KEY AUTOINCREMENT,
   id_agencia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
+  tipo_reportero TEXT NOT NULL CHECK (tipo_reportero IN ('Básico', 'Gráfico', 'Camarógrafo')),
   FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
 );
 
@@ -116,5 +117,13 @@ CREATE TABLE multimedia_reportaje (
   estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','BORRADOR')),
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
+);
+
+CREATE TABLE empresa_tematica (
+  id_empresa INTEGER NOT NULL,
+  id_tematica INTEGER NOT NULL,
+  PRIMARY KEY (id_empresa, id_tematica),
+  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa),
+  FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 

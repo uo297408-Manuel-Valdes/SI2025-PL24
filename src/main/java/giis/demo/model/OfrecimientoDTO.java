@@ -16,7 +16,19 @@ public class OfrecimientoDTO {
 	public OfrecimientoDTO() {
 		super();
 	}
-
+	
+	public OfrecimientoDTO(int idOfrecimiento, int idEvento, int idEmpresa, String decision) {
+		this.idOfrecimiento=idOfrecimiento;
+		this.idEvento=idEvento;
+		this.idEmpresa=idEmpresa;
+		this.decision=decision;
+		this.nombreEvento=null;
+		this.nombreAgencia=null;
+		this.fechaEvento=null;
+		this.tematicasTexto=null;
+		this.idAgencia=0;
+	}
+	
 	public OfrecimientoDTO(int idOfrecimiento, int idEvento, int idAgencia, int idEmpresa,
 			String nombreEvento, String fechaEvento, String nombreAgencia,
 			String decision, String tematicasTexto) {

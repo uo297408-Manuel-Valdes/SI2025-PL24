@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS tematica;
 DROP TABLE IF EXISTS agencia_prensa;
 DROP TABLE IF EXISTS multimedia_reportaje;
 DROP TABLE IF EXISTS empresa_tematica;
+DROP TABLE IF EXISTS comentario_revision;
 
 CREATE TABLE agencia_prensa (
   id_agencia INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,5 +126,15 @@ CREATE TABLE empresa_tematica (
   PRIMARY KEY (id_empresa, id_tematica),
   FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa),
   FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
+);
+
+CREATE TABLE comentario_revision (
+  id_comentario  INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_reportaje   INTEGER NOT NULL,
+  id_reportero   INTEGER NOT NULL,
+  comentario     TEXT NOT NULL,
+  fecha_hora     TEXT NOT NULL,
+  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
+  FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
 

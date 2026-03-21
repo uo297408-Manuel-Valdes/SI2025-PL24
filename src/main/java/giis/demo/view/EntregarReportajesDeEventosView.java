@@ -31,7 +31,7 @@ public class EntregarReportajesDeEventosView {
 	private DefaultTableModel tmMultimedia;
 	private JButton           btnAnadir;
 	private JButton           btnEliminar;
-
+	
 	// Cabecera derecha
 	private JLabel lblEventoSeleccionado;
 
@@ -45,7 +45,7 @@ public class EntregarReportajesDeEventosView {
 	// Boton principal
 	private JButton btnEntregar;
 	private JButton btnCambiarEstado;
-
+	private JButton btnSolicitarRevision;
 	public EntregarReportajesDeEventosView() {
 		initialize();
 	}
@@ -190,6 +190,10 @@ public class EntregarReportajesDeEventosView {
 		btnCambiarEstado.setBounds(20, 558, 280, 26);
 		frame.getContentPane().add(btnCambiarEstado);
 		
+		btnSolicitarRevision = new JButton("Solicitar Revision");
+		btnSolicitarRevision.setBounds(320, 600, 180, 30);
+		btnSolicitarRevision.setEnabled(false);
+		frame.getContentPane().add(btnSolicitarRevision);
 		
 		
 		
@@ -333,6 +337,8 @@ public class EntregarReportajesDeEventosView {
 	}
 
 
+	
+	
 	public void addReporteroChangedListener(ActionListener l) {
 		cbReporteros.addActionListener(l);
 	}
@@ -373,8 +379,19 @@ public class EntregarReportajesDeEventosView {
 	    btnCambiarEstado.addActionListener(l);
 	}
 	
+	public void setPendienteRevision(boolean pendiente) {
+	    btnSolicitarRevision.setEnabled(!pendiente);
+	    btnSolicitarRevision.setText(pendiente ? "Pendiente de revision" : "Solicitar Revision");
+	}
 	
-	// ── Dialogos ──────────────────────────────────────────────────────────
+	public void setFiltroSeleccionado(String valor) {
+	    cbFiltro.setSelectedItem(valor);
+	}
+	
+	public void addSolicitarRevisionListener(ActionListener l) {
+	    btnSolicitarRevision.addActionListener(l);
+	}
+	
 
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Informacion", JOptionPane.INFORMATION_MESSAGE);

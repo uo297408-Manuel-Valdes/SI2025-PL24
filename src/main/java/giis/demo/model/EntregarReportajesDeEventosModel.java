@@ -92,9 +92,7 @@ public class EntregarReportajesDeEventosModel {
 	}
 
 
-	/**
-	 * Devuelve todos los elementos multimedia asociados a un reportaje.
-	 */
+	
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
 			"SELECT id_multimedia, id_reportaje, id_reportero, path, tipo, estado " +
@@ -116,11 +114,7 @@ public class EntregarReportajesDeEventosModel {
 		return res;
 	}
 
-	/**
-	 * Añade un elemento multimedia al reportaje.
-	 * Cualquier reportero asignado al evento puede añadir.
-	 * El path no puede repetirse en todo el sistema.
-	 */
+	
 	public void addMultimedia(int idReportaje, int idReportero,int idEvento,
 	                           String path, String tipo) {
 
@@ -227,9 +221,12 @@ public class EntregarReportajesDeEventosModel {
 			db.executeUpdate(insertRep, idEvento, tituloTrim, idReportero);
 			reportaje = getReportaje(idEvento);
 		} else {
-			if (!reporteroPuedeModificar(idEvento, idReportero))
-				throw new ApplicationException("Solo el reportero que hizo la entrega original puede modificar el reportaje.");
-			// El titulo no se puede cambiar en modificacion
+			 if (!reporteroPuedeModificar(idEvento, idReportero))
+			        throw new ApplicationException(
+			            "Solo el reportero que hizo la entrega original puede modificar el reportaje.");
+			    if (isPendienteRevision(reportaje.getIdReportaje())) 
+			        throw new ApplicationException(
+			            "El reportaje esta pendiente de revision y no puede modificarse.");
 		}
 
 		String cambiosAuto = generarCambios(reportaje, subtituloTrim, cuerpoTrim);
@@ -253,4 +250,53 @@ public class EntregarReportajesDeEventosModel {
 		String sql = "SELECT 1 FROM REPORTAJE WHERE titulo = ? AND id_reportaje != ? LIMIT 1";
 		return !db.executeQueryArray(sql, titulo, idReportajePropio).isEmpty();
 	}
+	
+	
+	public boolean isPendienteRevision(int idReportaje) {
+	    String sql = "SELECT 1 FROM COMENTARIO_REVISION WHERE id_reportaje = ? LIMIT 1";
+	    return !db.executeQueryArray(sql, idReportaje).isEmpty();
+	}
+
+	
+	public List<ComentarioRevisionDTO> getComentariosRevision(int idReportaje) {
+	    String sql =
+	        "SELECT id_comentario, id_reportaje, id_reportero, comentario, fecha_hora " +
+	        "FROM COMENTARIO_REVISION " +
+	        "WHERE id_reportaje = ? " +
+	        "ORDER BY id_comentario";
+	    List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
+	    List<ComentarioRevisionDTO> res = new ArrayList<>();
+	    for (Object[] r : rows) {
+	        res.add(new ComentarioRevisionDTO(
+	            ((Number) r[0]).intValue(),
+	            ((Number) r[1]).intValue(),
+	            ((Number) r[2]).intValue(),
+	            (String)  r[3],
+	            (String)  r[4]
+	        ));
+	    }
+	    return res;
+	}
+
+	
+	public void solicitarRevision(int idEvento, int idReportero) {
+	    ReportajeDTO reportaje = getReportaje(idEvento);
+	    if (reportaje == null)
+	        throw new ApplicationException("No existe reportaje para este evento.");
+	    if (!reporteroPuedeModificar(idEvento, idReportero))
+	        throw new ApplicationException(
+	            "Solo el reportero que hizo la entrega puede solicitar la revision.");
+	    if (isPendienteRevision(reportaje.getIdReportaje()))
+	        throw new ApplicationException("El reportaje ya esta pendiente de revision.");
+
+	    String fechaHora = LocalDateTime.now()
+	        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+
+	    db.executeUpdate(
+	        "INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora) " +
+	        "VALUES (?, ?, ?, ?)",
+	        reportaje.getIdReportaje(), idReportero, "Solicitud de revision", fechaHora
+	    );
+	}
+	
 }

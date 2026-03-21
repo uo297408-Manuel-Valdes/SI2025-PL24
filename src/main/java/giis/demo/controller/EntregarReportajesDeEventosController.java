@@ -40,7 +40,7 @@ public class EntregarReportajesDeEventosController {
 		view.addAnadirMultimediaListener   (e -> SwingUtil.exceptionWrapper(() -> onAnadirMultimedia()));
 		view.addEliminarMultimediaListener (e -> SwingUtil.exceptionWrapper(() -> onEliminarMultimedia()));
 		view.addCambiarEstadoListener(e -> SwingUtil.exceptionWrapper(() -> onCambiarEstado()));
-
+		view.addSolicitarRevisionListener(e -> SwingUtil.exceptionWrapper(() -> onSolicitarRevision()));
 		SwingUtil.exceptionWrapper(() -> {
 			List<ReporteroDTO> reporteros = model.getReporteros();
 			view.setReporteros(reporteros);
@@ -113,7 +113,9 @@ public class EntregarReportajesDeEventosController {
 			// Avisar si no puede modificar el contenido textual
 			if (rep != null && !model.reporteroPuedeModificar(eventoSeleccionado.getIdEvento(), rep.getIdReportero()))
 				view.showInfo("Solo puedes consultar y añadir multimedia a este reportaje. No eres el reportero que realizo la entrega original.");
-
+			boolean pendiente = model.isPendienteRevision(reportaje.getIdReportaje());
+		    view.setPendienteRevision(pendiente);
+			
 		} else {
 			idReportajeActual = -1;
 			view.setTitulo("");
@@ -216,7 +218,24 @@ public class EntregarReportajesDeEventosController {
 	    model.cambiarEstadoMultimedia(idMultimedia, reportero.getIdReportero(), nuevoEstado);
 	    cargarMultimedia();
 	}
+	private void onSolicitarRevision() {
+	    if (eventoSeleccionado == null) {
+	        view.showInfo("Selecciona un evento primero.");
+	        return;
+	    }
+	    ReporteroDTO reportero = view.getReporteroSeleccionado();
+	    if (reportero == null) return;
 
+	    if (!view.confirm(
+	            "Vas a marcar el reportaje como pendiente de revision.\n" +
+	            "No podras modificarlo hasta que finalice.\n¿Confirmas?",
+	            "Solicitar revision")) return;
+
+	    model.solicitarRevision(eventoSeleccionado.getIdEvento(), reportero.getIdReportero());
+	    view.setPendienteRevision(true);
+	    view.showInfo("Revision solicitada correctamente.");
+	}
+	
 	private void onEntregar() {
 		if (eventoSeleccionado == null) {
 			view.showInfo("Selecciona un evento primero.");
@@ -259,6 +278,7 @@ public class EntregarReportajesDeEventosController {
 		}
 
 		view.showInfo("Reportaje entregado correctamente.");
+	    view.setFiltroSeleccionado("Eventos CON reportaje");
 		cargarMultimedia();
 	}
 }

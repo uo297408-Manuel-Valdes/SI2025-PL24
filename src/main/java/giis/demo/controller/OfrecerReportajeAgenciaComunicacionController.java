@@ -1,3 +1,4 @@
+
 package giis.demo.controller;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 
 		view.addAgenciaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReportajes()));
 		view.addFiltroChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltro()));
+		view.addFiltroTematicaChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltroTematica()));
 		view.addReportajesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onReportajeSeleccionado(e)));
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> moverDisponiblesASeleccionados()));
 		view.addOfrecerListener(e -> SwingUtil.exceptionWrapper(() -> confirmarYGuardar()));
@@ -73,6 +75,36 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		
 		view.setDisponibles(disponibles);
 	}
+	
+	private void aplicarFiltroTematica() {
+		Integer idEvento = view.getIdReportajeSeleccionado();
+		String filtro = view.getFiltroTematicaSeleccionado();
+		
+		List<String> tematicaE = new ArrayList<>();
+		List<String> tematicaEC = new ArrayList<>();
+		List<EmpresaDTO> nuevosDisponibles = new ArrayList<>();
+		
+		if(idEvento==null)return;
+		
+		if(filtro.equals("Desactivado"))return;
+		
+		if(filtro.equals("Activado")) {
+			tematicaE=model.getTematicaEvento(idEvento);
+			
+			for(int i=0;i<disponibles.size();i++) {
+				tematicaEC=model.getTematicaEmpresa(disponibles.get(i).getIdEmpresa());
+				for(int j=0;j<tematicaEC.size();j++) {
+					if(tematicaE.contains(tematicaEC.get(j))) {
+						nuevosDisponibles.add(disponibles.get(i));
+						break;
+					}
+				}
+			}
+			view.setDisponibles(nuevosDisponibles);
+		}
+		
+	}
+	
 	private void onReportajeSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
 

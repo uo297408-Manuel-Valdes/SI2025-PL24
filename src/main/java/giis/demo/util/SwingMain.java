@@ -67,7 +67,7 @@ public class SwingMain {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("Main");
-		frame.setBounds(0, 0, 300, 270);
+		frame.setBounds(0, 0, 350, 270);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
@@ -127,7 +127,7 @@ public class SwingMain {
 		
 		
 
-		JButton btnHU33552 = new JButton("HU 33552/33557 - Ofrecer reportajes");
+		JButton btnHU33552 = new JButton("HU 33552/33557/34028 - Ofrecer reportajes");
 		btnHU33552.addActionListener(e -> {
 			OfrecerReportajeAgenciaComunicacionController controller =
 				new OfrecerReportajeAgenciaComunicacionController(
@@ -160,7 +160,7 @@ public class SwingMain {
 		});
 		frame.getContentPane().add(btnHU33554);
 		
-		JButton btnHU33555 = new JButton("HU 33555 - Acceder a reportajes");
+		JButton btnHU33555 = new JButton("HU 33555/34027 - Acceder a reportajes");
 		btnHU33555.addActionListener(e -> {
 			AccederReportajesController controller =
 				new AccederReportajesController(

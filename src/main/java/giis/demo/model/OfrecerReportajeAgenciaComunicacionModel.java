@@ -103,9 +103,52 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 			int idEv = ((Number) r[1]).intValue();
 			int idEm = ((Number) r[2]).intValue();
 			String decision = (String) r[3];
-			res=new OfrecimientoDTO(idOf,idEv,idEm,idEm);
-			//Ejemplo para que me funcione, hay que cambiar cuando hagas tu hu
+			res=new OfrecimientoDTO(idOf,idEv,idEm,decision);
 		}
+		return res;
+	}
+	
+	public List<String> getTematicaEvento(Integer idEvento) {
+		String sql=
+				"Select t.id_tematica, t.nombre "+
+				"FROM TEMATICA t "+
+				"WHERE EXISTS( "+
+					"SELECT 1 " +
+					"FROM EVENTO_TEMATICA et "+
+					"WHERE et.id_tematica=t.id_tematica "+
+					"AND et.id_evento=? " +
+					")";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		
+		List<String> res = new ArrayList<>();
+		for(Object[] r : rows) {
+			String nombre = (String) r[1];
+			res.add(nombre);
+		}
+		
+		return res;
+	}
+	
+	public List<String> getTematicaEmpresa(Integer idEmpresa) {
+		String sql=
+				"Select t.id_tematica, t.nombre "+
+				"FROM TEMATICA t "+
+				"WHERE EXISTS( "+
+					"SELECT 1 " +
+					"FROM EMPRESA_TEMATICA et "+
+					"WHERE et.id_tematica=t.id_tematica "+
+					"AND et.id_empresa=? " +
+					")";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idEmpresa);
+		
+		List<String> res = new ArrayList<>();
+		for(Object[] r : rows) {
+			String nombre = (String) r[1];
+			res.add(nombre);
+		}
+		
 		return res;
 	}
 	

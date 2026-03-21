@@ -1,3 +1,4 @@
+
 package giis.demo.view;
 
 import java.awt.Font;
@@ -18,7 +19,8 @@ public class OfrecerReportajeAgenciaComunicacionView {
 
 	private JComboBox<AgenciaDTO> cbAgencias;
 	private JComboBox<String> cbFiltro;
-
+	private JComboBox<String> cbFiltroTematica;
+	
 	private JTable tblReportajes;
 	private DefaultTableModel tmReportajes;
 
@@ -40,7 +42,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 	private void initialize() {
 		frame = new JFrame(" Ofrecer reportajes a empresas de comunicación ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(1100, 750);
+		frame.setSize(1100, 775);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -52,12 +54,16 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		lblFiltro.setBounds(550, 15, 140, 20);
 		frame.getContentPane().add(lblFiltro);
 
+		JLabel lblFiltroTematicas = new JLabel("Filtrar de temáticas:");
+		lblFiltroTematicas.setBounds(550, 40, 240, 20);
+		frame.getContentPane().add(lblFiltroTematicas);
+		
 		cbAgencias = new JComboBox<>();
 		cbAgencias.setBounds(160, 15, 350, 22);
 		frame.getContentPane().add(cbAgencias);
 		
 		cbFiltro = new JComboBox<>();
-		cbFiltro.setBounds(650, 15, 350, 22);
+		cbFiltro.setBounds(675, 15, 350, 22);
 		frame.getContentPane().add(cbFiltro);
 		
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
@@ -66,9 +72,19 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		
 		cbFiltro.setModel(model);
 		
+		cbFiltroTematica = new JComboBox<>();
+		cbFiltroTematica.setBounds(675, 40, 350, 22);
+		frame.getContentPane().add(cbFiltroTematica);
+		
+		DefaultComboBoxModel<String> modelTematica = new DefaultComboBoxModel<>();
+		modelTematica.addElement("Desactivado");
+		modelTematica.addElement("Activado");
+		
+		cbFiltroTematica.setModel(modelTematica);
+		
 		JLabel lblReportajes = new JLabel("Evento");
 		lblReportajes.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblReportajes.setBounds(20, 50, 350, 20);
+		lblReportajes.setBounds(20, 75, 350, 20);
 		frame.getContentPane().add(lblReportajes);
 
 		tmReportajes = new DefaultTableModel(new Object[] { "Nombre", "Fecha", "id_evento" }, 0) {
@@ -80,7 +96,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		tblReportajes.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spReportajes = new JScrollPane(tblReportajes);
-		spReportajes.setBounds(20, 75, 300, 400);
+		spReportajes.setBounds(20, 100, 300, 400);
 		frame.getContentPane().add(spReportajes);
 
 		ocultarColumna(tblReportajes, 2);
@@ -89,12 +105,12 @@ public class OfrecerReportajeAgenciaComunicacionView {
 
 		JLabel lblDisp = new JLabel("Empresas de comunicación");
 		lblDisp.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblDisp.setBounds(370, 50, 200, 20);
+		lblDisp.setBounds(370, 75, 200, 20);
 		frame.getContentPane().add(lblDisp);
 
 		JLabel lblAsig = new JLabel("Empresas seleccionadas");
 		lblAsig.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblAsig.setBounds(740, 50, 300, 20);
+		lblAsig.setBounds(740, 75, 300, 20);
 		frame.getContentPane().add(lblAsig);
 
 		tmDisponibles = new DefaultTableModel(new Object[] { "Nombre", "id_empresa" }, 0) {
@@ -106,7 +122,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		tblDisponibles.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spDisp = new JScrollPane(tblDisponibles);
-		spDisp.setBounds(370, 75, 300, 400);
+		spDisp.setBounds(370, 100, 300, 400);
 		frame.getContentPane().add(spDisp);
 		ocultarColumna(tblDisponibles, 1);
 
@@ -118,7 +134,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		tblSeleccionados.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spAsig = new JScrollPane(tblSeleccionados);
-		spAsig.setBounds(740, 75, 300, 400);
+		spAsig.setBounds(740, 100, 300, 400);
 		frame.getContentPane().add(spAsig);
 		ocultarColumna(tblSeleccionados, 1);
 
@@ -126,19 +142,19 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		instalarTooltipsTabla(tblSeleccionados);
 
 		btnAsignar = new JButton("Asignar ->");
-		btnAsignar.setBounds(450, 500, 140, 40);
+		btnAsignar.setBounds(450, 525, 140, 40);
 		frame.getContentPane().add(btnAsignar);
 
 		btnOfrecer = new JButton("Ofrecer");
-		btnOfrecer.setBounds(740, 500, 140, 40);
+		btnOfrecer.setBounds(740, 525, 140, 40);
 		frame.getContentPane().add(btnOfrecer);
 		
 		btnQuitarOfrecimiento = new JButton("<html><center>Quitar<br>ofrecimiento</center></html>");
-		btnQuitarOfrecimiento.setBounds(890, 500, 140, 40);
+		btnQuitarOfrecimiento.setBounds(890, 525, 140, 40);
 		frame.getContentPane().add(btnQuitarOfrecimiento);
 		
 		btnSalir = new JButton("Salir");
-		btnSalir.setBounds(900, 650, 140, 40);
+		btnSalir.setBounds(900, 675, 140, 40);
 		frame.getContentPane().add(btnSalir);
 
 		frame.setLocationRelativeTo(null);
@@ -208,6 +224,10 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		return (String) cbFiltro.getSelectedItem();
 	}
 
+	public String getFiltroTematicaSeleccionado() {
+		return (String) cbFiltroTematica.getSelectedItem();
+	}
+	
 	public Integer getIdReportajeSeleccionado() {
 		int row = tblReportajes.getSelectedRow();
 		if (row < 0) return null;
@@ -246,6 +266,11 @@ public class OfrecerReportajeAgenciaComunicacionView {
 	public void addFiltroChangedListener(ActionListener l) {
 		cbFiltro.addActionListener(l);
 	}
+	
+	public void addFiltroTematicaChangedListener(ActionListener l) {
+		cbFiltroTematica.addActionListener(l);
+		
+	}
 
 	public void addReportajesSelectionListener(ListSelectionListener l) {
 		tblReportajes.getSelectionModel().addListSelectionListener(l);
@@ -276,5 +301,6 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		int opt = JOptionPane.showConfirmDialog(frame, msg, title, JOptionPane.YES_NO_OPTION);
 		return opt == JOptionPane.YES_OPTION;
 	}
+
 }
 

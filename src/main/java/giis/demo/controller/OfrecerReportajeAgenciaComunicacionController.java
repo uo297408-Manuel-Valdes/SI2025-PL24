@@ -222,18 +222,11 @@ public class OfrecerReportajeAgenciaComunicacionController {
 			if(of!=null) {
 				if(of.getDecision()!=null && of.getDecision().equals("ACEPTADO")) {
 					view.showInfo("Una o varias empresas ya aceptaron el ofrecimiento, se les mandara un correo notificando el cambio");
+					return;
 				}
 			}
 		}
 		model.quitarOfrecimiento(idEvento, ids);
-		for(Integer idEmpresa:ids) {
-			OfrecimientoDTO of=new OfrecimientoDTO();
-			of=model.getOfrecimiento(idEmpresa,idEvento);
-			
-			if(of!=null && of.getDecision().equals("ACEPTADO")) {
-				view.showInfo("Una o varias empresas ya aceptaron el ofrecimiento, se les mandara un correo notificando el cambio");
-			}
-		}
 
 		view.showInfo("Se quito el ofrecimiento correctamente.");
 		view.getFrame().dispose();

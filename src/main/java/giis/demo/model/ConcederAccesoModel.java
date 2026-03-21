@@ -94,6 +94,24 @@ public class ConcederAccesoModel {
 		return res;
 	}
 	
+	public AccesoDTO getAcceso(int idEmpresa, int idEvento) {
+		String sql=
+				"SELECT o.id_acceso, o.id_evento, o.id_empresa, o.descargado "+
+				"FROM ACCESO_REPORTAJE o "+
+				"WHERE o.id_evento=? AND o.id_empresa=?";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento, idEmpresa);
+
+		AccesoDTO res=null;
+		for (Object[] r : rows) {
+			int idOf = ((Number) r[0]).intValue();
+			int idEv = ((Number) r[1]).intValue();
+			int idEm = ((Number) r[2]).intValue();
+			int descargado = ((Number) r[3]).intValue();
+			res=new AccesoDTO(idOf,idEv,idEm,descargado);
+		}
+		return res;
+	}
 
 	public void concederAcceso(int idEvento, List<Integer> idsEmpresas) {
 
@@ -134,5 +152,17 @@ public class ConcederAccesoModel {
 		for (Integer idEmpresa : idsEmpresas) {
 			db.executeUpdate(insert, idEvento, idEmpresa);
 		}
+	}
+	
+	public void quitarAcceso(int idEvento, List<Integer> idsEmpresas){
+		
+		if (idsEmpresas == null || idsEmpresas.isEmpty())
+			throw new ApplicationException("Debes seleccionar al menos una empresa.");
+		
+		String delete = "DELETE FROM ACCESO_REPORTAJE WHERE id_evento = ? AND id_empresa=?";
+		for (Integer idEmpresa : idsEmpresas) {
+			db.executeUpdate(delete, idEvento, idEmpresa);
+		}
+		
 	}
 }

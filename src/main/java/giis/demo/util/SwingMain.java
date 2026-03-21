@@ -149,7 +149,7 @@ public class SwingMain {
 		});
 		frame.getContentPane().add(btnHU33553);
 		
-		JButton btnHU33554 = new JButton("HU 33554 - Conceder Acceso");
+		JButton btnHU33554 = new JButton("HU 33554/34032/34033 - Conceder Acceso");
 		btnHU33554.addActionListener(e -> {
 			ConcederAccesoController controller =
 				new ConcederAccesoController(

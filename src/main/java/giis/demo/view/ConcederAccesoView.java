@@ -34,6 +34,7 @@ public class ConcederAccesoView {
 
 
 	private JButton btnConcederAcceso;
+	private JButton btnQuitarAcceso;
 
 	
 	public ConcederAccesoView() {
@@ -136,8 +137,12 @@ public class ConcederAccesoView {
 		
 
 		btnConcederAcceso = new JButton("Conceder Acceso");
-		btnConcederAcceso.setBounds(300, 493, 180, 30);
+		btnConcederAcceso.setBounds(150, 493, 180, 30);
 		frame.getContentPane().add(btnConcederAcceso);
+		
+		btnQuitarAcceso = new JButton("Quitar Acceso");
+		btnQuitarAcceso.setBounds(450, 493, 180, 30);
+		frame.getContentPane().add(btnQuitarAcceso);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -259,6 +264,9 @@ public class ConcederAccesoView {
 		btnConcederAcceso.addActionListener(l);
 	}
 
+	public void addQuitarAccesoListener(ActionListener l) {
+		btnQuitarAcceso.addActionListener(l);
+	}
 	
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Información", JOptionPane.INFORMATION_MESSAGE);

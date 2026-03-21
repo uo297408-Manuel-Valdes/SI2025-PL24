@@ -10,8 +10,10 @@ import giis.demo.model.AgenciaDTO;
 import giis.demo.model.ConcederAccesoModel;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.EventoDTO;
+import giis.demo.model.OfrecimientoDTO;
 import giis.demo.util.SwingUtil;
 import giis.demo.view.ConcederAccesoView;
+import giis.demo.model.AccesoDTO;
 
 public class ConcederAccesoController {
 
@@ -36,6 +38,7 @@ public class ConcederAccesoController {
 		view.addEventosSelectionListener   (e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
 		view.addAceptantesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onAceptanteSeleccionado(e)));
 		view.addConcederAccesoListener     (e -> SwingUtil.exceptionWrapper(() -> onConcederAcceso()));
+		view.addQuitarAccesoListener(e -> SwingUtil.exceptionWrapper(() -> quitarAcceso()) );
 		view.addFiltroChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltro()));
 		
 		SwingUtil.exceptionWrapper(() -> cargarEventos());
@@ -150,6 +153,48 @@ public class ConcederAccesoController {
 		model.concederAcceso(idEvento, ids);
 
 		view.showInfo("Acceso concedido correctamente.");
+		view.getFrame().dispose();
+	}
+	
+	private void quitarAcceso(){
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) {
+			view.showInfo("Selecciona un evento.");
+			return;
+		}
+		if (seleccionadas.isEmpty()) {
+			view.showInfo("Selecciona al menos una empresa antes de quitar el acceso.");
+			return;
+		}
+		
+		String evento = view.getNombreEventoSeleccionado();
+		
+
+		String listaEmpresass = seleccionadas.stream()
+				.map(EmpresaDTO::getNombre)
+				.collect(Collectors.joining(", "));
+
+		String msg = "Vas a quitar el acceso del siguiente evento a las siguientes empresas:\n\n"
+				+ "Evento: " + evento +" \n"
+				+ "Empresa: " + listaEmpresass + "\n\n"
+				+ "¿Estas seguro de quitar el acceso?";
+
+		if (!view.confirm(msg, "Confirmar")) return;
+		
+		List<Integer> ids = seleccionadas.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
+		for(Integer idEmpresa:ids) {
+			AccesoDTO ac=new AccesoDTO();
+			ac=model.getAcceso(idEmpresa,idEvento);
+			if(ac!=null) {
+				if( ac.getDescargado()==1) {
+					view.showInfo("Una o varias empresas ya descargaron el acceso");
+					return;
+				}
+			}
+		}
+		model.quitarAcceso(idEvento, ids);
+
+		view.showInfo("Se quito el acceso correctamente.");
 		view.getFrame().dispose();
 	}
 }

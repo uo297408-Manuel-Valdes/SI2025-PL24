@@ -70,28 +70,6 @@ public class ConcederAccesoModel {
 		return res;
 	}
 
-	public List<EmpresaDTO> getEmpresasSinAcceso(int idEvento) {
-		String sql =
-				"SELECT e.id_empresa, e.nombre "+
-				"FROM EMPRESA e "+
-				"WHERE NOT EXISTS ( "+
-						"SELECT 1 "+
-						"FROM ACCESO_REPORTAJE o " +
-						"WHERE o.id_empresa = e.id_empresa " +
-						"AND o.id_evento = ? " +
-						")";
-
-
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-
-		List<EmpresaDTO> res = new ArrayList<>();
-		for (Object[] r : rows) {
-			int idEm = ((Number) r[0]).intValue();
-			String nombre = (String) r[1];
-			res.add(new EmpresaDTO(idEm, nombre));
-		}
-		return res;
-	}
 	
 	public List<EmpresaDTO> getEmpresasConAcceso(Integer idEvento) {
 		String sql =

@@ -50,15 +50,18 @@ public class ConcederAccesoController {
 	private void aplicarFiltro() {
 		
 		Integer idEvento = view.getIdEventoSeleccionado();
+		String nombreEvento = view.getNombreEventoSeleccionado();
 		String filtro = view.getFiltroSeleccionado();
+		seleccionadas = new ArrayList<>();
 		
 		if(idEvento==null)return;
 		
-		if(filtro.equals("Empresas sin acceso")) seleccionadas = model.getEmpresasSinAcceso(idEvento);
+		if(filtro.equals("Empresas sin acceso")) aceptantes = model.getEmpresasAceptantesSinAcceso(idEvento);
 		
-		if(filtro.equals("Empresas con acceso")) seleccionadas = model.getEmpresasConAcceso(idEvento);
-		
-		view.setEmpresasAceptantes(aceptantes,null);
+		if(filtro.equals("Empresas con acceso")) aceptantes = model.getEmpresasConAcceso(idEvento);
+
+		view.setEmpresasAceptantes(aceptantes, nombreEvento);
+		view.setEmpresasSeleccionadas(seleccionadas);
 	}
 
 	private void cargarEventos() {
@@ -86,12 +89,15 @@ public class ConcederAccesoController {
 			view.limpiarPanelDerecho();
 			return;
 		}
-
+		
+		String filtro = view.getFiltroSeleccionado();
 		String nombreEvento = view.getNombreEventoSeleccionado();
 
 		//Al cambiar de evento reiniciamos la selección
 		seleccionadas = new ArrayList<>();
-		aceptantes    = model.getEmpresasAceptantesSinAcceso(idEvento);
+		if(filtro.equals("Empresas sin acceso")) aceptantes = model.getEmpresasAceptantesSinAcceso(idEvento);
+		
+		if(filtro.equals("Empresas con acceso")) aceptantes = model.getEmpresasConAcceso(idEvento);
 
 		view.setEmpresasAceptantes(aceptantes, nombreEvento);
 		view.setEmpresasSeleccionadas(seleccionadas);

@@ -20,6 +20,8 @@ public class ConcederAccesoView {
 	private JTable            tblEventos;
 	private DefaultTableModel tmEventos;
 
+	private JComboBox<String> cbFiltro;
+	
 	private JComboBox<AgenciaDTO> cbAgencias;
 	
 	private JLabel            lblEmpresasAceptantes;
@@ -41,7 +43,7 @@ public class ConcederAccesoView {
 	private void initialize() {
 		frame = new JFrame(" Distribuir Reportaje ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(780, 610);
+		frame.setSize(780, 635);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -54,11 +56,23 @@ public class ConcederAccesoView {
 		cbAgencias.setBounds(160, 15, 350, 22);
 		frame.getContentPane().add(cbAgencias);
 		
+		JLabel lblFiltro = new JLabel("Filtrar por:");
+		lblFiltro.setBounds(20, 40, 140, 20);
+		frame.getContentPane().add(lblFiltro);
 		
+		cbFiltro = new JComboBox<>();
+		cbFiltro.setBounds(160, 40, 350, 22);
+		frame.getContentPane().add(cbFiltro);
+		
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+		model.addElement("Empresas sin acceso");
+		model.addElement("Empresas con acceso");
+		
+		cbFiltro.setModel(model);
 		
 		JLabel lblEventos = new JLabel("Eventos Cubiertos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblEventos.setBounds(20, 50, 200, 20);
+		lblEventos.setBounds(20, 75, 200, 20);
 		frame.getContentPane().add(lblEventos);
 
 		tmEventos = new DefaultTableModel(new Object[]{"Nombre", "Fecha", "id_evento"}, 0) {
@@ -69,7 +83,7 @@ public class ConcederAccesoView {
 		tblEventos.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spEventos = new JScrollPane(tblEventos);
-		spEventos.setBounds(20, 90, 310, 190);
+		spEventos.setBounds(20, 115, 310, 190);
 		frame.getContentPane().add(spEventos);
 
 		ocultarColumna(tblEventos, 2);
@@ -81,7 +95,7 @@ public class ConcederAccesoView {
 
 		lblEmpresasAceptantes = new JLabel("Empresas Aceptantes de: (ninguno)");
 		lblEmpresasAceptantes.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblEmpresasAceptantes.setBounds(360, 50, 390, 20);
+		lblEmpresasAceptantes.setBounds(360, 75, 390, 20);
 		frame.getContentPane().add(lblEmpresasAceptantes);
 
 		tmAceptantes = new DefaultTableModel(new Object[]{"Nombre de empresa", "id_empresa"}, 0) {
@@ -92,7 +106,7 @@ public class ConcederAccesoView {
 		tblAceptantes.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spAceptantes = new JScrollPane(tblAceptantes);
-		spAceptantes.setBounds(360, 90, 390, 190);
+		spAceptantes.setBounds(360, 115, 390, 190);
 		frame.getContentPane().add(spAceptantes);
 
 		ocultarColumna(tblAceptantes, 1);
@@ -103,7 +117,7 @@ public class ConcederAccesoView {
 
 		JLabel lblSeleccionadas = new JLabel("Empresas seleccionadas");
 		lblSeleccionadas.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblSeleccionadas.setBounds(20, 260, 200, 20);
+		lblSeleccionadas.setBounds(20, 285, 200, 20);
 		frame.getContentPane().add(lblSeleccionadas);
 
 		tmSeleccionadas = new DefaultTableModel(new Object[]{"Nombre de empresa", "id_empresa"}, 0) {
@@ -114,7 +128,7 @@ public class ConcederAccesoView {
 		tblSeleccionadas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spSeleccionadas = new JScrollPane(tblSeleccionadas);
-		spSeleccionadas.setBounds(20, 285, 730, 170);
+		spSeleccionadas.setBounds(20, 310, 730, 170);
 		frame.getContentPane().add(spSeleccionadas);
 
 		ocultarColumna(tblSeleccionadas, 1);
@@ -122,7 +136,7 @@ public class ConcederAccesoView {
 		
 
 		btnConcederAcceso = new JButton("Conceder Acceso");
-		btnConcederAcceso.setBounds(300, 468, 180, 30);
+		btnConcederAcceso.setBounds(300, 493, 180, 30);
 		frame.getContentPane().add(btnConcederAcceso);
 
 		frame.setLocationRelativeTo(null);
@@ -216,6 +230,10 @@ public class ConcederAccesoView {
 		return tblAceptantes.getSelectedRows();
 	}
 
+	public String getFiltroSeleccionado() {
+		return (String) cbFiltro.getSelectedItem();
+	}
+	
 	public EmpresaDTO getEmpresaAceptanteEnFila(int row) {
 		String nombre  = (String) tmAceptantes.getValueAt(row, 0);
 		int    idEmp   = ((Number) tmAceptantes.getValueAt(row, 1)).intValue();
@@ -229,6 +247,9 @@ public class ConcederAccesoView {
 		tblEventos.getSelectionModel().addListSelectionListener(l);
 	}
 
+	public void addFiltroChangedListener(ActionListener l) {
+		cbFiltro.addActionListener(l);
+	}
 
 	public void addAceptantesSelectionListener(ListSelectionListener l) {
 		tblAceptantes.getSelectionModel().addListSelectionListener(l);

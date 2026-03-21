@@ -36,7 +36,7 @@ public class ConcederAccesoController {
 		view.addEventosSelectionListener   (e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
 		view.addAceptantesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onAceptanteSeleccionado(e)));
 		view.addConcederAccesoListener     (e -> SwingUtil.exceptionWrapper(() -> onConcederAcceso()));
-		
+		view.addFiltroChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltro()));
 		
 		SwingUtil.exceptionWrapper(() -> cargarEventos());
 		SwingUtil.exceptionWrapper(() -> {
@@ -46,6 +46,20 @@ public class ConcederAccesoController {
 		});
 	}
 
+
+	private void aplicarFiltro() {
+		
+		Integer idEvento = view.getIdEventoSeleccionado();
+		String filtro = view.getFiltroSeleccionado();
+		
+		if(idEvento==null)return;
+		
+		if(filtro.equals("Empresas sin acceso")) seleccionadas = model.getEmpresasSinAcceso(idEvento);
+		
+		if(filtro.equals("Empresas con acceso")) seleccionadas = model.getEmpresasConAcceso(idEvento);
+		
+		view.setEmpresasAceptantes(aceptantes,null);
+	}
 
 	private void cargarEventos() {
 		AgenciaDTO agencia = view.getAgenciaSeleccionada();

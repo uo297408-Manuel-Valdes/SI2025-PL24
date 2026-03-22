@@ -115,7 +115,7 @@ public class AccederReportajesModel {
 				"UPDATE ACCESO_REPORTAJE "+
 				"SET descargado=1 "+
 				"WHERE id_evento=? AND id_empresa=?";
-		db.executeUpdate(sql, idEmpresa, idReportaje);
+		db.executeUpdate(sql, idReportaje, idEmpresa);
 	}
 	
 }

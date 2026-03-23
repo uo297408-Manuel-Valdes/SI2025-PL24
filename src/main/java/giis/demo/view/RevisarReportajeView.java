@@ -114,7 +114,7 @@ public class RevisarReportajeView {
 		txtCuerpo.setWrapStyleWord(true);
 		txtCuerpo.setBackground(new java.awt.Color(245, 245, 245));
 		JScrollPane spCuerpo = new JScrollPane(txtCuerpo);
-		spCuerpo.setBounds(730, 50, 195, 280);
+		spCuerpo.setBounds(310, 150, 500, 200);
 		frame.getContentPane().add(spCuerpo);
 
 		// ── Tabla multimedia (derecha abajo) ──────────────────────────────

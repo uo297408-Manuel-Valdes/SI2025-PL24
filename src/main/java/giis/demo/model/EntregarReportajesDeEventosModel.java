@@ -253,8 +253,15 @@ public class EntregarReportajesDeEventosModel {
 	
 	
 	public boolean isPendienteRevision(int idReportaje) {
-	    String sql = "SELECT 1 FROM COMENTARIO_REVISION WHERE id_reportaje = ? LIMIT 1";
-	    return !db.executeQueryArray(sql, idReportaje).isEmpty();
+	    // Pendiente = tiene al menos un comentario Y no tiene comentario de finalizacion
+	    String sql =
+	        "SELECT 1 FROM COMENTARIO_REVISION " +
+	        "WHERE id_reportaje = ? AND es_finalizacion = 0 " +
+	        "AND NOT EXISTS ( " +
+	        "  SELECT 1 FROM COMENTARIO_REVISION cr2 " +
+	        "  WHERE cr2.id_reportaje = ? AND cr2.es_finalizacion = 1 " +
+	        ") LIMIT 1";
+	    return !db.executeQueryArray(sql, idReportaje, idReportaje).isEmpty();
 	}
 
 	
@@ -298,5 +305,8 @@ public class EntregarReportajesDeEventosModel {
 	        reportaje.getIdReportaje(), idReportero, "Solicitud de revision", fechaHora
 	    );
 	}
+	
+	
+	
 	
 }

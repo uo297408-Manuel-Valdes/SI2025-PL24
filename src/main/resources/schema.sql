@@ -135,6 +135,7 @@ CREATE TABLE comentario_revision (
   id_reportero   INTEGER NOT NULL,
   comentario     TEXT NOT NULL,
   fecha_hora     TEXT NOT NULL,
+  es_finalizacion INTEGER NOT NULL DEFAULT 0 CHECK (es_finalizacion IN (0,1)),
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );

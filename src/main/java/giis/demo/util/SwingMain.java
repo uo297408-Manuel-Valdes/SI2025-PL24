@@ -12,17 +12,20 @@ import giis.demo.controller.AsignarReporterosAEventosController;
 import giis.demo.controller.ConcederAccesoController;
 import giis.demo.controller.EntregarReportajesDeEventosController;
 import giis.demo.controller.OfrecerReportajeAgenciaComunicacionController;
+import giis.demo.controller.RevisarReportajeController;
 import giis.demo.model.AccederReportajesModel;
 import giis.demo.model.AsignarReporterosAEventosModel;
 import giis.demo.model.ConcederAccesoModel;
 import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.OfrecerReportajeAgenciaComunicacionModel;
+import giis.demo.model.RevisarReportajeModel;
 import giis.demo.tkrun.*;
 import giis.demo.view.AccederReportajesView;
 import giis.demo.view.AsignarReporterosAEventosView;
 import giis.demo.view.ConcederAccesoView;
 import giis.demo.view.EntregarReportajesDeEventosView;
 import giis.demo.view.OfrecerReportajeAgenciaComunicacionView;
+import giis.demo.view.RevisarReportajeView;
 import giis.demo.controller.GestionarOfrecimientosRecibidosController;
 import giis.demo.model.GestionarOfrecimientosRecibidosModel;
 import giis.demo.view.GestionarOfrecimientosRecibidosView;
@@ -114,7 +117,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnHU33550);
 		
 		
-		JButton btnHU33551 = new JButton("HU 33551/33558/34025 - Entregar Reportajes");
+		JButton btnHU33551 = new JButton("HU 33551/33558/34025/34026/34030 - Entregar Reportajes");
 		btnHU33551.addActionListener(e -> {
 			EntregarReportajesDeEventosController controller =
 				new EntregarReportajesDeEventosController(
@@ -124,6 +127,18 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33551);
+		
+		
+		JButton btnHU34031 = new JButton("HU 34031 - Revisar Reportajes");
+		btnHU34031.addActionListener(e -> {
+			RevisarReportajeController controller =
+					new RevisarReportajeController(
+						    new RevisarReportajeModel(),
+						    new RevisarReportajeView()
+						);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU34031);
 		
 		
 

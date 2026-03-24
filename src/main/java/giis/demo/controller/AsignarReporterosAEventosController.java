@@ -1,6 +1,7 @@
 package giis.demo.controller;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.event.ListSelectionEvent;
@@ -30,8 +31,8 @@ public class AsignarReporterosAEventosController {
 		view.addAgenciaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
 		view.addFiltroEventosChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
 		view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onSeleccionEvento(e)));
-		view.addSoloEspecialistasChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReporterosEvento()));
-		view.addFiltroTipoChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReporterosEvento()));
+		view.addSoloEspecialistasChangedListener(e -> SwingUtil.exceptionWrapper(() -> recargarSiHayEvento()));
+		view.addFiltroTipoChangedListener(e -> SwingUtil.exceptionWrapper(() -> recargarSiHayEvento()));
 
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> asignarSeleccionados()));
 		view.addEliminarListener(e -> SwingUtil.exceptionWrapper(() -> eliminarSeleccionados()));
@@ -46,43 +47,48 @@ public class AsignarReporterosAEventosController {
 	private void cargarEventos() {
 		AgenciaDTO ag = view.getAgenciaSeleccionada();
 
+		limpiarTablasReporteros();
+
 		if (ag == null) {
 			view.setEventos(new ArrayList<>());
-			disponibles.clear();
-			asignados.clear();
-			view.setDisponibles(disponibles);
-			view.setAsignados(asignados);
 			view.setAccionesEnabled(false);
 			return;
 		}
 
 		ignoreEvents = true;
 		view.setEventos(model.getEventos(ag.getIdAgencia(), view.getFiltroEventosSeleccionado()));
+		view.clearSeleccionEvento();
 		ignoreEvents = false;
 
-		disponibles.clear();
-		asignados.clear();
-		view.setDisponibles(disponibles);
-		view.setAsignados(asignados);
 		view.setAccionesEnabled(false);
 	}
 
 	private void onSeleccionEvento(ListSelectionEvent e) {
-		if (e.getValueIsAdjusting()) return;
-		if (ignoreEvents) return;
+		if (e.getValueIsAdjusting()) {
+			return;
+		}
+		if (ignoreEvents) {
+			return;
+		}
 
 		Integer idEvento = view.getIdEventoSeleccionado();
 		if (idEvento == null) {
-			disponibles.clear();
-			asignados.clear();
-			view.setDisponibles(disponibles);
-			view.setAsignados(asignados);
+			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
 			return;
 		}
 
 		cargarReporterosEvento();
-		view.setAccionesEnabled(true);
+	}
+
+	private void recargarSiHayEvento() {
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) {
+			limpiarTablasReporteros();
+			view.setAccionesEnabled(false);
+			return;
+		}
+		cargarReporterosEvento();
 	}
 
 	private void cargarReporterosEvento() {
@@ -90,26 +96,23 @@ public class AsignarReporterosAEventosController {
 		Integer idEvento = view.getIdEventoSeleccionado();
 
 		if (ag == null || idEvento == null) {
-			disponibles.clear();
-			asignados.clear();
-			view.setDisponibles(disponibles);
-			view.setAsignados(asignados);
+			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
 			return;
 		}
 
-		asignados = model.getReporterosAsignados(idEvento);
+		asignados = new ArrayList<>(model.getReporterosAsignados(idEvento));
 
-		disponibles = model.getReporterosDisponibles(
+		disponibles = new ArrayList<>(model.getReporterosDisponibles(
 			ag.getIdAgencia(),
 			idEvento,
 			view.isFiltroSoloEspecialistasActivo(),
 			view.isFiltroTipoBasicoActivo(),
 			view.isFiltroTipoGraficoActivo(),
 			view.isFiltroTipoCamarografoActivo()
-		);
+		));
 
-		// evitar duplicados por si has movido en memoria antes de guardar
+		// Evitar duplicados en la UI si se han movido elementos en memoria
 		for (int i = disponibles.size() - 1; i >= 0; i--) {
 			ReporteroDTO d = disponibles.get(i);
 			if (containsReportero(asignados, d.getIdReportero())) {
@@ -117,8 +120,13 @@ public class AsignarReporterosAEventosController {
 			}
 		}
 
+		ordenarPorNombre(disponibles);
+		ordenarPorNombre(asignados);
+
 		view.setDisponibles(disponibles);
 		view.setAsignados(asignados);
+		view.clearSeleccionDisponibles();
+		view.clearSeleccionAsignados();
 		view.setAccionesEnabled(true);
 	}
 
@@ -131,7 +139,10 @@ public class AsignarReporterosAEventosController {
 
 		List<ReporteroDTO> mover = new ArrayList<>();
 		for (int row : filas) {
-			mover.add(view.getReporteroDisponibleEnFila(row));
+			ReporteroDTO r = view.getReporteroDisponibleEnFila(row);
+			if (r != null) {
+				mover.add(r);
+			}
 		}
 
 		for (ReporteroDTO r : mover) {
@@ -141,8 +152,13 @@ public class AsignarReporterosAEventosController {
 			removeReportero(disponibles, r.getIdReportero());
 		}
 
+		ordenarPorNombre(disponibles);
+		ordenarPorNombre(asignados);
+
 		view.setDisponibles(disponibles);
 		view.setAsignados(asignados);
+		view.clearSeleccionDisponibles();
+		view.clearSeleccionAsignados();
 	}
 
 	private void eliminarSeleccionados() {
@@ -154,40 +170,21 @@ public class AsignarReporterosAEventosController {
 
 		List<ReporteroDTO> mover = new ArrayList<>();
 		for (int row : filas) {
-			mover.add(view.getReporteroAsignadoEnFila(row));
+			ReporteroDTO r = view.getReporteroAsignadoEnFila(row);
+			if (r != null) {
+				mover.add(r);
+			}
 		}
 
 		for (ReporteroDTO r : mover) {
-			if (!containsReportero(disponibles, r.getIdReportero())) {
-				// vuelve a disponibles solo si sigue cumpliendo filtros actuales
-				if (cumpleFiltrosActuales(r)) {
-					disponibles.add(r);
-				}
-			}
 			removeReportero(asignados, r.getIdReportero());
 		}
 
-		view.setDisponibles(disponibles);
-		view.setAsignados(asignados);
-	}
-
-	private boolean cumpleFiltrosActuales(ReporteroDTO r) {
-		boolean hayTiposMarcados =
-				view.isFiltroTipoBasicoActivo() ||
-				view.isFiltroTipoGraficoActivo() ||
-				view.isFiltroTipoCamarografoActivo();
-
-		boolean cumpleTipo = true;
-		if (hayTiposMarcados) {
-			cumpleTipo =
-					(view.isFiltroTipoBasicoActivo() && "Básico".equals(r.getTipoReportero())) ||
-					(view.isFiltroTipoGraficoActivo() && "Gráfico".equals(r.getTipoReportero())) ||
-					(view.isFiltroTipoCamarografoActivo() && "Camarógrafo".equals(r.getTipoReportero()));
-		}
-
-		// El filtro de especialistas se reevalúa recargando desde BD al seleccionar evento o filtros.
-		// Aquí solo controlamos el de tipo para no complicarlo al mover en memoria.
-		return cumpleTipo;
+		/*
+		 * Para evitar inconsistencias con disponibilidad por fecha, especialistas,
+		 * tipo, etc., tras eliminar recargamos desde BD en vez de reconstruir a mano.
+		 */
+		cargarReporterosEvento();
 	}
 
 	private void guardar() {
@@ -201,9 +198,26 @@ public class AsignarReporterosAEventosController {
 			return;
 		}
 
-		model.guardarAsignaciones(idEvento, asignados);
-		view.showInfo("Asignaciones guardadas correctamente.");
-		cargarEventos();
+		try {
+			model.guardarAsignaciones(idEvento, asignados);
+			view.showInfo("Asignaciones guardadas correctamente.");
+			cargarEventos();
+		} catch (IllegalStateException ex) {
+			view.showError(ex.getMessage());
+		}
+	}
+
+	private void limpiarTablasReporteros() {
+		disponibles.clear();
+		asignados.clear();
+		view.setDisponibles(disponibles);
+		view.setAsignados(asignados);
+		view.clearSeleccionDisponibles();
+		view.clearSeleccionAsignados();
+	}
+
+	private void ordenarPorNombre(List<ReporteroDTO> lista) {
+		lista.sort(Comparator.comparing(ReporteroDTO::getNombre, String.CASE_INSENSITIVE_ORDER));
 	}
 
 	private boolean containsReportero(List<ReporteroDTO> lista, int idReportero) {

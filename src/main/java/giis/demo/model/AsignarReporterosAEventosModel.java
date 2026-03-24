@@ -124,11 +124,20 @@ public class AsignarReporterosAEventosModel {
 		);
 		params.add(idAgencia);
 
+		/*
+		 * No mostrar reporteros ya ocupados en cualquier evento
+		 * de la misma fecha que el evento seleccionado.
+		 */
 		sql.append(
 			"AND r.id_reportero NOT IN ( " +
 			"   SELECT ar.id_reportero " +
 			"   FROM asignacion_reportero ar " +
-			"   WHERE ar.id_evento = ? " +
+			"   JOIN evento e2 ON e2.id_evento = ar.id_evento " +
+			"   WHERE e2.fecha_evento = ( " +
+			"       SELECT e1.fecha_evento " +
+			"       FROM evento e1 " +
+			"       WHERE e1.id_evento = ? " +
+			"   ) " +
 			") "
 		);
 		params.add(idEvento);
@@ -178,17 +187,43 @@ public class AsignarReporterosAEventosModel {
 		return res;
 	}
 
-	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
-		db.executeUpdate("DELETE FROM asignacion_reportero WHERE id_evento = ?", idEvento);
+	public boolean reporteroOcupadoMismoDia(int idEvento, int idReportero) {
+		String sql =
+			"SELECT COUNT(*) " +
+			"FROM asignacion_reportero ar " +
+			"JOIN evento e_asig ON e_asig.id_evento = ar.id_evento " +
+			"JOIN evento e_sel ON e_sel.id_evento = ? " +
+			"WHERE ar.id_reportero = ? " +
+			"  AND e_asig.fecha_evento = e_sel.fecha_evento " +
+			"  AND ar.id_evento <> ?";
 
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento, idReportero, idEvento);
+		return ((Number) rows.get(0)[0]).intValue() > 0;
+	}
+
+	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
 		Set<Integer> idsYaInsertados = new HashSet<>();
+
 		for (ReporteroDTO r : asignados) {
-			if (idsYaInsertados.add(r.getIdReportero())) {
-				db.executeUpdate(
-					"INSERT INTO asignacion_reportero (id_evento, id_reportero) VALUES (?, ?)",
-					idEvento, r.getIdReportero()
+			if (!idsYaInsertados.add(r.getIdReportero())) {
+				throw new IllegalStateException(
+					"El reportero " + r.getNombre() + " está repetido en la lista de asignados."
 				);
 			}
+			if (reporteroOcupadoMismoDia(idEvento, r.getIdReportero())) {
+				throw new IllegalStateException(
+					"El reportero " + r.getNombre() + " ya está asignado a otro evento en la misma fecha."
+				);
+			}
+		}
+
+		db.executeUpdate("DELETE FROM asignacion_reportero WHERE id_evento = ?", idEvento);
+
+		for (ReporteroDTO r : asignados) {
+			db.executeUpdate(
+				"INSERT INTO asignacion_reportero (id_evento, id_reportero) VALUES (?, ?)",
+				idEvento, r.getIdReportero()
+			);
 		}
 	}
 }

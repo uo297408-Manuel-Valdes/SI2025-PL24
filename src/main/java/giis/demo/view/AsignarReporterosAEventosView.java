@@ -49,7 +49,6 @@ public class AsignarReporterosAEventosView {
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
-		
 		JLabel lblTitulo = new JLabel("Asignación de reporteros a eventos");
 		lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 16));
 		lblTitulo.setBounds(20, 10, 400, 24);
@@ -74,7 +73,6 @@ public class AsignarReporterosAEventosView {
 		cbFiltroEventos.setBounds(580, 45, 300, 24);
 		frame.getContentPane().add(cbFiltroEventos);
 
-		
 		JPanel pnlFiltros = new JPanel();
 		pnlFiltros.setLayout(null);
 		pnlFiltros.setBorder(new TitledBorder("Filtros de reporteros"));
@@ -102,8 +100,6 @@ public class AsignarReporterosAEventosView {
 		chkTipoCamarografo.setBounds(330, 55, 120, 22);
 		pnlFiltros.add(chkTipoCamarografo);
 
-		
-
 		JLabel lblEventos = new JLabel("Eventos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblEventos.setBounds(20, 190, 350, 20);
@@ -129,8 +125,6 @@ public class AsignarReporterosAEventosView {
 		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(120);
 		tblEventos.getColumnModel().getColumn(2).setPreferredWidth(620);
 
-		
-		
 		JLabel lblDisp = new JLabel("Reporteros disponibles");
 		lblDisp.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblDisp.setBounds(20, 415, 200, 20);
@@ -183,7 +177,6 @@ public class AsignarReporterosAEventosView {
 		tblAsignados.getColumnModel().getColumn(1).setPreferredWidth(100);
 		tblAsignados.getColumnModel().getColumn(2).setPreferredWidth(230);
 
-		
 		btnAsignar = new JButton("Asignar ->");
 		btnAsignar.setBounds(550, 500, 130, 32);
 		frame.getContentPane().add(btnAsignar);
@@ -234,6 +227,9 @@ public class AsignarReporterosAEventosView {
 			model.addElement(a);
 		}
 		cbAgencias.setModel(model);
+		if (model.getSize() > 0) {
+			cbAgencias.setSelectedIndex(0);
+		}
 	}
 
 	public void setEventos(List<EventoDTO> eventos) {
@@ -305,19 +301,26 @@ public class AsignarReporterosAEventosView {
 
 	public Integer getIdEventoSeleccionado() {
 		int row = tblEventos.getSelectedRow();
-		if (row < 0) return null;
-		return ((Number) tmEventos.getValueAt(row, 3)).intValue();
+		if (row < 0 || row >= tmEventos.getRowCount()) {
+			return null;
+		}
+		Object value = tmEventos.getValueAt(row, 3);
+		return value == null ? null : ((Number) value).intValue();
 	}
 
 	public String getNombreEventoSeleccionado() {
 		int row = tblEventos.getSelectedRow();
-		if (row < 0) return null;
+		if (row < 0 || row >= tmEventos.getRowCount()) {
+			return null;
+		}
 		return (String) tmEventos.getValueAt(row, 0);
 	}
 
 	public String getFechaEventoSeleccionado() {
 		int row = tblEventos.getSelectedRow();
-		if (row < 0) return null;
+		if (row < 0 || row >= tmEventos.getRowCount()) {
+			return null;
+		}
 		return (String) tmEventos.getValueAt(row, 1);
 	}
 
@@ -330,6 +333,9 @@ public class AsignarReporterosAEventosView {
 	}
 
 	public ReporteroDTO getReporteroDisponibleEnFila(int row) {
+		if (row < 0 || row >= tmDisponibles.getRowCount()) {
+			return null;
+		}
 		String nombre = (String) tmDisponibles.getValueAt(row, 0);
 		String tipo = (String) tmDisponibles.getValueAt(row, 1);
 		String tematicas = (String) tmDisponibles.getValueAt(row, 2);
@@ -338,11 +344,26 @@ public class AsignarReporterosAEventosView {
 	}
 
 	public ReporteroDTO getReporteroAsignadoEnFila(int row) {
+		if (row < 0 || row >= tmAsignados.getRowCount()) {
+			return null;
+		}
 		String nombre = (String) tmAsignados.getValueAt(row, 0);
 		String tipo = (String) tmAsignados.getValueAt(row, 1);
 		String tematicas = (String) tmAsignados.getValueAt(row, 2);
 		int id = ((Number) tmAsignados.getValueAt(row, 3)).intValue();
 		return new ReporteroDTO(id, 0, nombre, tematicas, tipo);
+	}
+
+	public void clearSeleccionEvento() {
+		tblEventos.clearSelection();
+	}
+
+	public void clearSeleccionDisponibles() {
+		tblDisponibles.clearSelection();
+	}
+
+	public void clearSeleccionAsignados() {
+		tblAsignados.clearSelection();
 	}
 
 	public void setAccionesEnabled(boolean enabled) {
@@ -363,7 +384,6 @@ public class AsignarReporterosAEventosView {
 		chkSoloEspecialistas.addActionListener(l);
 	}
 
-	// NUEVO
 	public void addFiltroTipoChangedListener(ActionListener l) {
 		chkTipoBasico.addActionListener(l);
 		chkTipoGrafico.addActionListener(l);

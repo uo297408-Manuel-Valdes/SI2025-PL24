@@ -41,6 +41,7 @@ CREATE TABLE asignacion_reportero (
   id_evento INTEGER NOT NULL,
   id_reportero INTEGER NOT NULL,
   es_responsable INTEGER NOT NULL DEFAULT 0 CHECK (es_responsable IN (0,1)),
+  finalizada INTEGER NOT NULL DEFAULT 0 CHECK (finalizada IN (0,1)),
   PRIMARY KEY (id_evento, id_reportero),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
@@ -140,3 +141,14 @@ CREATE TABLE comentario_revision (
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
+
+CREATE TABLE tarifa (
+	id_tarifa INTEGER PRIMARY KEY AUTOINCREMENT,
+	id_agencia INTEGER NOT NULL,
+	id_empresa INTEGER NOT NULL,
+	pendiente INTEGER NOT NULL DEFAULT 0 CHECK (pendiente IN (0,1)),
+	FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia),
+	FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
+	
+);
+

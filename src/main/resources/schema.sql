@@ -40,6 +40,7 @@ CREATE TABLE reportero (
 CREATE TABLE asignacion_reportero (
   id_evento INTEGER NOT NULL,
   id_reportero INTEGER NOT NULL,
+  es_responsable INTEGER NOT NULL DEFAULT 0 CHECK (es_responsable IN (0,1)),
   PRIMARY KEY (id_evento, id_reportero),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
@@ -116,7 +117,7 @@ CREATE TABLE multimedia_reportaje (
   path           TEXT NOT NULL UNIQUE,
   tipo           TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
   estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','BORRADOR')),
-  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje)
+  FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
 

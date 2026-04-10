@@ -6,76 +6,43 @@ public class ReporteroDTO {
 	private String nombre;
 	private String tematicasTexto;
 	private String tipoReportero;
-
-	/*public ReporteroDTO(int idReportero, int idAgencia, String nombre) {
-		super();
-		this.idReportero = idReportero;
-		this.idAgencia = idAgencia;
-		this.nombre = nombre;
-		this.tematicasTexto = "";
-		this.tipoReportero = "";
-	}
-
-	public ReporteroDTO(int idReportero, int idAgencia, String nombre, String tematicasTexto) {
-		super();
-		this.idReportero = idReportero;
-		this.idAgencia = idAgencia;
-		this.nombre = nombre;
-		this.tematicasTexto = tematicasTexto;
-		this.tipoReportero = "";
-	}*/
+	private boolean responsable;
 
 	public ReporteroDTO(int idReportero, int idAgencia, String nombre, String tematicasTexto, String tipoReportero) {
-		super();
 		this.idReportero = idReportero;
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
 		this.tematicasTexto = tematicasTexto;
 		this.tipoReportero = tipoReportero;
-	}
-
-	public ReporteroDTO() {
-		super();
+		this.responsable = false;
 	}
 
 	public int getIdReportero() {
 		return idReportero;
 	}
 
-	public void setIdReportero(int idReportero) {
-		this.idReportero = idReportero;
-	}
-
 	public int getIdAgencia() {
 		return idAgencia;
-	}
-
-	public void setIdAgencia(int idAgencia) {
-		this.idAgencia = idAgencia;
 	}
 
 	public String getNombre() {
 		return nombre;
 	}
 
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
 	public String getTematicasTexto() {
 		return tematicasTexto;
-	}
-
-	public void setTematicasTexto(String tematicasTexto) {
-		this.tematicasTexto = tematicasTexto;
 	}
 
 	public String getTipoReportero() {
 		return tipoReportero;
 	}
 
-	public void setTipoReportero(String tipoReportero) {
-		this.tipoReportero = tipoReportero;
+	public boolean isResponsable() {
+		return responsable;
+	}
+
+	public void setResponsable(boolean responsable) {
+		this.responsable = responsable;
 	}
 
 	@Override

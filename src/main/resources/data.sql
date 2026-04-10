@@ -77,3 +77,7 @@ INSERT INTO acceso_reportaje (id_evento, id_empresa) VALUES (1,1);
 INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'DEFINITIVO', 'a');
 INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'IMAGEN', 'DEFINITIVO', 'b');
 INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'BORRADOR', 'c');
+
+
+INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (1, 1, 0);
+INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (1, 2, 1);

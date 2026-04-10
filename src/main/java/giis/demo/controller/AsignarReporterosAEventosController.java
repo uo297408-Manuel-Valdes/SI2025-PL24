@@ -31,11 +31,13 @@ public class AsignarReporterosAEventosController {
 		view.addAgenciaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
 		view.addFiltroEventosChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
 		view.addEventosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onSeleccionEvento(e)));
+		view.addAsignadosSelectionListener(e -> SwingUtil.exceptionWrapper(() -> actualizarEstadoBotonResponsable()));
 		view.addSoloEspecialistasChangedListener(e -> SwingUtil.exceptionWrapper(() -> recargarSiHayEvento()));
 		view.addFiltroTipoChangedListener(e -> SwingUtil.exceptionWrapper(() -> recargarSiHayEvento()));
 
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> asignarSeleccionados()));
 		view.addEliminarListener(e -> SwingUtil.exceptionWrapper(() -> eliminarSeleccionados()));
+		view.addMarcarResponsableListener(e -> SwingUtil.exceptionWrapper(() -> marcarResponsableSeleccionado()));
 		view.addGuardarListener(e -> SwingUtil.exceptionWrapper(() -> guardar()));
 
 		SwingUtil.exceptionWrapper(() -> {
@@ -61,6 +63,7 @@ public class AsignarReporterosAEventosController {
 		ignoreEvents = false;
 
 		view.setAccionesEnabled(false);
+		view.setResponsableEnabled(false);
 	}
 
 	private void onSeleccionEvento(ListSelectionEvent e) {
@@ -75,6 +78,7 @@ public class AsignarReporterosAEventosController {
 		if (idEvento == null) {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
+			view.setResponsableEnabled(false);
 			return;
 		}
 
@@ -86,6 +90,7 @@ public class AsignarReporterosAEventosController {
 		if (idEvento == null) {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
+			view.setResponsableEnabled(false);
 			return;
 		}
 		cargarReporterosEvento();
@@ -98,6 +103,7 @@ public class AsignarReporterosAEventosController {
 		if (ag == null || idEvento == null) {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
+			view.setResponsableEnabled(false);
 			return;
 		}
 
@@ -112,7 +118,6 @@ public class AsignarReporterosAEventosController {
 			view.isFiltroTipoCamarografoActivo()
 		));
 
-		// Evitar duplicados en la UI si se han movido elementos en memoria
 		for (int i = disponibles.size() - 1; i >= 0; i--) {
 			ReporteroDTO d = disponibles.get(i);
 			if (containsReportero(asignados, d.getIdReportero())) {
@@ -128,6 +133,7 @@ public class AsignarReporterosAEventosController {
 		view.clearSeleccionDisponibles();
 		view.clearSeleccionAsignados();
 		view.setAccionesEnabled(true);
+		view.setResponsableEnabled(false);
 	}
 
 	private void asignarSeleccionados() {
@@ -147,6 +153,7 @@ public class AsignarReporterosAEventosController {
 
 		for (ReporteroDTO r : mover) {
 			if (!containsReportero(asignados, r.getIdReportero())) {
+				r.setResponsable(false);
 				asignados.add(r);
 			}
 			removeReportero(disponibles, r.getIdReportero());
@@ -159,8 +166,40 @@ public class AsignarReporterosAEventosController {
 		view.setAsignados(asignados);
 		view.clearSeleccionDisponibles();
 		view.clearSeleccionAsignados();
+		view.setResponsableEnabled(false);
 	}
 
+	
+	
+	private ReporteroDTO findReportero(List<ReporteroDTO> lista, int idReportero) {
+		for (ReporteroDTO r : lista) {
+			if (r.getIdReportero() == idReportero) {
+				return r;
+			}
+		}
+		return null;
+	}
+	private boolean cumpleFiltrosActuales(ReporteroDTO r, int idEvento) {
+		boolean cumpleEspecialista = true;
+		if (view.isFiltroSoloEspecialistasActivo()) {
+			cumpleEspecialista = model.esEspecialistaEnEvento(r.getIdReportero(), idEvento);
+		}
+
+		boolean hayTiposMarcados =
+				view.isFiltroTipoBasicoActivo()
+				|| view.isFiltroTipoGraficoActivo()
+				|| view.isFiltroTipoCamarografoActivo();
+
+		boolean cumpleTipo = true;
+		if (hayTiposMarcados) {
+			cumpleTipo =
+					(view.isFiltroTipoBasicoActivo() && "Básico".equals(r.getTipoReportero()))
+					|| (view.isFiltroTipoGraficoActivo() && "Gráfico".equals(r.getTipoReportero()))
+					|| (view.isFiltroTipoCamarografoActivo() && "Camarógrafo".equals(r.getTipoReportero()));
+		}
+
+		return cumpleEspecialista && cumpleTipo;
+	}
 	private void eliminarSeleccionados() {
 		int[] filas = view.getFilasAsignadosSeleccionadas();
 		if (filas == null || filas.length == 0) {
@@ -168,23 +207,78 @@ public class AsignarReporterosAEventosController {
 			return;
 		}
 
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) {
+			view.showInfo("Selecciona un evento.");
+			return;
+		}
+
 		List<ReporteroDTO> mover = new ArrayList<>();
 		for (int row : filas) {
 			ReporteroDTO r = view.getReporteroAsignadoEnFila(row);
 			if (r != null) {
-				mover.add(r);
+				// importante: recuperar el flag responsable desde la lista en memoria
+				ReporteroDTO original = findReportero(asignados, r.getIdReportero());
+				if (original != null) {
+					mover.add(original);
+				}
 			}
 		}
 
 		for (ReporteroDTO r : mover) {
 			removeReportero(asignados, r.getIdReportero());
+
+			// al eliminar de este evento, puede volver a disponibles si cumple filtros
+			if (!containsReportero(disponibles, r.getIdReportero())
+					&& cumpleFiltrosActuales(r, idEvento)) {
+				r.setResponsable(false); // en disponibles nunca debe aparecer como responsable
+				disponibles.add(r);
+			}
 		}
 
-		/*
-		 * Para evitar inconsistencias con disponibilidad por fecha, especialistas,
-		 * tipo, etc., tras eliminar recargamos desde BD en vez de reconstruir a mano.
-		 */
-		cargarReporterosEvento();
+		ordenarPorNombre(disponibles);
+		ordenarPorNombre(asignados);
+
+		view.setDisponibles(disponibles);
+		view.setAsignados(asignados);
+		view.clearSeleccionDisponibles();
+		view.clearSeleccionAsignados();
+		view.setResponsableEnabled(false);
+	}
+
+	private void marcarResponsableSeleccionado() {
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) {
+			view.showInfo("Selecciona un evento.");
+			return;
+		}
+
+		Integer idReportero = view.getIdReporteroAsignadoSeleccionado();
+		if (idReportero == null) {
+			view.showInfo("Selecciona un reportero asignado.");
+			return;
+		}
+
+		boolean encontrado = false;
+		for (ReporteroDTO r : asignados) {
+			boolean esResp = r.getIdReportero() == idReportero;
+			r.setResponsable(esResp);
+			if (esResp) {
+				encontrado = true;
+			}
+		}
+
+		if (!encontrado) {
+			view.showError("El reportero seleccionado no está asignado al evento.");
+			return;
+		}
+
+		view.setAsignados(asignados);
+		view.setResponsableEnabled(false);
+	}
+
+	private void actualizarEstadoBotonResponsable() {
+		view.setResponsableEnabled(view.getIdReporteroAsignadoSeleccionado() != null);
 	}
 
 	private void guardar() {

@@ -75,7 +75,7 @@ public class AsignarReporterosAEventosModel {
 
 	public List<ReporteroDTO> getReporterosAsignados(int idEvento) {
 		String sql =
-			"SELECT r.id_reportero, r.id_agencia, r.nombre, r.tipo_reportero, " +
+			"SELECT r.id_reportero, r.id_agencia, r.nombre, r.tipo_reportero, ar.es_responsable, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM reportero_tematica rt " +
@@ -91,13 +91,15 @@ public class AsignarReporterosAEventosModel {
 
 		List<ReporteroDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
-			res.add(new ReporteroDTO(
+			ReporteroDTO dto = new ReporteroDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				(String) r[2],
-				(String) r[4],
+				(String) r[5],
 				(String) r[3]
-			));
+			);
+			dto.setResponsable(((Number) r[4]).intValue() == 1);
+			res.add(dto);
 		}
 		return res;
 	}
@@ -124,20 +126,11 @@ public class AsignarReporterosAEventosModel {
 		);
 		params.add(idAgencia);
 
-		/*
-		 * No mostrar reporteros ya ocupados en cualquier evento
-		 * de la misma fecha que el evento seleccionado.
-		 */
 		sql.append(
 			"AND r.id_reportero NOT IN ( " +
 			"   SELECT ar.id_reportero " +
 			"   FROM asignacion_reportero ar " +
-			"   JOIN evento e2 ON e2.id_evento = ar.id_evento " +
-			"   WHERE e2.fecha_evento = ( " +
-			"       SELECT e1.fecha_evento " +
-			"       FROM evento e1 " +
-			"       WHERE e1.id_evento = ? " +
-			"   ) " +
+			"   WHERE ar.id_evento = ? " +
 			") "
 		);
 		params.add(idEvento);
@@ -176,17 +169,43 @@ public class AsignarReporterosAEventosModel {
 
 		List<ReporteroDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
-			res.add(new ReporteroDTO(
+			ReporteroDTO dto = new ReporteroDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				(String) r[2],
 				(String) r[4],
 				(String) r[3]
-			));
+			);
+			dto.setResponsable(false);
+			res.add(dto);
 		}
 		return res;
 	}
+	
+	public void marcarResponsable(int idEvento, int idReportero) {
+		String sqlCheck =
+			"SELECT COUNT(*) " +
+			"FROM asignacion_reportero " +
+			"WHERE id_evento = ? AND id_reportero = ?";
 
+		List<Object[]> rows = db.executeQueryArray(sqlCheck, idEvento, idReportero);
+		int count = ((Number) rows.get(0)[0]).intValue();
+
+		if (count == 0) {
+			throw new IllegalStateException("El reportero seleccionado no está asignado al evento.");
+		}
+
+		db.executeUpdate(
+			"UPDATE asignacion_reportero SET es_responsable = 0 WHERE id_evento = ?",
+			idEvento
+		);
+
+		db.executeUpdate(
+			"UPDATE asignacion_reportero SET es_responsable = 1 WHERE id_evento = ? AND id_reportero = ?",
+			idEvento, idReportero
+		);
+	}
+	
 	public boolean reporteroOcupadoMismoDia(int idEvento, int idReportero) {
 		String sql =
 			"SELECT COUNT(*) " +
@@ -202,18 +221,18 @@ public class AsignarReporterosAEventosModel {
 	}
 
 	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
+		Integer idResponsable = null;
 		Set<Integer> idsYaInsertados = new HashSet<>();
 
 		for (ReporteroDTO r : asignados) {
 			if (!idsYaInsertados.add(r.getIdReportero())) {
-				throw new IllegalStateException(
-					"El reportero " + r.getNombre() + " está repetido en la lista de asignados."
-				);
+				throw new IllegalStateException("Hay reporteros repetidos en la lista de asignados.");
 			}
-			if (reporteroOcupadoMismoDia(idEvento, r.getIdReportero())) {
-				throw new IllegalStateException(
-					"El reportero " + r.getNombre() + " ya está asignado a otro evento en la misma fecha."
-				);
+			if (r.isResponsable()) {
+				if (idResponsable != null) {
+					throw new IllegalStateException("Solo puede haber un responsable por evento.");
+				}
+				idResponsable = r.getIdReportero();
 			}
 		}
 
@@ -221,9 +240,21 @@ public class AsignarReporterosAEventosModel {
 
 		for (ReporteroDTO r : asignados) {
 			db.executeUpdate(
-				"INSERT INTO asignacion_reportero (id_evento, id_reportero) VALUES (?, ?)",
-				idEvento, r.getIdReportero()
+				"INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (?, ?, ?)",
+				idEvento, r.getIdReportero(), r.isResponsable() ? 1 : 0
 			);
 		}
+	}
+	
+	public boolean esEspecialistaEnEvento(int idReportero, int idEvento) {
+		String sql =
+			"SELECT COUNT(*) " +
+			"FROM reportero_tematica rt " +
+			"JOIN evento_tematica et ON et.id_tematica = rt.id_tematica " +
+			"WHERE rt.id_reportero = ? " +
+			"  AND et.id_evento = ?";
+
+		List<Object[]> rows = db.executeQueryArray(sql, idReportero, idEvento);
+		return ((Number) rows.get(0)[0]).intValue() > 0;
 	}
 }

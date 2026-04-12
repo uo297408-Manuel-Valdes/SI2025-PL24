@@ -28,7 +28,7 @@ public class AsignarReporterosAEventosModel {
 	public List<EventoDTO> getEventos(int idAgencia, int filtroEventos) {
 		StringBuilder sql = new StringBuilder();
 		sql.append(
-			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento, " +
+			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento, e.finalizada, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM evento_tematica et " +
@@ -67,10 +67,20 @@ public class AsignarReporterosAEventosModel {
 				(String) r[2],
 				(String) r[3]
 			);
-			e.setTematicasTexto((String) r[4]);
+			e.setAsignacionFinalizada(((Number) r[4]).intValue() == 1);
+			e.setTematicasTexto((String) r[5]);
 			res.add(e);
 		}
 		return res;
+	}
+
+	public boolean isAsignacionFinalizada(int idEvento) {
+		String sql = "SELECT finalizada FROM evento WHERE id_evento = ?";
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		if (rows.isEmpty()) {
+			throw new IllegalStateException("El evento no existe.");
+		}
+		return ((Number) rows.get(0)[0]).intValue() == 1;
 	}
 
 	public List<ReporteroDTO> getReporterosAsignados(int idEvento) {
@@ -181,46 +191,61 @@ public class AsignarReporterosAEventosModel {
 		}
 		return res;
 	}
-	
-	public void marcarResponsable(int idEvento, int idReportero) {
-		String sqlCheck =
-			"SELECT COUNT(*) " +
-			"FROM asignacion_reportero " +
-			"WHERE id_evento = ? AND id_reportero = ?";
 
-		List<Object[]> rows = db.executeQueryArray(sqlCheck, idEvento, idReportero);
-		int count = ((Number) rows.get(0)[0]).intValue();
-
-		if (count == 0) {
-			throw new IllegalStateException("El reportero seleccionado no está asignado al evento.");
-		}
-
-		db.executeUpdate(
-			"UPDATE asignacion_reportero SET es_responsable = 0 WHERE id_evento = ?",
-			idEvento
-		);
-
-		db.executeUpdate(
-			"UPDATE asignacion_reportero SET es_responsable = 1 WHERE id_evento = ? AND id_reportero = ?",
-			idEvento, idReportero
-		);
-	}
-	
-	public boolean reporteroOcupadoMismoDia(int idEvento, int idReportero) {
+	public boolean esEspecialistaEnEvento(int idReportero, int idEvento) {
 		String sql =
 			"SELECT COUNT(*) " +
-			"FROM asignacion_reportero ar " +
-			"JOIN evento e_asig ON e_asig.id_evento = ar.id_evento " +
-			"JOIN evento e_sel ON e_sel.id_evento = ? " +
-			"WHERE ar.id_reportero = ? " +
-			"  AND e_asig.fecha_evento = e_sel.fecha_evento " +
-			"  AND ar.id_evento <> ?";
+			"FROM reportero_tematica rt " +
+			"JOIN evento_tematica et ON et.id_tematica = rt.id_tematica " +
+			"WHERE rt.id_reportero = ? " +
+			"  AND et.id_evento = ?";
 
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento, idReportero, idEvento);
+		List<Object[]> rows = db.executeQueryArray(sql, idReportero, idEvento);
 		return ((Number) rows.get(0)[0]).intValue() > 0;
 	}
 
+	public boolean tieneResponsable(int idEvento) {
+		String sql =
+			"SELECT COUNT(*) " +
+			"FROM asignacion_reportero " +
+			"WHERE id_evento = ? AND es_responsable = 1";
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		return ((Number) rows.get(0)[0]).intValue() > 0;
+	}
+
+	public boolean tieneReporteroBasico(int idEvento) {
+		String sql =
+			"SELECT COUNT(*) " +
+			"FROM asignacion_reportero ar " +
+			"JOIN reportero r ON r.id_reportero = ar.id_reportero " +
+			"WHERE ar.id_evento = ? " +
+			"  AND r.tipo_reportero = 'Básico'";
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		return ((Number) rows.get(0)[0]).intValue() > 0;
+	}
+
+	public void finalizarAsignacion(int idEvento) {
+		if (isAsignacionFinalizada(idEvento)) {
+			throw new IllegalStateException("La asignación del evento ya está finalizada.");
+		}
+		if (!tieneResponsable(idEvento)) {
+			throw new IllegalStateException("No se puede finalizar la asignación porque no hay un responsable asignado.");
+		}
+		if (!tieneReporteroBasico(idEvento)) {
+			throw new IllegalStateException("No se puede finalizar la asignación porque no hay ningún reportero básico asignado.");
+		}
+
+		db.executeUpdate(
+			"UPDATE evento SET finalizada = 1 WHERE id_evento = ?",
+			idEvento
+		);
+	}
+
 	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
+		if (isAsignacionFinalizada(idEvento)) {
+			throw new IllegalStateException("No se puede modificar la asignación porque está finalizada.");
+		}
+
 		Integer idResponsable = null;
 		Set<Integer> idsYaInsertados = new HashSet<>();
 
@@ -244,17 +269,5 @@ public class AsignarReporterosAEventosModel {
 				idEvento, r.getIdReportero(), r.isResponsable() ? 1 : 0
 			);
 		}
-	}
-	
-	public boolean esEspecialistaEnEvento(int idReportero, int idEvento) {
-		String sql =
-			"SELECT COUNT(*) " +
-			"FROM reportero_tematica rt " +
-			"JOIN evento_tematica et ON et.id_tematica = rt.id_tematica " +
-			"WHERE rt.id_reportero = ? " +
-			"  AND et.id_evento = ?";
-
-		List<Object[]> rows = db.executeQueryArray(sql, idReportero, idEvento);
-		return ((Number) rows.get(0)[0]).intValue() > 0;
 	}
 }

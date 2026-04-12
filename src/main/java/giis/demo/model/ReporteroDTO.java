@@ -1,5 +1,6 @@
 package giis.demo.model;
 
+
 public class ReporteroDTO {
 	private int idReportero;
 	private int idAgencia;
@@ -43,10 +44,5 @@ public class ReporteroDTO {
 
 	public void setResponsable(boolean responsable) {
 		this.responsable = responsable;
-	}
-
-	@Override
-	public String toString() {
-		return nombre;
 	}
 }

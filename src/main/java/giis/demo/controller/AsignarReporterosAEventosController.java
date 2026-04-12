@@ -20,6 +20,7 @@ public class AsignarReporterosAEventosController {
 	private List<ReporteroDTO> disponibles = new ArrayList<>();
 	private List<ReporteroDTO> asignados = new ArrayList<>();
 	private boolean ignoreEvents = false;
+	private boolean asignacionFinalizada = false;
 
 	public AsignarReporterosAEventosController(AsignarReporterosAEventosModel model,
 			AsignarReporterosAEventosView view) {
@@ -38,6 +39,7 @@ public class AsignarReporterosAEventosController {
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> asignarSeleccionados()));
 		view.addEliminarListener(e -> SwingUtil.exceptionWrapper(() -> eliminarSeleccionados()));
 		view.addMarcarResponsableListener(e -> SwingUtil.exceptionWrapper(() -> marcarResponsableSeleccionado()));
+		view.addFinalizarAsignacionListener(e -> SwingUtil.exceptionWrapper(() -> finalizarAsignacion()));
 		view.addGuardarListener(e -> SwingUtil.exceptionWrapper(() -> guardar()));
 
 		SwingUtil.exceptionWrapper(() -> {
@@ -54,6 +56,8 @@ public class AsignarReporterosAEventosController {
 		if (ag == null) {
 			view.setEventos(new ArrayList<>());
 			view.setAccionesEnabled(false);
+			view.setFinalizarAsignacionEnabled(false);
+			view.setEstadoAsignacion(false);
 			return;
 		}
 
@@ -64,21 +68,23 @@ public class AsignarReporterosAEventosController {
 
 		view.setAccionesEnabled(false);
 		view.setResponsableEnabled(false);
+		view.setFinalizarAsignacionEnabled(false);
+		view.setEstadoAsignacion(false);
+		asignacionFinalizada = false;
 	}
 
 	private void onSeleccionEvento(ListSelectionEvent e) {
-		if (e.getValueIsAdjusting()) {
-			return;
-		}
-		if (ignoreEvents) {
-			return;
-		}
+		if (e.getValueIsAdjusting()) return;
+		if (ignoreEvents) return;
 
 		Integer idEvento = view.getIdEventoSeleccionado();
 		if (idEvento == null) {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
 			view.setResponsableEnabled(false);
+			view.setFinalizarAsignacionEnabled(false);
+			view.setEstadoAsignacion(false);
+			asignacionFinalizada = false;
 			return;
 		}
 
@@ -91,6 +97,9 @@ public class AsignarReporterosAEventosController {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
 			view.setResponsableEnabled(false);
+			view.setFinalizarAsignacionEnabled(false);
+			view.setEstadoAsignacion(false);
+			asignacionFinalizada = false;
 			return;
 		}
 		cargarReporterosEvento();
@@ -104,11 +113,15 @@ public class AsignarReporterosAEventosController {
 			limpiarTablasReporteros();
 			view.setAccionesEnabled(false);
 			view.setResponsableEnabled(false);
+			view.setFinalizarAsignacionEnabled(false);
+			view.setEstadoAsignacion(false);
+			asignacionFinalizada = false;
 			return;
 		}
 
-		asignados = new ArrayList<>(model.getReporterosAsignados(idEvento));
+		asignacionFinalizada = model.isAsignacionFinalizada(idEvento);
 
+		asignados = new ArrayList<>(model.getReporterosAsignados(idEvento));
 		disponibles = new ArrayList<>(model.getReporterosDisponibles(
 			ag.getIdAgencia(),
 			idEvento,
@@ -132,11 +145,18 @@ public class AsignarReporterosAEventosController {
 		view.setAsignados(asignados);
 		view.clearSeleccionDisponibles();
 		view.clearSeleccionAsignados();
-		view.setAccionesEnabled(true);
+		view.setEstadoAsignacion(asignacionFinalizada);
+		view.setFinalizarAsignacionEnabled(!asignacionFinalizada);
+		view.setEdicionAsignacionEnabled(!asignacionFinalizada);
 		view.setResponsableEnabled(false);
 	}
 
 	private void asignarSeleccionados() {
+		if (asignacionFinalizada) {
+			view.showError("No se puede modificar la asignación porque está finalizada.");
+			return;
+		}
+
 		int[] filas = view.getFilasDisponiblesSeleccionadas();
 		if (filas == null || filas.length == 0) {
 			view.showInfo("Selecciona uno o varios reporteros disponibles.");
@@ -169,16 +189,13 @@ public class AsignarReporterosAEventosController {
 		view.setResponsableEnabled(false);
 	}
 
-	
-	
 	private ReporteroDTO findReportero(List<ReporteroDTO> lista, int idReportero) {
 		for (ReporteroDTO r : lista) {
-			if (r.getIdReportero() == idReportero) {
-				return r;
-			}
+			if (r.getIdReportero() == idReportero) return r;
 		}
 		return null;
 	}
+
 	private boolean cumpleFiltrosActuales(ReporteroDTO r, int idEvento) {
 		boolean cumpleEspecialista = true;
 		if (view.isFiltroSoloEspecialistasActivo()) {
@@ -197,10 +214,15 @@ public class AsignarReporterosAEventosController {
 					|| (view.isFiltroTipoGraficoActivo() && "Gráfico".equals(r.getTipoReportero()))
 					|| (view.isFiltroTipoCamarografoActivo() && "Camarógrafo".equals(r.getTipoReportero()));
 		}
-
 		return cumpleEspecialista && cumpleTipo;
 	}
+
 	private void eliminarSeleccionados() {
+		if (asignacionFinalizada) {
+			view.showError("No se puede modificar la asignación porque está finalizada.");
+			return;
+		}
+
 		int[] filas = view.getFilasAsignadosSeleccionadas();
 		if (filas == null || filas.length == 0) {
 			view.showInfo("Selecciona uno o varios reporteros asignados.");
@@ -217,21 +239,15 @@ public class AsignarReporterosAEventosController {
 		for (int row : filas) {
 			ReporteroDTO r = view.getReporteroAsignadoEnFila(row);
 			if (r != null) {
-				// importante: recuperar el flag responsable desde la lista en memoria
 				ReporteroDTO original = findReportero(asignados, r.getIdReportero());
-				if (original != null) {
-					mover.add(original);
-				}
+				if (original != null) mover.add(original);
 			}
 		}
 
 		for (ReporteroDTO r : mover) {
 			removeReportero(asignados, r.getIdReportero());
-
-			// al eliminar de este evento, puede volver a disponibles si cumple filtros
-			if (!containsReportero(disponibles, r.getIdReportero())
-					&& cumpleFiltrosActuales(r, idEvento)) {
-				r.setResponsable(false); // en disponibles nunca debe aparecer como responsable
+			if (!containsReportero(disponibles, r.getIdReportero()) && cumpleFiltrosActuales(r, idEvento)) {
+				r.setResponsable(false);
 				disponibles.add(r);
 			}
 		}
@@ -247,9 +263,8 @@ public class AsignarReporterosAEventosController {
 	}
 
 	private void marcarResponsableSeleccionado() {
-		Integer idEvento = view.getIdEventoSeleccionado();
-		if (idEvento == null) {
-			view.showInfo("Selecciona un evento.");
+		if (asignacionFinalizada) {
+			view.showError("No se puede modificar el responsable porque la asignación está finalizada.");
 			return;
 		}
 
@@ -263,9 +278,7 @@ public class AsignarReporterosAEventosController {
 		for (ReporteroDTO r : asignados) {
 			boolean esResp = r.getIdReportero() == idReportero;
 			r.setResponsable(esResp);
-			if (esResp) {
-				encontrado = true;
-			}
+			if (esResp) encontrado = true;
 		}
 
 		if (!encontrado) {
@@ -277,14 +290,40 @@ public class AsignarReporterosAEventosController {
 		view.setResponsableEnabled(false);
 	}
 
+	private void finalizarAsignacion() {
+		Integer idEvento = view.getIdEventoSeleccionado();
+		if (idEvento == null) {
+			view.showInfo("Selecciona un evento.");
+			return;
+		}
+
+		if (!view.confirm("¿Finalizar la asignación del evento seleccionado?", "Confirmar")) {
+			return;
+		}
+
+		try {
+			model.guardarAsignaciones(idEvento, asignados); // guarda primero cambios pendientes
+			model.finalizarAsignacion(idEvento);
+			view.showInfo("Asignación finalizada correctamente.");
+			cargarReporterosEvento();
+		} catch (IllegalStateException ex) {
+			view.showError(ex.getMessage());
+		}
+	}
+
 	private void actualizarEstadoBotonResponsable() {
-		view.setResponsableEnabled(view.getIdReporteroAsignadoSeleccionado() != null);
+		view.setResponsableEnabled(!asignacionFinalizada && view.getIdReporteroAsignadoSeleccionado() != null);
 	}
 
 	private void guardar() {
 		Integer idEvento = view.getIdEventoSeleccionado();
 		if (idEvento == null) {
 			view.showInfo("Selecciona un evento.");
+			return;
+		}
+
+		if (asignacionFinalizada) {
+			view.showError("No se puede modificar la asignación porque está finalizada.");
 			return;
 		}
 
@@ -295,7 +334,7 @@ public class AsignarReporterosAEventosController {
 		try {
 			model.guardarAsignaciones(idEvento, asignados);
 			view.showInfo("Asignaciones guardadas correctamente.");
-			cargarEventos();
+			cargarReporterosEvento();
 		} catch (IllegalStateException ex) {
 			view.showError(ex.getMessage());
 		}
@@ -316,9 +355,7 @@ public class AsignarReporterosAEventosController {
 
 	private boolean containsReportero(List<ReporteroDTO> lista, int idReportero) {
 		for (ReporteroDTO r : lista) {
-			if (r.getIdReportero() == idReportero) {
-				return true;
-			}
+			if (r.getIdReportero() == idReportero) return true;
 		}
 		return false;
 	}

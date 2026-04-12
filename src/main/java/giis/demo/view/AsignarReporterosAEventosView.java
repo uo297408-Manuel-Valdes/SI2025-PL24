@@ -34,9 +34,12 @@ public class AsignarReporterosAEventosView {
 	private JTable tblAsignados;
 	private DefaultTableModel tmAsignados;
 
+	private JLabel lblEstadoAsignacionValor;
+
 	private JButton btnAsignar;
 	private JButton btnEliminar;
 	private JButton btnMarcarResponsable;
+	private JButton btnFinalizarAsignacion;
 	private JButton btnGuardar;
 
 	public AsignarReporterosAEventosView() {
@@ -44,9 +47,9 @@ public class AsignarReporterosAEventosView {
 	}
 
 	private void initialize() {
-		frame = new JFrame("HU 34363 - Marcar reportero responsable");
+		frame = new JFrame("HU 34358 - Finalizar asignación de reporteros");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(1240, 760);
+		frame.setSize(1240, 790);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -126,14 +129,24 @@ public class AsignarReporterosAEventosView {
 		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(120);
 		tblEventos.getColumnModel().getColumn(2).setPreferredWidth(620);
 
+		JLabel lblEstadoAsignacion = new JLabel("Estado de la asignación:");
+		lblEstadoAsignacion.setFont(new Font("Tahoma", Font.BOLD, 12));
+		lblEstadoAsignacion.setBounds(20, 405, 160, 20);
+		frame.getContentPane().add(lblEstadoAsignacion);
+
+		lblEstadoAsignacionValor = new JLabel("-");
+		lblEstadoAsignacionValor.setFont(new Font("Tahoma", Font.BOLD, 12));
+		lblEstadoAsignacionValor.setBounds(185, 405, 160, 20);
+		frame.getContentPane().add(lblEstadoAsignacionValor);
+
 		JLabel lblDisp = new JLabel("Reporteros disponibles");
 		lblDisp.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblDisp.setBounds(20, 415, 200, 20);
+		lblDisp.setBounds(20, 435, 200, 20);
 		frame.getContentPane().add(lblDisp);
 
 		JLabel lblAsig = new JLabel("Reporteros asignados al evento");
 		lblAsig.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblAsig.setBounds(690, 415, 240, 20);
+		lblAsig.setBounds(690, 435, 240, 20);
 		frame.getContentPane().add(lblAsig);
 
 		tmDisponibles = new DefaultTableModel(
@@ -149,7 +162,7 @@ public class AsignarReporterosAEventosView {
 		tblDisponibles.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spDisp = new JScrollPane(tblDisponibles);
-		spDisp.setBounds(20, 440, 500, 240);
+		spDisp.setBounds(20, 460, 500, 240);
 		frame.getContentPane().add(spDisp);
 
 		ocultarColumna(tblDisponibles, 3);
@@ -170,7 +183,7 @@ public class AsignarReporterosAEventosView {
 		tblAsignados.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spAsig = new JScrollPane(tblAsignados);
-		spAsig.setBounds(710, 440, 500, 240);
+		spAsig.setBounds(710, 460, 500, 240);
 		frame.getContentPane().add(spAsig);
 
 		ocultarColumna(tblAsignados, 4);
@@ -180,19 +193,23 @@ public class AsignarReporterosAEventosView {
 		tblAsignados.getColumnModel().getColumn(3).setPreferredWidth(80);
 
 		btnAsignar = new JButton("Asignar ->");
-		btnAsignar.setBounds(550, 475, 130, 32);
+		btnAsignar.setBounds(550, 480, 130, 32);
 		frame.getContentPane().add(btnAsignar);
 
 		btnEliminar = new JButton("<- Eliminar");
-		btnEliminar.setBounds(550, 525, 130, 32);
+		btnEliminar.setBounds(550, 530, 130, 32);
 		frame.getContentPane().add(btnEliminar);
 
 		btnMarcarResponsable = new JButton("Marcar responsable");
-		btnMarcarResponsable.setBounds(530, 575, 160, 32);
+		btnMarcarResponsable.setBounds(530, 580, 160, 32);
 		frame.getContentPane().add(btnMarcarResponsable);
 
+		btnFinalizarAsignacion = new JButton("Finalizar asignación");
+		btnFinalizarAsignacion.setBounds(1010, 415, 200, 30);
+		frame.getContentPane().add(btnFinalizarAsignacion);
+
 		btnGuardar = new JButton("Aceptar");
-		btnGuardar.setBounds(1070, 690, 140, 30);
+		btnGuardar.setBounds(1070, 720, 140, 30);
 		frame.getContentPane().add(btnGuardar);
 
 		instalarTooltipsTabla(tblEventos);
@@ -200,6 +217,9 @@ public class AsignarReporterosAEventosView {
 		instalarTooltipsTabla(tblAsignados);
 
 		setAccionesEnabled(false);
+		setResponsableEnabled(false);
+		setFinalizarAsignacionEnabled(false);
+		setEstadoAsignacion(false);
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
@@ -271,23 +291,15 @@ public class AsignarReporterosAEventosView {
 					r.getNombre(),
 					r.getTipoReportero(),
 					r.getTematicasTexto(),
-					esResponsableReportero(r) ? "Sí" : "No",
+					r.isResponsable() ? "Sí" : "No",
 					r.getIdReportero()
 			});
 		}
 		ocultarColumna(tblAsignados, 4);
 	}
 
-	/**
-	 * Ajusta este método según cómo guardes el responsable en tu ReporteroDTO.
-	 * Ahora mismo asumo que tendrás un método boolean isResponsable().
-	 */
-	private boolean esResponsableReportero(ReporteroDTO r) {
-		try {
-			return r.isResponsable();
-		} catch (Exception ex) {
-			return false;
-		}
+	public void setEstadoAsignacion(boolean finalizada) {
+		lblEstadoAsignacionValor.setText(finalizada ? "FINALIZADA" : "ABIERTA");
 	}
 
 	public JFrame getFrame() {
@@ -325,22 +337,6 @@ public class AsignarReporterosAEventosView {
 		}
 		Object value = tmEventos.getValueAt(row, 3);
 		return value == null ? null : ((Number) value).intValue();
-	}
-
-	public String getNombreEventoSeleccionado() {
-		int row = tblEventos.getSelectedRow();
-		if (row < 0 || row >= tmEventos.getRowCount()) {
-			return null;
-		}
-		return (String) tmEventos.getValueAt(row, 0);
-	}
-
-	public String getFechaEventoSeleccionado() {
-		int row = tblEventos.getSelectedRow();
-		if (row < 0 || row >= tmEventos.getRowCount()) {
-			return null;
-		}
-		return (String) tmEventos.getValueAt(row, 1);
 	}
 
 	public int[] getFilasDisponiblesSeleccionadas() {
@@ -404,6 +400,17 @@ public class AsignarReporterosAEventosView {
 		btnMarcarResponsable.setEnabled(enabled);
 	}
 
+	public void setFinalizarAsignacionEnabled(boolean enabled) {
+		btnFinalizarAsignacion.setEnabled(enabled);
+	}
+
+	public void setEdicionAsignacionEnabled(boolean enabled) {
+		btnAsignar.setEnabled(enabled);
+		btnEliminar.setEnabled(enabled);
+		btnMarcarResponsable.setEnabled(enabled);
+		btnGuardar.setEnabled(enabled);
+	}
+
 	public void addAgenciaChangedListener(ActionListener l) {
 		cbAgencias.addActionListener(l);
 	}
@@ -440,6 +447,10 @@ public class AsignarReporterosAEventosView {
 
 	public void addMarcarResponsableListener(ActionListener l) {
 		btnMarcarResponsable.addActionListener(l);
+	}
+
+	public void addFinalizarAsignacionListener(ActionListener l) {
+		btnFinalizarAsignacion.addActionListener(l);
 	}
 
 	public void addGuardarListener(ActionListener l) {

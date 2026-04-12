@@ -78,10 +78,9 @@ public class RevisarReportajeController {
 		}
 		if (reportajeSeleccionado == null) return;
 
-		// Cargar titulo
+		// Cargar contenido del reportaje
 		view.setTitulo(reportajeSeleccionado.getTitulo());
 
-		// Cargar ultima version (subtitulo y cuerpo)
 		VersionReportajeDTO ultimaVersion = model.getUltimaVersion(reportajeSeleccionado.getIdReportaje());
 		if (ultimaVersion != null) {
 			view.setSubtitulo(ultimaVersion.getSubtitulo());
@@ -95,11 +94,16 @@ public class RevisarReportajeController {
 		List<MultimediaDTO> multimedia = model.getMultimedia(reportajeSeleccionado.getIdReportaje());
 		view.setMultimedia(multimedia);
 
-		// Cargar comentarios existentes (excluyendo el de finalizacion)
+		// Cargar comentarios
 		cargarComentarios();
 
-		// Habilitar controles de revision
-		view.setRevisionEnabled(true);
+		// Actualizar estado de los botones segun si este reportero ya finalizo
+		ReporteroDTO reportero = view.getReporteroSeleccionado();
+		if (reportero != null) {
+			boolean yaFinalizo = model.haFinalizadoRevision(
+				reportajeSeleccionado.getIdReportaje(), reportero.getIdReportero());
+			view.setEstadoRevision(yaFinalizo);
+		}
 	}
 
 	private void cargarComentarios() {
@@ -135,7 +139,7 @@ public class RevisarReportajeController {
 		cargarComentarios();
 	}
 
-	// ── Finalizar revision ────────────────────────────────────────────────
+	// ── Finalizar revision (individual por reportero) ─────────────────────
 
 	private void onFinalizarRevision() {
 		if (reportajeSeleccionado == null) {
@@ -145,20 +149,28 @@ public class RevisarReportajeController {
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
 		if (reportero == null) return;
 
+		boolean todosFinalizados = model.todosHanFinalizadoRevision(
+			reportajeSeleccionado.getIdReportaje());
+
+		String infoTodos = todosFinalizados
+			? "\nTodos los reporteros habran finalizado. El responsable podra finalizar el reportaje."
+			: "\nAun hay reporteros que no han finalizado su revision.";
+
 		if (!view.confirm(
-				"Vas a finalizar la revision del reportaje:\n\n" +
+				"Vas a finalizar TU revision del reportaje:\n\n" +
 				"Titulo: " + reportajeSeleccionado.getTitulo() + "\n\n" +
-				"Ya no podran anadirse mas comentarios.\n¿Confirmas?",
-				"Finalizar revision")) return;
+				"Ya no podras anadir mas comentarios a este reportaje." +
+				infoTodos + "\n\n¿Confirmas?",
+				"Finalizar mi revision")) return;
 
 		model.finalizarRevision(
 			reportajeSeleccionado.getIdReportaje(),
 			reportero.getIdReportero()
 		);
 
-		view.showInfo("Revision finalizada correctamente.");
+		view.showInfo("Tu revision ha sido finalizada correctamente.");
 
-		// Recargar — el reportaje desaparece de la lista de pendientes
+		// Actualizar estado — el reportaje puede desaparecer de la lista
 		cargarReportajes();
 	}
 }

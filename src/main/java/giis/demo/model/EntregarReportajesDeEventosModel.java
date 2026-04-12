@@ -158,6 +158,17 @@ public class EntregarReportajesDeEventosModel {
 	    db.executeUpdate("DELETE FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ?", idMultimedia);
 	}
 
+	/**
+	 * Elimina cualquier multimedia sin restriccion de estado ni de autor.
+	 * Solo puede llamarse en modo privilegiado (reportero responsable).
+	 */
+	public void removeMultimediaPrivilegiado(int idMultimedia) {
+	    String sql = "SELECT 1 FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ? LIMIT 1";
+	    if (db.executeQueryArray(sql, idMultimedia).isEmpty())
+	        throw new ApplicationException("El elemento multimedia no existe.");
+	    db.executeUpdate("DELETE FROM MULTIMEDIA_REPORTAJE WHERE id_multimedia = ?", idMultimedia);
+	}
+
 	public void cambiarEstadoMultimedia(int idMultimedia, int idReportero, String nuevoEstado) {
 	    if (!nuevoEstado.equals("BORRADOR") && !nuevoEstado.equals("DEFINITIVO"))
 	        throw new ApplicationException("Estado no válido.");
@@ -234,6 +245,58 @@ public class EntregarReportajesDeEventosModel {
 		db.executeUpdate(insertVer, reportaje.getIdReportaje(), subtituloTrim, cuerpoTrim, cambiosAuto);
 	}
 
+	/**
+	 * Guarda una nueva version del reportaje con privilegios de responsable.
+	 * El titulo puede cambiarse y no se comprueba isPendienteRevision.
+	 */
+	public void guardarVersionPrivilegiada(int idEvento, int idReportero,
+	                                        String titulo, String subtitulo, String cuerpo) {
+	    if (titulo    == null || titulo.trim().isEmpty())
+	        throw new ApplicationException("El campo Titulo no puede estar vacio.");
+	    if (subtitulo == null || subtitulo.trim().isEmpty())
+	        throw new ApplicationException("El campo Subtitulo no puede estar vacio.");
+	    if (cuerpo    == null || cuerpo.trim().isEmpty())
+	        throw new ApplicationException("El campo Cuerpo no puede estar vacio.");
+
+	    ReportajeDTO reportaje = getReportaje(idEvento);
+	    if (reportaje == null)
+	        throw new ApplicationException("No existe reportaje para este evento.");
+
+	    String tituloTrim    = titulo.trim();
+	    String subtituloTrim = subtitulo.trim();
+	    String cuerpoTrim    = cuerpo.trim();
+
+	    if (tituloExiste(tituloTrim, reportaje.getIdReportaje()))
+	        throw new ApplicationException("Ya existe otro reportaje con ese titulo.");
+
+	    // El responsable puede cambiar el titulo
+	    db.executeUpdate("UPDATE REPORTAJE SET titulo = ? WHERE id_reportaje = ?",
+	                     tituloTrim, reportaje.getIdReportaje());
+
+	    String cambios = generarCambiosPrivilegiado(reportaje, subtituloTrim, cuerpoTrim, tituloTrim);
+	    db.executeUpdate(
+	        "INSERT INTO VERSION_REPORTAJE(id_reportaje, subtitulo, cuerpo, cambios) VALUES (?, ?, ?, ?)",
+	        reportaje.getIdReportaje(), subtituloTrim, cuerpoTrim, cambios
+	    );
+	}
+
+	private String generarCambiosPrivilegiado(ReportajeDTO reportaje, String nuevoSubtitulo,
+	                                           String nuevoCuerpo, String nuevoTitulo) {
+	    String ahora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+	    VersionReportajeDTO ultima = getUltimaVersion(reportaje.getIdReportaje());
+	    List<String> cambiosList = new ArrayList<>();
+	    if (!reportaje.getTitulo().equals(nuevoTitulo)) cambiosList.add("titulo");
+	    if (ultima != null) {
+	        if (!ultima.getSubtitulo().equals(nuevoSubtitulo)) cambiosList.add("subtitulo");
+	        if (!ultima.getCuerpo().equals(nuevoCuerpo))       cambiosList.add("cuerpo");
+	    } else {
+	        cambiosList.add("subtitulo");
+	        cambiosList.add("cuerpo");
+	    }
+	    if (cambiosList.isEmpty()) return "Sin cambios (responsable). " + ahora;
+	    return "Modificado por responsable: " + String.join(", ", cambiosList) + ". " + ahora;
+	}
+
 
 	private String generarCambios(ReportajeDTO reportaje, String nuevoSubtitulo, String nuevoCuerpo) {
 		String ahora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
@@ -267,19 +330,27 @@ public class EntregarReportajesDeEventosModel {
 	
 	public List<ComentarioRevisionDTO> getComentariosRevision(int idReportaje) {
 	    String sql =
-	        "SELECT id_comentario, id_reportaje, id_reportero, comentario, fecha_hora " +
-	        "FROM COMENTARIO_REVISION " +
-	        "WHERE id_reportaje = ? " +
-	        "ORDER BY id_comentario";
+	        "SELECT cr.id_comentario, cr.id_reportaje, cr.id_reportero, " +
+	        "       cr.comentario, cr.fecha_hora, cr.es_finalizacion, " +
+	        "       r.nombre AS nombre_reportero " +
+	        "FROM COMENTARIO_REVISION cr " +
+	        "JOIN REPORTERO r ON r.id_reportero = cr.id_reportero " +
+	        "WHERE cr.id_reportaje = ? " +
+	        "ORDER BY cr.id_comentario";
 	    List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
 	    List<ComentarioRevisionDTO> res = new ArrayList<>();
 	    for (Object[] r : rows) {
+	        int    esFinalizacion = ((Number) r[5]).intValue();
+	        String estado         = esFinalizacion == 1 ? "Finalizada" : "Sin finalizar";
+	        String autor          = (String) r[6];
 	        res.add(new ComentarioRevisionDTO(
 	            ((Number) r[0]).intValue(),
 	            ((Number) r[1]).intValue(),
 	            ((Number) r[2]).intValue(),
 	            (String)  r[3],
-	            (String)  r[4]
+	            (String)  r[4],
+	            estado,
+	            autor
 	        ));
 	    }
 	    return res;
@@ -300,13 +371,80 @@ public class EntregarReportajesDeEventosModel {
 	        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
 
 	    db.executeUpdate(
-	        "INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora) " +
-	        "VALUES (?, ?, ?, ?)",
+	        "INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora, es_finalizacion) " +
+	        "VALUES (?, ?, ?, ?, 0)",
 	        reportaje.getIdReportaje(), idReportero, "Solicitud de revision", fechaHora
 	    );
 	}
-	
-	
-	
-	
+
+	// -------------------------------------------------------------------------
+	// Metodos para el modo privilegiado del reportero responsable
+	// -------------------------------------------------------------------------
+
+	/** Devuelve true si el reportero es responsable del evento indicado. */
+	public boolean esResponsableDeEvento(int idEvento, int idReportero) {
+	    String sql =
+	        "SELECT 1 FROM ASIGNACION_REPORTERO " +
+	        "WHERE id_evento = ? AND id_reportero = ? AND es_responsable = 1 LIMIT 1";
+	    return !db.executeQueryArray(sql, idEvento, idReportero).isEmpty();
+	}
+
+	/**
+	 * Devuelve true si TODOS los reporteros no-responsables asignados al evento
+	 * han enviado al menos un comentario de revision (solicitarRevision).
+	 */
+	public boolean todosHanEnviadoRevision(int idEvento) {
+	    String sqlAsignados =
+	        "SELECT ar.id_reportero FROM ASIGNACION_REPORTERO ar " +
+	        "WHERE ar.id_evento = ? AND ar.es_responsable = 0";
+	    List<Object[]> asignados = db.executeQueryArray(sqlAsignados, idEvento);
+	    if (asignados.isEmpty()) return true;
+
+	    ReportajeDTO reportaje = getReportaje(idEvento);
+	    if (reportaje == null) return false;
+
+	    for (Object[] row : asignados) {
+	        int idRep = ((Number) row[0]).intValue();
+	        String sqlCom =
+	            "SELECT 1 FROM COMENTARIO_REVISION " +
+	            "WHERE id_reportaje = ? AND id_reportero = ? LIMIT 1";
+	        if (db.executeQueryArray(sqlCom, reportaje.getIdReportaje(), idRep).isEmpty())
+	            return false;
+	    }
+	    return true;
+	}
+
+	/** Indica si el responsable ya ha finalizado este reportaje. */
+	public boolean estaFinalizadoPorResponsable(int idReportaje, int idReportero) {
+	    String sql =
+	        "SELECT 1 FROM COMENTARIO_REVISION " +
+	        "WHERE id_reportaje = ? AND id_reportero = ? AND es_finalizacion = 1 LIMIT 1";
+	    return !db.executeQueryArray(sql, idReportaje, idReportero).isEmpty();
+	}
+
+	/**
+	 * El responsable finaliza el reportaje: inserta un comentario con es_finalizacion = 1.
+	 * Solo posible si todos los reporteros no-responsables han enviado su revision.
+	 */
+	public void finalizarReportajeResponsable(int idEvento, int idReportero) {
+	    ReportajeDTO reportaje = getReportaje(idEvento);
+	    if (reportaje == null)
+	        throw new ApplicationException("No existe reportaje para este evento.");
+	    if (!todosHanEnviadoRevision(idEvento))
+	        throw new ApplicationException(
+	            "No todos los reporteros han enviado su revision. " +
+	            "El reportaje no puede finalizarse todavia.");
+	    if (estaFinalizadoPorResponsable(reportaje.getIdReportaje(), idReportero))
+	        throw new ApplicationException("El reportaje ya ha sido finalizado.");
+
+	    String fechaHora = LocalDateTime.now()
+	        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+	    db.executeUpdate(
+	        "INSERT INTO COMENTARIO_REVISION" +
+	        "(id_reportaje, id_reportero, comentario, fecha_hora, es_finalizacion) " +
+	        "VALUES (?, ?, ?, ?, 1)",
+	        reportaje.getIdReportaje(), idReportero,
+	        "Revision finalizada por responsable", fechaHora
+	    );
+	}
 }

@@ -45,4 +45,9 @@ public class ReporteroDTO {
 	public void setResponsable(boolean responsable) {
 		this.responsable = responsable;
 	}
+	
+	@Override
+	public String toString() {
+		return this.nombre;
+	}
 }

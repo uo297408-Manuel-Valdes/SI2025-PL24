@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import giis.demo.model.ComentarioRevisionDTO;
 import giis.demo.model.EventoDTO;
 import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReporteroDTO;
@@ -46,6 +47,15 @@ public class EntregarReportajesDeEventosView {
 	private JButton btnEntregar;
 	private JButton btnCambiarEstado;
 	private JButton btnSolicitarRevision;
+
+	// --- Elementos del modo privilegiado (reportero responsable) ---
+	private JLabel            lblModoPrivilegiado;
+	private JLabel            lblRevisiones;
+	private JTable            tblRevisiones;
+	private DefaultTableModel tmRevisiones;
+	private JScrollPane       spRevisiones;
+	private JButton           btnFinalizar;
+
 	public EntregarReportajesDeEventosView() {
 		initialize();
 	}
@@ -54,7 +64,7 @@ public class EntregarReportajesDeEventosView {
 		// FRAME PRIMERO
 		frame = new JFrame(" Entregar Reportajes De Eventos ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(780, 760);
+		frame.setSize(780, 780);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -66,6 +76,16 @@ public class EntregarReportajesDeEventosView {
 		cbReporteros = new JComboBox<>();
 		cbReporteros.setBounds(115, 15, 350, 22);
 		frame.getContentPane().add(cbReporteros);
+
+		// Banner modo privilegiado (derecha del combo, inicialmente oculto)
+		lblModoPrivilegiado = new JLabel("  Modo privilegiado: Reportero Responsable");
+		lblModoPrivilegiado.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblModoPrivilegiado.setForeground(new java.awt.Color(0, 100, 0));
+		lblModoPrivilegiado.setBackground(new java.awt.Color(198, 224, 180));
+		lblModoPrivilegiado.setOpaque(true);
+		lblModoPrivilegiado.setBounds(330, 45, 285, 22);
+		lblModoPrivilegiado.setVisible(false);
+		frame.getContentPane().add(lblModoPrivilegiado);
 
 		cbFiltro = new JComboBox<>(new String[]{"Eventos SIN reportaje", "Eventos CON reportaje"});
 		cbFiltro.setBounds(20, 45, 240, 22);
@@ -165,44 +185,71 @@ public class EntregarReportajesDeEventosView {
 		txtSubtitulo.setLineWrap(true);
 		txtSubtitulo.setWrapStyleWord(true);
 		JScrollPane spSubtitulo = new JScrollPane(txtSubtitulo);
-		spSubtitulo.setBounds(320, 205, 420, 80);
+		spSubtitulo.setBounds(320, 205, 420, 70);
 		frame.getContentPane().add(spSubtitulo);
 
-		// Cuerpo
+		// Cuerpo (reducido en altura para dar cabida a la tabla de revisiones)
 		JLabel lblCuerpo = new JLabel("Cuerpo");
 		lblCuerpo.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblCuerpo.setBounds(320, 298, 80, 20);
+		lblCuerpo.setBounds(320, 285, 80, 20);
 		frame.getContentPane().add(lblCuerpo);
 
 		txtCuerpo = new JTextArea();
 		txtCuerpo.setLineWrap(true);
 		txtCuerpo.setWrapStyleWord(true);
 		JScrollPane spCuerpo = new JScrollPane(txtCuerpo);
-		spCuerpo.setBounds(320, 320, 420, 265);
+		spCuerpo.setBounds(320, 307, 420, 155);
 		frame.getContentPane().add(spCuerpo);
 
-		// Boton Entregar
-		btnEntregar = new JButton("Entregar");
-		btnEntregar.setBounds(560, 600, 140, 30);
-		frame.getContentPane().add(btnEntregar);
+		// --- Tabla de revisiones (solo visible en modo privilegiado) ---
+		lblRevisiones = new JLabel("Revisiones de reporteros");
+		lblRevisiones.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblRevisiones.setBounds(320, 472, 250, 20);
+		lblRevisiones.setVisible(false);
+		frame.getContentPane().add(lblRevisiones);
 
+		tmRevisiones = new DefaultTableModel(
+				new Object[]{"Contenido", "Fecha", "Autor", "Estado"}, 0) {
+			@Override public boolean isCellEditable(int row, int col) { return false; }
+		};
+		tblRevisiones = new JTable(tmRevisiones);
+		tblRevisiones.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tblRevisiones.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+		tblRevisiones.getColumnModel().getColumn(0).setPreferredWidth(150);
+		tblRevisiones.getColumnModel().getColumn(1).setPreferredWidth(80);
+		tblRevisiones.getColumnModel().getColumn(2).setPreferredWidth(100);
+		tblRevisiones.getColumnModel().getColumn(3).setPreferredWidth(90);
+
+		spRevisiones = new JScrollPane(tblRevisiones);
+		spRevisiones.setBounds(320, 494, 420, 140);
+		spRevisiones.setVisible(false);
+		frame.getContentPane().add(spRevisiones);
+
+		// Boton Cambiar Estado
 		btnCambiarEstado = new JButton("Cambiar Estado");
 		btnCambiarEstado.setBounds(20, 558, 280, 26);
 		frame.getContentPane().add(btnCambiarEstado);
-		
+
+		// Boton Solicitar Revision
 		btnSolicitarRevision = new JButton("Solicitar Revision");
-		btnSolicitarRevision.setBounds(320, 600, 180, 30);
+		btnSolicitarRevision.setBounds(320, 648, 180, 30);
 		btnSolicitarRevision.setEnabled(false);
 		frame.getContentPane().add(btnSolicitarRevision);
-		
-		
-		
+
+		// Boton Entregar
+		btnEntregar = new JButton("Entregar");
+		btnEntregar.setBounds(560, 648, 140, 30);
+		frame.getContentPane().add(btnEntregar);
+
+		// Boton Finalizar (solo visible en modo privilegiado)
+		btnFinalizar = new JButton("Finalizar");
+		btnFinalizar.setBounds(320, 648, 180, 30);
+		btnFinalizar.setEnabled(false);
+		btnFinalizar.setVisible(false);
+		frame.getContentPane().add(btnFinalizar);
+
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
-		
-		
-		
-		
 	}
 
 
@@ -237,6 +284,15 @@ public class EntregarReportajesDeEventosView {
 		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
 	}
 
+	/** Rellena la tabla de revisiones (solo en modo privilegiado). */
+	public void setRevisiones(List<ComentarioRevisionDTO> lista) {
+		tmRevisiones.setRowCount(0);
+		for (ComentarioRevisionDTO c : lista)
+			tmRevisiones.addRow(new Object[]{
+				c.getComentario(), c.getFechaHora(), c.getAutor(), c.getEstado()
+			});
+	}
+
 	public void setLabelEventoSeleccionado(String nombreEvento) {
 		lblEventoSeleccionado.setText("Evento seleccionado: " + nombreEvento);
 	}
@@ -260,6 +316,32 @@ public class EntregarReportajesDeEventosView {
 		btnCambiarEstado.setEnabled(enabled);
 	}
 
+	/**
+	 * Activa o desactiva el modo privilegiado del reportero responsable.
+	 * Muestra/oculta el banner, la tabla de revisiones y el boton Finalizar.
+	 * Oculta/muestra btnSolicitarRevision segun corresponda.
+	 */
+	public void setModoPrivilegiado(boolean privilegiado) {
+		lblModoPrivilegiado.setVisible(privilegiado);
+		lblRevisiones.setVisible(privilegiado);
+		spRevisiones.setVisible(privilegiado);
+		btnFinalizar.setVisible(privilegiado);
+		btnSolicitarRevision.setVisible(!privilegiado);
+		if (!privilegiado) {
+			tmRevisiones.setRowCount(0);
+			btnFinalizar.setEnabled(false);
+		}
+	}
+
+	public void setPendienteRevision(boolean pendiente) {
+	    btnSolicitarRevision.setEnabled(!pendiente);
+	    btnSolicitarRevision.setText(pendiente ? "Pendiente de revision" : "Solicitar Revision");
+	}
+
+	public void setFinalizarEnabled(boolean enabled) {
+		btnFinalizar.setEnabled(enabled);
+	}
+
 	public void limpiarFormulario() {
 		txtTitulo.setText("");
 		txtSubtitulo.setText("");
@@ -267,9 +349,13 @@ public class EntregarReportajesDeEventosView {
 		setTituloEditable(true);
 		setMultimediaEnabled(false);
 		tmMultimedia.setRowCount(0);
+		tmRevisiones.setRowCount(0);
 		lblEventoSeleccionado.setText("Evento seleccionado: (ninguno)");
 	}
 
+	public void setFiltroSeleccionado(String valor) {
+	    cbFiltro.setSelectedItem(valor);
+	}
 
 	public ReporteroDTO getReporteroSeleccionado() {
 		return (ReporteroDTO) cbReporteros.getSelectedItem();
@@ -337,8 +423,6 @@ public class EntregarReportajesDeEventosView {
 	}
 
 
-	
-	
 	public void addReporteroChangedListener(ActionListener l) {
 		cbReporteros.addActionListener(l);
 	}
@@ -378,20 +462,14 @@ public class EntregarReportajesDeEventosView {
 	public void addCambiarEstadoListener(ActionListener l) {
 	    btnCambiarEstado.addActionListener(l);
 	}
-	
-	public void setPendienteRevision(boolean pendiente) {
-	    btnSolicitarRevision.setEnabled(!pendiente);
-	    btnSolicitarRevision.setText(pendiente ? "Pendiente de revision" : "Solicitar Revision");
-	}
-	
-	public void setFiltroSeleccionado(String valor) {
-	    cbFiltro.setSelectedItem(valor);
-	}
-	
+
 	public void addSolicitarRevisionListener(ActionListener l) {
 	    btnSolicitarRevision.addActionListener(l);
 	}
-	
+
+	public void addFinalizarListener(ActionListener l) {
+	    btnFinalizar.addActionListener(l);
+	}
 
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Informacion", JOptionPane.INFORMATION_MESSAGE);
@@ -406,5 +484,3 @@ public class EntregarReportajesDeEventosView {
 				JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}
 }
-
-

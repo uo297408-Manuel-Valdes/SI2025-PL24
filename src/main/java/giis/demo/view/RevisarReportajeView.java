@@ -32,11 +32,11 @@ public class RevisarReportajeView {
 	private JLabel    lblSubtitulo;
 	private JTextArea txtCuerpo;
 
-	// Tabla multimedia (derecha abajo)
+	// Tabla multimedia (derecha)
 	private JTable            tblMultimedia;
 	private DefaultTableModel tmMultimedia;
 
-	// Tabla comentarios (centro abajo)
+	// Tabla comentarios (abajo izquierda)
 	private JTable            tblComentarios;
 	private DefaultTableModel tmComentarios;
 
@@ -44,6 +44,9 @@ public class RevisarReportajeView {
 	private JTextField txtComentario;
 	private JButton    btnAnadirComentario;
 	private JButton    btnFinalizarRevision;
+
+	// Label de estado de revision del reportero actual
+	private JLabel lblEstadoRevision;
 
 	public RevisarReportajeView() {
 		initialize();
@@ -56,7 +59,7 @@ public class RevisarReportajeView {
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
-		// ── Combo reportero (arriba izquierda) ───────────────────────────
+		// ── Combo reportero ───────────────────────────────────────────────
 		JLabel lblReportero = new JLabel("Reportero:");
 		lblReportero.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblReportero.setBounds(20, 15, 90, 20);
@@ -114,13 +117,13 @@ public class RevisarReportajeView {
 		txtCuerpo.setWrapStyleWord(true);
 		txtCuerpo.setBackground(new java.awt.Color(245, 245, 245));
 		JScrollPane spCuerpo = new JScrollPane(txtCuerpo);
-		spCuerpo.setBounds(310, 150, 500, 200);
+		spCuerpo.setBounds(730, 50, 195, 280);
 		frame.getContentPane().add(spCuerpo);
 
 		// ── Tabla multimedia (derecha abajo) ──────────────────────────────
 		JLabel lblMultimedia = new JLabel("Contenido Multimedia");
 		lblMultimedia.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblMultimedia.setBounds(620, 363, 200, 20);
+		lblMultimedia.setBounds(620, 340, 200, 20);
 		frame.getContentPane().add(lblMultimedia);
 
 		tmMultimedia = new DefaultTableModel(new Object[]{"Path", "Tipo", "Estado"}, 0) {
@@ -131,20 +134,20 @@ public class RevisarReportajeView {
 		tblMultimedia.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spMultimedia = new JScrollPane(tblMultimedia);
-		spMultimedia.setBounds(620, 385, 305, 200);
+		spMultimedia.setBounds(620, 362, 305, 220);
 		frame.getContentPane().add(spMultimedia);
 
 		tblMultimedia.getColumnModel().getColumn(0).setPreferredWidth(150);
 		tblMultimedia.getColumnModel().getColumn(1).setPreferredWidth(60);
 		tblMultimedia.getColumnModel().getColumn(2).setPreferredWidth(80);
 
-		// ── Tabla comentarios (centro abajo) ──────────────────────────────
+		// ── Tabla comentarios (izquierda abajo) ───────────────────────────
 		JLabel lblComentarios = new JLabel("Comentarios");
 		lblComentarios.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblComentarios.setBounds(20, 363, 200, 20);
 		frame.getContentPane().add(lblComentarios);
 
-		tmComentarios = new DefaultTableModel(new Object[]{"Comentario", "Fecha", "id_comentario"}, 0) {
+		tmComentarios = new DefaultTableModel(new Object[]{"Comentario", "Fecha", "Autor", "id_comentario"}, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
 		};
 		tblComentarios = new JTable(tmComentarios);
@@ -152,12 +155,19 @@ public class RevisarReportajeView {
 		tblComentarios.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spComentarios = new JScrollPane(tblComentarios);
-		spComentarios.setBounds(20, 385, 580, 200);
+		spComentarios.setBounds(20, 385, 580, 180);
 		frame.getContentPane().add(spComentarios);
 
-		ocultarColumna(tblComentarios, 2);
-		tblComentarios.getColumnModel().getColumn(0).setPreferredWidth(420);
-		tblComentarios.getColumnModel().getColumn(1).setPreferredWidth(140);
+		ocultarColumna(tblComentarios, 3);
+		tblComentarios.getColumnModel().getColumn(0).setPreferredWidth(300);
+		tblComentarios.getColumnModel().getColumn(1).setPreferredWidth(130);
+		tblComentarios.getColumnModel().getColumn(2).setPreferredWidth(130);
+
+		// ── Estado de revision del reportero actual ───────────────────────
+		lblEstadoRevision = new JLabel("");
+		lblEstadoRevision.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblEstadoRevision.setBounds(20, 572, 580, 20);
+		frame.getContentPane().add(lblEstadoRevision);
 
 		// ── Controles inferiores ──────────────────────────────────────────
 		btnAnadirComentario = new JButton("Anadir comentario");
@@ -170,7 +180,7 @@ public class RevisarReportajeView {
 		txtComentario.setEnabled(false);
 		frame.getContentPane().add(txtComentario);
 
-		btnFinalizarRevision = new JButton("Finalizar Revision");
+		btnFinalizarRevision = new JButton("Finalizar mi Revision");
 		btnFinalizarRevision.setBounds(780, 600, 150, 30);
 		btnFinalizarRevision.setEnabled(false);
 		frame.getContentPane().add(btnFinalizarRevision);
@@ -207,14 +217,10 @@ public class RevisarReportajeView {
 		lblReporteroRegistrado.setText("Reportero Registrado: " + nombre);
 	}
 
-	public void setTitulo(String titulo) {
-		lblTitulo.setText("Titulo: " + titulo);
-	}
-
+	public void setTitulo(String titulo)     { lblTitulo.setText("Titulo: " + titulo); }
 	public void setSubtitulo(String subtitulo) {
 		lblSubtitulo.setText("<html>Subtitulo: " + subtitulo + "</html>");
 	}
-
 	public void setCuerpo(String cuerpo) {
 		txtCuerpo.setText(cuerpo);
 		txtCuerpo.setCaretPosition(0);
@@ -232,10 +238,34 @@ public class RevisarReportajeView {
 	public void setComentarios(List<ComentarioRevisionDTO> comentarios) {
 		tmComentarios.setRowCount(0);
 		for (ComentarioRevisionDTO c : comentarios)
-			tmComentarios.addRow(new Object[]{c.getComentario(), c.getFechaHora(), c.getIdComentario()});
-		ocultarColumna(tblComentarios, 2);
-		tblComentarios.getColumnModel().getColumn(0).setPreferredWidth(420);
-		tblComentarios.getColumnModel().getColumn(1).setPreferredWidth(140);
+			tmComentarios.addRow(new Object[]{
+				c.getComentario(), c.getFechaHora(), c.getAutor(), c.getIdComentario()
+			});
+		ocultarColumna(tblComentarios, 3);
+		tblComentarios.getColumnModel().getColumn(0).setPreferredWidth(300);
+		tblComentarios.getColumnModel().getColumn(1).setPreferredWidth(130);
+		tblComentarios.getColumnModel().getColumn(2).setPreferredWidth(130);
+	}
+
+	/**
+	 * Actualiza el label de estado y los botones segun si el reportero ya finalizo.
+	 * yaFinalizo=true  → solo lectura, sin botones de accion.
+	 * yaFinalizo=false → puede anadir comentarios y finalizar.
+	 */
+	public void setEstadoRevision(boolean yaFinalizo) {
+		if (yaFinalizo) {
+			lblEstadoRevision.setText("Tu revision esta FINALIZADA para este reportaje.");
+			lblEstadoRevision.setForeground(new java.awt.Color(0, 130, 0));
+			btnAnadirComentario.setEnabled(false);
+			txtComentario.setEnabled(false);
+			btnFinalizarRevision.setEnabled(false);
+		} else {
+			lblEstadoRevision.setText("Revision en curso — puedes anadir comentarios y finalizar.");
+			lblEstadoRevision.setForeground(new java.awt.Color(180, 100, 0));
+			btnAnadirComentario.setEnabled(true);
+			txtComentario.setEnabled(true);
+			btnFinalizarRevision.setEnabled(true);
+		}
 	}
 
 	public void setRevisionEnabled(boolean enabled) {
@@ -251,6 +281,7 @@ public class RevisarReportajeView {
 		tmMultimedia.setRowCount(0);
 		tmComentarios.setRowCount(0);
 		txtComentario.setText("");
+		lblEstadoRevision.setText("");
 		setRevisionEnabled(false);
 	}
 
@@ -266,33 +297,19 @@ public class RevisarReportajeView {
 		return ((Number) tmReportajes.getValueAt(row, 1)).intValue();
 	}
 
-	public String getComentario() {
-		return txtComentario.getText();
-	}
-
-	public void limpiarComentario() {
-		txtComentario.setText("");
-	}
+	public String getComentario()   { return txtComentario.getText(); }
+	public void limpiarComentario() { txtComentario.setText(""); }
 
 	public JFrame getFrame() { return frame; }
 
 	// ── Listeners ─────────────────────────────────────────────────────────
 
-	public void addReporteroChangedListener(ActionListener l) {
-		cbReporteros.addActionListener(l);
-	}
-
+	public void addReporteroChangedListener(ActionListener l)       { cbReporteros.addActionListener(l); }
 	public void addReportajesSelectionListener(ListSelectionListener l) {
 		tblReportajes.getSelectionModel().addListSelectionListener(l);
 	}
-
-	public void addAnadirComentarioListener(ActionListener l) {
-		btnAnadirComentario.addActionListener(l);
-	}
-
-	public void addFinalizarRevisionListener(ActionListener l) {
-		btnFinalizarRevision.addActionListener(l);
-	}
+	public void addAnadirComentarioListener(ActionListener l)       { btnAnadirComentario.addActionListener(l); }
+	public void addFinalizarRevisionListener(ActionListener l)      { btnFinalizarRevision.addActionListener(l); }
 
 	// ── Dialogos ──────────────────────────────────────────────────────────
 

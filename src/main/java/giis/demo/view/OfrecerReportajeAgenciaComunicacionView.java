@@ -87,7 +87,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		lblReportajes.setBounds(20, 75, 350, 20);
 		frame.getContentPane().add(lblReportajes);
 
-		tmReportajes = new DefaultTableModel(new Object[] { "Nombre", "Fecha", "id_evento" }, 0) {
+		tmReportajes = new DefaultTableModel(new Object[] { "Nombre", "Fecha", "id_evento", "finalizada" }, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
 		};
 
@@ -100,6 +100,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		frame.getContentPane().add(spReportajes);
 
 		ocultarColumna(tblReportajes, 2);
+		ocultarColumna(tblReportajes, 3);
 		tblReportajes.getColumnModel().getColumn(0).setPreferredWidth(750);
 		tblReportajes.getColumnModel().getColumn(1).setPreferredWidth(150);
 
@@ -192,7 +193,7 @@ public class OfrecerReportajeAgenciaComunicacionView {
 	public void setReportajes(List<EventoDTO> Reportaje) {
 		tmReportajes.setRowCount(0);
 		for (EventoDTO e : Reportaje) {
-			tmReportajes.addRow(new Object[] { e.getNombre(), e.getFechaEvento(), e.getIdEvento() });
+			tmReportajes.addRow(new Object[] { e.getNombre(), e.getFechaEvento(), e.getIdEvento(), e.getFinalizada() });
 		}
 		ocultarColumna(tblReportajes, 2);
 		tblReportajes.getColumnModel().getColumn(0).setPreferredWidth(750);
@@ -244,6 +245,12 @@ public class OfrecerReportajeAgenciaComunicacionView {
 		int row = tblReportajes.getSelectedRow();
 		if (row < 0) return null;
 		return (String) tmReportajes.getValueAt(row, 1);
+	}
+	
+	public Integer getFinalizadaReportajeSeleccionado() {
+		int row = tblReportajes.getSelectedRow();
+		if (row < 0) return null;
+		return ((Number) tmReportajes.getValueAt(row, 3)).intValue();
 	}
 
 	public int[] getFilasDisponiblesSeleccionadas() {

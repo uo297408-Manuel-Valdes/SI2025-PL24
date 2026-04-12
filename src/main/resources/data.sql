@@ -27,8 +27,9 @@ INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Lucía D�
 -- ===============================
 
 -- Agencia Norte
-INSERT INTO evento (id_agencia, nombre, fecha_evento)
-VALUES (1, 'Rueda de prensa', '2026-03-10');
+--Temporalmente con finalizada=1
+INSERT INTO evento (id_agencia, nombre, fecha_evento, finalizada)
+VALUES (1, 'Rueda de prensa', '2026-03-10', 1);
 
 INSERT INTO evento (id_agencia, nombre, fecha_evento)
 VALUES (1, 'Manifestación', '2026-03-11');
@@ -71,6 +72,13 @@ INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (6, 3);
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 1);
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (1, 3);
 INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (2, 2);
+
+-- ===============================
+-- Tarifas
+-- ===============================
+
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 1);
+
 --Temporal
 INSERT INTO reportaje (id_evento, titulo, id_reportero_entrega) VALUES (1, 'Temporal',1);
 INSERT INTO acceso_reportaje (id_evento, id_empresa) VALUES (1,1);

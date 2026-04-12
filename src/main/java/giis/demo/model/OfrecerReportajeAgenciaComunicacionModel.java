@@ -24,7 +24,7 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 
 	public List<EventoDTO> getReportajes(int idAgencia) {
 		String sql =
-				"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento " +
+				"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento, e.finalizada " +
 				"FROM EVENTO e " +
 				"WHERE e.id_agencia = ? " +
 				"AND EXISTS (SELECT 1 FROM ASIGNACION_REPORTERO ar WHERE ar.id_evento = e.id_evento) " +
@@ -38,7 +38,8 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 				int idAg = ((Number) r[1]).intValue();
 				String nombre = (String) r[2];
 				String fecha = (String) r[3];
-				res.add(new EventoDTO(idEvento, idAg, nombre, fecha));
+				int finalizada = ((Number) r[4]).intValue();
+				res.add(new EventoDTO(idEvento, idAg, nombre, fecha, finalizada));
 			}
 		return res;
 	}
@@ -222,6 +223,21 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		return !db.executeQueryArray(sql, idEmpresa, idEvento).isEmpty();
 	}
 
-
+	public int buscarTarifa(int idAgencia, int idEmpresa) {
+		String sql=
+				"Select t.pendiente "+
+				"FROM TARIFA t "+
+				"WHERE t.id_agencia=? "+
+				"AND t.id_empresa=? "+
+				"LIMIT 1 ";
+		List<Object[]> rows = db.executeQueryArray(sql, idAgencia, idEmpresa);
+		
+		int res=-1;
+		
+		for (Object[] r : rows) {
+			res = ((Number) r[0]).intValue();
+		}
+		return res;
+	}
 	
 }

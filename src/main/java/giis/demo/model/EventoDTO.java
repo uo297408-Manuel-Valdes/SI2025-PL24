@@ -6,13 +6,25 @@ public class EventoDTO {
 	private String nombre;
 	private String fechaEvento; 
 	private String tematicasTexto;
+	private int finalizada;
 
+	
 	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento) {
 		this.idEvento = idEvento;
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
 		this.fechaEvento = fechaEvento;
 		this.tematicasTexto = "";
+		this.finalizada= -1;
+	}
+	
+	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento, int finalizada) {
+		this.idEvento = idEvento;
+		this.idAgencia = idAgencia;
+		this.nombre = nombre;
+		this.fechaEvento = fechaEvento;
+		this.tematicasTexto = "";
+		this.finalizada=finalizada;
 	}
 
 	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento, String tematicasTexto) {
@@ -21,7 +33,9 @@ public class EventoDTO {
 		this.nombre = nombre;
 		this.fechaEvento = fechaEvento;
 		this.tematicasTexto = tematicasTexto;
+		this.finalizada=-1;
 	}
+	
 
 	public EventoDTO() {
 		super();
@@ -61,6 +75,10 @@ public class EventoDTO {
 
 	public String getTematicasTexto() {
 		return tematicasTexto;
+	}
+	
+	public int getFinalizada() {
+		return finalizada;
 	}
 
 	public void setTematicasTexto(String tematicasTexto) {

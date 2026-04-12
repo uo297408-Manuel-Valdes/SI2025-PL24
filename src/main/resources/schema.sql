@@ -1,5 +1,6 @@
 PRAGMA foreign_keys = ON;
 
+DROP TABLE IF EXISTS tarifa;
 DROP TABLE IF EXISTS reportero_tematica;
 DROP TABLE IF EXISTS evento_tematica;
 DROP TABLE IF EXISTS version_reportaje;
@@ -26,6 +27,7 @@ CREATE TABLE evento (
   id_agencia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
   fecha_evento TEXT NOT NULL,
+  finalizada INTEGER NOT NULL DEFAULT 0 CHECK (finalizada IN (0,1)),
   FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
 );
 
@@ -41,11 +43,14 @@ CREATE TABLE asignacion_reportero (
   id_evento INTEGER NOT NULL,
   id_reportero INTEGER NOT NULL,
   es_responsable INTEGER NOT NULL DEFAULT 0 CHECK (es_responsable IN (0,1)),
-  finalizada INTEGER NOT NULL DEFAULT 0 CHECK (finalizada IN (0,1)),
   PRIMARY KEY (id_evento, id_reportero),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
+
+CREATE UNIQUE INDEX idx_un_responsable_por_evento
+ON asignacion_reportero(id_evento)
+WHERE es_responsable = 1;
 
 CREATE TABLE empresa (
   id_empresa INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,11 +117,11 @@ CREATE TABLE reportero_tematica (
 );
 
 CREATE TABLE multimedia_reportaje (
-  id_multimedia  INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_reportaje   INTEGER NOT NULL,
+  id_multimedia INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_reportaje INTEGER NOT NULL,
   id_reportero INTEGER NOT NULL,
-  path           TEXT NOT NULL UNIQUE,
-  tipo           TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
+  path TEXT NOT NULL UNIQUE,
+  tipo TEXT NOT NULL CHECK (tipo IN ('IMAGEN', 'VIDEO')),
   estado TEXT NOT NULL CHECK (estado IN ('DEFINITIVO','BORRADOR')),
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
@@ -130,25 +135,22 @@ CREATE TABLE empresa_tematica (
   FOREIGN KEY (id_tematica) REFERENCES tematica(id_tematica)
 );
 
-
 CREATE TABLE comentario_revision (
-  id_comentario  INTEGER PRIMARY KEY AUTOINCREMENT,
-  id_reportaje   INTEGER NOT NULL,
-  id_reportero   INTEGER NOT NULL,
-  comentario     TEXT NOT NULL,
-  fecha_hora     TEXT NOT NULL,
+  id_comentario INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_reportaje INTEGER NOT NULL,
+  id_reportero INTEGER NOT NULL,
+  comentario TEXT NOT NULL,
+  fecha_hora TEXT NOT NULL,
   es_finalizacion INTEGER NOT NULL DEFAULT 0 CHECK (es_finalizacion IN (0,1)),
   FOREIGN KEY (id_reportaje) REFERENCES reportaje(id_reportaje),
   FOREIGN KEY (id_reportero) REFERENCES reportero(id_reportero)
 );
 
 CREATE TABLE tarifa (
-	id_tarifa INTEGER PRIMARY KEY AUTOINCREMENT,
-	id_agencia INTEGER NOT NULL,
-	id_empresa INTEGER NOT NULL,
-	pendiente INTEGER NOT NULL DEFAULT 0 CHECK (pendiente IN (0,1)),
-	FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia),
-	FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
-	
+  id_tarifa INTEGER PRIMARY KEY AUTOINCREMENT,
+  id_agencia INTEGER NOT NULL,
+  id_empresa INTEGER NOT NULL,
+  pendiente INTEGER NOT NULL DEFAULT 0 CHECK (pendiente IN (0,1)),
+  FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia),
+  FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)
 );
-

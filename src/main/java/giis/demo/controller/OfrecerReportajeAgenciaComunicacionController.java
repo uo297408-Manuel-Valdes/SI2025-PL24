@@ -168,14 +168,31 @@ public class OfrecerReportajeAgenciaComunicacionController {
 			view.showInfo("Selecciona al menos una empresa antes de ofrecer.");
 			return;
 		}
+		if(view.getFinalizadaReportajeSeleccionado()==0) {
+			view.showInfo("Este evento aun no tiene la asignación de reporteros finalizada.");
+			return;
+		}
+		
 
 		String evento = view.getNombreReportajeSeleccionado();
 		String fecha = view.getFechaReportajeSeleccionado();
+		int idAgencia = view.getAgenciaSeleccionada().getIdAgencia();
 
 		String listaEmpresass = seleccionados.stream()
 				.map(EmpresaDTO::getNombre)
 				.collect(Collectors.joining(", "));
 
+		List<Integer> ids = seleccionados.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
+		
+		for(int i=0;i<ids.size();i++) {
+			int pend=model.buscarTarifa(idAgencia,ids.get(i));
+			if(pend==1) {
+				view.showInfo("No se puede ofrecer este evento porque la empresa de comunicación esta pendiente de pagos.");
+				return;
+			}
+		}
+		
+		
 		String msg = "Vas a ofrecer el siguiente evento a las siguientes empresas:\n\n"
 				+ "Evento: " + evento + " (" + fecha + ")\n"
 				+ "Empresa: " + listaEmpresass + "\n\n"
@@ -183,7 +200,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 
 		if (!view.confirm(msg, "Confirmar ofrecimiento")) return;
 
-		List<Integer> ids = seleccionados.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
+		
 		model.ofrecerEmpresa(idEvento, ids);
 
 		view.showInfo("Asignación guardada correctamente.");

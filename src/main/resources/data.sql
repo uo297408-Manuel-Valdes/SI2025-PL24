@@ -27,23 +27,20 @@ INSERT INTO reportero (id_agencia, nombre, tipo_reportero) VALUES (1, 'Lucía D�
 -- ===============================
 
 -- Agencia Norte
---Temporalmente con finalizada=1
-INSERT INTO evento (id_agencia, nombre, fecha_evento, finalizada)
-VALUES (1, 'Rueda de prensa', '2026-03-10', 1);
+-- Evento 1: del 10 al 12
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Congreso de prensa', '2026-03-10', '2026-03-13', 0); 
 
-INSERT INTO evento (id_agencia, nombre, fecha_evento)
-VALUES (1, 'Manifestación', '2026-03-11');
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Manifestación', '2026-03-13', '2026-03-14', 0); 
 
-INSERT INTO evento (id_agencia, nombre, fecha_evento)
-VALUES (1, 'Partido Champions', '2026-03-10');
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Partido Champions', '2026-03-12', '2026-03-15', 0);
 
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Presentación libro', '2026-03-20', '2026-03-20', 0); 
 
--- Agencia Sur
-INSERT INTO evento (id_agencia, nombre, fecha_evento)
-VALUES (2, 'Presentación resultados', '2026-03-10');
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Entrevista exclusiva', '2026-03-21', '2026-03-21', 0); 
 
-INSERT INTO evento (id_agencia, nombre, fecha_evento)
-VALUES (2, 'Presentación futbolista', '2026-03-11');
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 'Cumbre económica', '2026-03-25', '2026-03-27', 1); 
+
+INSERT INTO evento (id_agencia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (2, 'Presentación resultados', '2026-03-10', '2026-03-11', 0); 
 
 
 INSERT INTO tematica (nombre) VALUES ('Deportes');
@@ -57,6 +54,8 @@ INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (2, 4);
 INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (3, 1);
 INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (4, 3);
 INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (5, 1);
+INSERT INTO evento_tematica (id_evento, id_tematica) VALUES (6, 3);
+
 
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (1, 2);
 INSERT INTO reportero_tematica (id_reportero, id_tematica) VALUES (1, 4);
@@ -87,5 +86,4 @@ INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path
 INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'BORRADOR', 'c');
 
 
-INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (1, 1, 0);
-INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (1, 2, 1);
+

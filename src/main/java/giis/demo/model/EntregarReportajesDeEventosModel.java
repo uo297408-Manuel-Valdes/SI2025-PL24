@@ -34,12 +34,12 @@ public class EntregarReportajesDeEventosModel {
 			? "AND EXISTS     (SELECT 1 FROM REPORTAJE r WHERE r.id_evento = e.id_evento)"
 			: "AND NOT EXISTS (SELECT 1 FROM REPORTAJE r WHERE r.id_evento = e.id_evento)";
 		String sql =
-			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento " +
+			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio " +
 			"FROM EVENTO e " +
 			"JOIN ASIGNACION_REPORTERO ar ON ar.id_evento = e.id_evento " +
 			"WHERE ar.id_reportero = ? " +
 			condicion + " " +
-			"ORDER BY e.fecha_evento, e.nombre";
+			"ORDER BY e.fecha_inicio, e.nombre";
 		List<Object[]> rows = db.executeQueryArray(sql, idReportero);
 		List<EventoDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {

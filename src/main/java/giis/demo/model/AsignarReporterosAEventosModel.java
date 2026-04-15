@@ -28,7 +28,7 @@ public class AsignarReporterosAEventosModel {
 	public List<EventoDTO> getEventos(int idAgencia, int filtroEventos) {
 		StringBuilder sql = new StringBuilder();
 		sql.append(
-			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento, e.finalizada, " +
+			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio, e.fecha_fin, e.finalizada, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM evento_tematica et " +
@@ -55,7 +55,7 @@ public class AsignarReporterosAEventosModel {
 			);
 		}
 
-		sql.append("ORDER BY e.fecha_evento, e.nombre");
+		sql.append("ORDER BY e.fecha_inicio, e.nombre");
 
 		List<Object[]> rows = db.executeQueryArray(sql.toString(), idAgencia);
 
@@ -65,10 +65,11 @@ public class AsignarReporterosAEventosModel {
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				(String) r[2],
-				(String) r[3]
+				(String) r[3],
+				(String) r[4]
 			);
-			e.setAsignacionFinalizada(((Number) r[4]).intValue() == 1);
-			e.setTematicasTexto((String) r[5]);
+			e.setAsignacionFinalizada(((Number) r[5]).intValue() == 1);
+			e.setTematicasTexto((String) r[6]);
 			res.add(e);
 		}
 		return res;
@@ -140,7 +141,11 @@ public class AsignarReporterosAEventosModel {
 			"AND r.id_reportero NOT IN ( " +
 			"   SELECT ar.id_reportero " +
 			"   FROM asignacion_reportero ar " +
-			"   WHERE ar.id_evento = ? " +
+			"   JOIN evento e_asig ON e_asig.id_evento = ar.id_evento " +
+			"   JOIN evento e_sel ON e_sel.id_evento = ? " +
+			"   WHERE ar.id_evento <> e_sel.id_evento " +
+			"     AND e_asig.fecha_inicio <= e_sel.fecha_fin " +
+			"     AND e_sel.fecha_inicio <= e_asig.fecha_fin " +
 			") "
 		);
 		params.add(idEvento);
@@ -204,6 +209,21 @@ public class AsignarReporterosAEventosModel {
 		return ((Number) rows.get(0)[0]).intValue() > 0;
 	}
 
+	public boolean reporteroOcupadoEnRangoFechas(int idEvento, int idReportero) {
+		String sql =
+			"SELECT COUNT(*) " +
+			"FROM asignacion_reportero ar " +
+			"JOIN evento e_asig ON e_asig.id_evento = ar.id_evento " +
+			"JOIN evento e_sel ON e_sel.id_evento = ? " +
+			"WHERE ar.id_reportero = ? " +
+			"  AND ar.id_evento <> e_sel.id_evento " +
+			"  AND e_asig.fecha_inicio <= e_sel.fecha_fin " +
+			"  AND e_sel.fecha_inicio <= e_asig.fecha_fin";
+
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento, idReportero);
+		return ((Number) rows.get(0)[0]).intValue() > 0;
+	}
+
 	public boolean tieneResponsable(int idEvento) {
 		String sql =
 			"SELECT COUNT(*) " +
@@ -235,10 +255,7 @@ public class AsignarReporterosAEventosModel {
 			throw new IllegalStateException("No se puede finalizar la asignación porque no hay ningún reportero básico asignado.");
 		}
 
-		db.executeUpdate(
-			"UPDATE evento SET finalizada = 1 WHERE id_evento = ?",
-			idEvento
-		);
+		db.executeUpdate("UPDATE evento SET finalizada = 1 WHERE id_evento = ?", idEvento);
 	}
 
 	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
@@ -252,6 +269,11 @@ public class AsignarReporterosAEventosModel {
 		for (ReporteroDTO r : asignados) {
 			if (!idsYaInsertados.add(r.getIdReportero())) {
 				throw new IllegalStateException("Hay reporteros repetidos en la lista de asignados.");
+			}
+			if (reporteroOcupadoEnRangoFechas(idEvento, r.getIdReportero())) {
+				throw new IllegalStateException(
+					"El reportero " + r.getNombre() + " ya está asignado a otro evento en fechas solapadas."
+				);
 			}
 			if (r.isResponsable()) {
 				if (idResponsable != null) {

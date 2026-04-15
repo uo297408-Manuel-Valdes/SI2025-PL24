@@ -56,8 +56,10 @@ public class AsignarReporterosAEventosController {
 		if (ag == null) {
 			view.setEventos(new ArrayList<>());
 			view.setAccionesEnabled(false);
+			view.setResponsableEnabled(false);
 			view.setFinalizarAsignacionEnabled(false);
 			view.setEstadoAsignacion(false);
+			asignacionFinalizada = false;
 			return;
 		}
 
@@ -246,7 +248,9 @@ public class AsignarReporterosAEventosController {
 
 		for (ReporteroDTO r : mover) {
 			removeReportero(asignados, r.getIdReportero());
-			if (!containsReportero(disponibles, r.getIdReportero()) && cumpleFiltrosActuales(r, idEvento)) {
+
+			if (!containsReportero(disponibles, r.getIdReportero())
+					&& cumpleFiltrosActuales(r, idEvento)) {
 				r.setResponsable(false);
 				disponibles.add(r);
 			}
@@ -302,7 +306,7 @@ public class AsignarReporterosAEventosController {
 		}
 
 		try {
-			model.guardarAsignaciones(idEvento, asignados); // guarda primero cambios pendientes
+			model.guardarAsignaciones(idEvento, asignados);
 			model.finalizarAsignacion(idEvento);
 			view.showInfo("Asignación finalizada correctamente.");
 			cargarReporterosEvento();

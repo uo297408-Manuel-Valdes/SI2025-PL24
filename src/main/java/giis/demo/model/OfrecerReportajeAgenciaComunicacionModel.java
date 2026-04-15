@@ -24,11 +24,11 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 
 	public List<EventoDTO> getReportajes(int idAgencia) {
 		String sql =
-				"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento, e.finalizada " +
+				"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio, e.finalizada " +
 				"FROM EVENTO e " +
 				"WHERE e.id_agencia = ? " +
 				"AND EXISTS (SELECT 1 FROM ASIGNACION_REPORTERO ar WHERE ar.id_evento = e.id_evento) " +
-				"ORDER BY e.fecha_evento, e.nombre";
+				"ORDER BY e.fecha_inicio, e.nombre";
 
 			List<Object[]> rows = db.executeQueryArray(sql, idAgencia);
 

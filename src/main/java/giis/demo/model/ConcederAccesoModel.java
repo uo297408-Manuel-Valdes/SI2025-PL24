@@ -25,11 +25,11 @@ public class ConcederAccesoModel {
 	
 	public List<EventoDTO> getEventosCubiertos(int idAgencia) {
 		String sql =
-			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_evento " +
+			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio " +
 			"FROM EVENTO e " +
 			"JOIN REPORTAJE r ON r.id_evento = e.id_evento " +
 			"WHERE e.id_agencia = ? " +
-			"ORDER BY e.fecha_evento, e.nombre";
+			"ORDER BY e.fecha_inicio, e.nombre";
 
 		List<Object[]> rows = db.executeQueryArray(sql, idAgencia);
 		List<EventoDTO> res = new ArrayList<>();

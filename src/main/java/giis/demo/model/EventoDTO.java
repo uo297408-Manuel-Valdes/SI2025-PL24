@@ -4,49 +4,44 @@ public class EventoDTO {
 	private int idEvento;
 	private int idAgencia;
 	private String nombre;
-	private String fechaEvento;
+	private String fechaInicio;
+	private String fechaFin;
 	private String tematicasTexto;
 	private boolean asignacionFinalizada;
 
+	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaInicio, String fechaFin) {
+		this.idEvento = idEvento;
+		this.idAgencia = idAgencia;
+		this.nombre = nombre;
+		this.fechaInicio = fechaInicio;
+		this.fechaFin = fechaFin;
+		this.tematicasTexto = "";
+		this.asignacionFinalizada = false;
+	}
+
+	// Compatibilidad con HU antiguas que solo tenían una fecha
 	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento) {
 		this.idEvento = idEvento;
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
-		this.fechaEvento = fechaEvento;
+		this.fechaInicio = fechaEvento;
+		this.fechaFin = fechaEvento;
 		this.tematicasTexto = "";
 		this.asignacionFinalizada = false;
 	}
 
-	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento, boolean asignacionFinalizada) {
-		this.idEvento = idEvento;
-		this.idAgencia = idAgencia;
-		this.nombre = nombre;
-		this.fechaEvento = fechaEvento;
-		this.tematicasTexto = "";
-		this.asignacionFinalizada = asignacionFinalizada;
-	}
-
-	// Compatibilidad con código antiguo que pasa 0/1
+	// Compatibilidad con código antiguo que pasa finalizada como int
 	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento, int finalizada) {
 		this.idEvento = idEvento;
 		this.idAgencia = idAgencia;
 		this.nombre = nombre;
-		this.fechaEvento = fechaEvento;
+		this.fechaInicio = fechaEvento;
+		this.fechaFin = fechaEvento;
 		this.tematicasTexto = "";
 		this.asignacionFinalizada = (finalizada == 1);
 	}
 
-	public EventoDTO(int idEvento, int idAgencia, String nombre, String fechaEvento, String tematicasTexto) {
-		this.idEvento = idEvento;
-		this.idAgencia = idAgencia;
-		this.nombre = nombre;
-		this.fechaEvento = fechaEvento;
-		this.tematicasTexto = tematicasTexto;
-		this.asignacionFinalizada = false;
-	}
-
 	public EventoDTO() {
-		super();
 		this.tematicasTexto = "";
 		this.asignacionFinalizada = false;
 	}
@@ -75,12 +70,25 @@ public class EventoDTO {
 		this.nombre = nombre;
 	}
 
-	public String getFechaEvento() {
-		return fechaEvento;
+	public String getFechaInicio() {
+		return fechaInicio;
 	}
 
-	public void setFechaEvento(String fechaEvento) {
-		this.fechaEvento = fechaEvento;
+	public void setFechaInicio(String fechaInicio) {
+		this.fechaInicio = fechaInicio;
+	}
+
+	public String getFechaFin() {
+		return fechaFin;
+	}
+
+	public void setFechaFin(String fechaFin) {
+		this.fechaFin = fechaFin;
+	}
+
+	// Compatibilidad con código antiguo
+	public String getFechaEvento() {
+		return fechaInicio;
 	}
 
 	public String getTematicasTexto() {
@@ -99,8 +107,19 @@ public class EventoDTO {
 		this.asignacionFinalizada = asignacionFinalizada;
 	}
 
+	// Compatibilidad con código antiguo
 	public int getFinalizada() {
 		return asignacionFinalizada ? 1 : 0;
+	}
+
+	public String getRangoFechasTexto() {
+		if (fechaInicio == null || fechaFin == null) {
+			return "";
+		}
+		if (fechaInicio.equals(fechaFin)) {
+			return fechaInicio;
+		}
+		return fechaInicio + " a " + fechaFin;
 	}
 
 	@Override

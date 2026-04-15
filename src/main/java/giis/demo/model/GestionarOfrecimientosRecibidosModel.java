@@ -72,7 +72,7 @@ public class GestionarOfrecimientosRecibidosModel {
 
 		sql.append(
 			"SELECT o.id_ofrecimiento, e.id_evento, e.id_agencia, o.id_empresa, " +
-			"       e.nombre, e.fecha_evento, a.nombre, o.decision, " +
+			"       e.nombre, e.fecha_inicio, a.nombre, o.decision, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t2.nombre, ', ') " +
 			"           FROM evento_tematica et2 " +
@@ -114,7 +114,7 @@ public class GestionarOfrecimientosRecibidosModel {
 			params.add(tematicaSeleccionada);
 		}
 
-		sql.append("ORDER BY e.fecha_evento, e.nombre, a.nombre");
+		sql.append("ORDER BY e.fecha_inicio, e.nombre, a.nombre");
 
 		List<Object[]> rows = db.executeQueryArray(sql.toString(), params.toArray());
 

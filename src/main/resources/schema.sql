@@ -26,8 +26,10 @@ CREATE TABLE evento (
   id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
   id_agencia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
-  fecha_evento TEXT NOT NULL,
+  fecha_inicio TEXT NOT NULL,
+  fecha_fin TEXT NOT NULL,
   finalizada INTEGER NOT NULL DEFAULT 0 CHECK (finalizada IN (0,1)),
+  CHECK (fecha_fin >= fecha_inicio),
   FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
 );
 

@@ -6,6 +6,8 @@ import java.util.List;
 import giis.demo.util.ApplicationException;
 import giis.demo.util.Database;
 
+import java.time.LocalDate;
+
 public class OfrecerReportajeAgenciaComunicacionModel {
 	
 	private final Database db = new Database();
@@ -22,7 +24,7 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		return res;
 	}
 
-	public List<EventoDTO> getReportajes(int idAgencia) {
+	public List<EventoDTO> getEventos(int idAgencia) {
 		String sql =
 				"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio, e.finalizada " +
 				"FROM EVENTO e " +
@@ -41,6 +43,28 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 				int finalizada = ((Number) r[4]).intValue();
 				res.add(new EventoDTO(idEvento, idAg, nombre, fecha, finalizada));
 			}
+		return res;
+	}
+	
+	public ReportajeDTO getReportaje(int idEvento){
+		String sql =
+				"SELECT r.id_reportaje, r.id_evento, r.titulo, r.id_reportero_entrega, r.fecha_embargo "+
+				"FROM REPORTAJE r "+
+				"WHERE r.id_evento=? "+
+				"LIMIT 1";
+		
+		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
+		
+		ReportajeDTO res=null;
+		
+		for (Object[] r : rows) {
+			int idReportaje = ((Number) r[0]).intValue();
+			int idEv = ((Number) r[1]).intValue();
+			String titulo = (String) r[2];
+			int idReporteroEntrega = ((Number) r[3]).intValue();
+			String fecha = (String) r[4];
+			res=new ReportajeDTO(idReportaje, idEv, titulo, idReporteroEntrega,fecha);
+		}
 		return res;
 	}
 
@@ -153,7 +177,24 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		return res;
 	}
 	
-	public void ofrecerEmpresa(int idEvento, List<Integer> idsEmpresas) {
+	public int buscarTarifa(int idAgencia, int idEmpresa) {
+		String sql=
+				"Select t.pendiente "+
+				"FROM TARIFA t "+
+				"WHERE t.id_agencia=? "+
+				"AND t.id_empresa=? "+
+				"LIMIT 1 ";
+		List<Object[]> rows = db.executeQueryArray(sql, idAgencia, idEmpresa);
+		
+		int res=-1;
+		
+		for (Object[] r : rows) {
+			res = ((Number) r[0]).intValue();
+		}
+		return res;
+	}
+	
+	public void ofrecerEmpresa(int idEvento, List<Integer> idsEmpresas, int idAgencia) {
 
 		if (idsEmpresas == null || idsEmpresas.isEmpty())
 			throw new ApplicationException("Debes asignar al menos una empresa.");
@@ -169,6 +210,27 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 
 			if (empresaOfrecidoReportaje(idEmpresa, idEvento)) {
 				throw new ApplicationException("Esta empresa ya tiene ofrecido este reportaje.");
+			}
+		}
+		
+		for(int i=0;i<idsEmpresas.size();i++) {
+			int pend=buscarTarifa(idAgencia,idsEmpresas.get(i));
+			if(pend==1) {
+				throw new ApplicationException("No se puede ofrecer este evento porque la empresa de comunicación esta pendiente de pagos.");
+			}
+		}
+		
+		ReportajeDTO reportaje=getReportaje(idEvento);
+		EmpresaDTO aux=null;
+		
+		for(int i=0; i<idsEmpresas.size(); i++) {
+			aux=getEmpresaById(idsEmpresas.get(i));
+			if(reportaje.getFecha_embargo()!=null && aux.getEmbargos()==0) {
+				LocalDate fecha_embargo=LocalDate.parse(reportaje.getFecha_embargo());
+				LocalDate fecha_hoy=LocalDate.now();
+				if(fecha_embargo.isAfter(fecha_hoy)) {
+					throw new ApplicationException("No se puede ofrecer este evento porque una o varias empresas seleccionadas no les interesan las reportajes con embargos.");
+				}
 			}
 		}
 
@@ -222,22 +284,25 @@ public class OfrecerReportajeAgenciaComunicacionModel {
 		String sql = "SELECT 1 FROM ACCESO_REPORTAJE WHERE id_empresa = ? AND id_evento = ? LIMIT 1";
 		return !db.executeQueryArray(sql, idEmpresa, idEvento).isEmpty();
 	}
-
-	public int buscarTarifa(int idAgencia, int idEmpresa) {
+	
+	private EmpresaDTO getEmpresaById(int idEmpresa) {
 		String sql=
-				"Select t.pendiente "+
-				"FROM TARIFA t "+
-				"WHERE t.id_agencia=? "+
-				"AND t.id_empresa=? "+
-				"LIMIT 1 ";
-		List<Object[]> rows = db.executeQueryArray(sql, idAgencia, idEmpresa);
+				"SELECT e.id_empresa, e.nombre, e.embargos "+
+				"FROM EMPRESA e "+
+				"WHERE e.id_empresa=? "+
+				"LIMIT 1";
 		
-		int res=-1;
-		
+		List<Object[]> rows = db.executeQueryArray(sql, idEmpresa);
+
+		EmpresaDTO res = null;
 		for (Object[] r : rows) {
-			res = ((Number) r[0]).intValue();
+			int idEm = ((Number) r[0]).intValue();
+			String nombre = (String) r[1];
+			int embargos = ((Number) r[2]).intValue();
+			res=new EmpresaDTO(idEm, nombre, embargos);
 		}
 		return res;
 	}
+
 	
 }

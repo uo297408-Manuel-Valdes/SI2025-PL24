@@ -16,29 +16,49 @@ DROP TABLE IF EXISTS agencia_prensa;
 DROP TABLE IF EXISTS multimedia_reportaje;
 DROP TABLE IF EXISTS empresa_tematica;
 DROP TABLE IF EXISTS comentario_revision;
+DROP TABLE IF EXISTS pais;
+DROP TABLE IF EXISTS provincia;
 
 CREATE TABLE agencia_prensa (
   id_agencia INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre TEXT NOT NULL UNIQUE
 );
 
+CREATE TABLE pais( 
+	id_pais INTEGER PRIMARY KEY AUTOINCREMENT,
+	nombre TEXT NOT NULL UNIQUE,
+	dieta_manutencion REAL NOT NULL CHECK (dieta_manutencion >=0)
+);
+
+CREATE TABLE provincia(
+	id_provincia INTEGER PRIMARY KEY AUTOINCREMENT, 
+	id_pais INTEGER NOT NULL,
+	nombre TEXT NOT NULL UNIQUE,
+	dieta_alojamiento REAL NOT NULL CHECK (dieta_alojamiento >=0),
+	FOREIGN KEY (id_pais) REFERENCES pais(id_pais)
+);
+
 CREATE TABLE evento (
   id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
   id_agencia INTEGER NOT NULL,
+  id_provincia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
   fecha_inicio TEXT NOT NULL,
   fecha_fin TEXT NOT NULL,
   finalizada INTEGER NOT NULL DEFAULT 0 CHECK (finalizada IN (0,1)),
   CHECK (fecha_fin >= fecha_inicio),
-  FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
+  FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia),
+  FOREIGN KEY (id_provincia) REFERENCES provincia(id_provincia)
 );
 
 CREATE TABLE reportero (
   id_reportero INTEGER PRIMARY KEY AUTOINCREMENT,
   id_agencia INTEGER NOT NULL,
+  id_provincia INTEGER NOT NULL,
   nombre TEXT NOT NULL,
   tipo_reportero TEXT NOT NULL CHECK (tipo_reportero IN ('Básico', 'Gráfico', 'Camarógrafo')),
-  FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia)
+  FOREIGN KEY (id_agencia) REFERENCES agencia_prensa(id_agencia),
+  FOREIGN KEY (id_provincia) REFERENCES provincia(id_provincia)
 );
 
 CREATE TABLE asignacion_reportero (
@@ -56,7 +76,8 @@ WHERE es_responsable = 1;
 
 CREATE TABLE empresa (
   id_empresa INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL UNIQUE
+  nombre TEXT NOT NULL UNIQUE,
+  embargos INTEGER DEFAULT 0 CHECK (embargos IN (0,1))
 );
 
 CREATE TABLE ofrecer_reportaje (
@@ -83,6 +104,7 @@ CREATE TABLE reportaje (
   id_reportaje INTEGER PRIMARY KEY AUTOINCREMENT,
   id_evento INTEGER NOT NULL UNIQUE,
   titulo TEXT NOT NULL UNIQUE,
+  fecha_embargo TEXT NULL,
   id_reportero_entrega INTEGER NOT NULL,
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_reportero_entrega) REFERENCES reportero(id_reportero)

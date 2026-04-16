@@ -55,7 +55,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 			return;
 		}
 
-		reportajes = model.getReportajes(agencia.getIdAgencia());
+		reportajes = model.getEventos(agencia.getIdAgencia());
 		view.setReportajes(reportajes);
 
 		disponibles = new ArrayList<>();
@@ -277,15 +277,6 @@ public class OfrecerReportajeAgenciaComunicacionController {
 
 		List<Integer> ids = seleccionados.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
 		
-		for(int i=0;i<ids.size();i++) {
-			int pend=model.buscarTarifa(idAgencia,ids.get(i));
-			if(pend==1) {
-				view.showInfo("No se puede ofrecer este evento porque la empresa de comunicación esta pendiente de pagos.");
-				return;
-			}
-		}
-		
-		
 		String msg = "Vas a ofrecer el siguiente evento a las siguientes empresas:\n\n"
 				+ "Evento: " + evento + " (" + fecha + ")\n"
 				+ "Empresa: " + listaEmpresass + "\n\n"
@@ -294,7 +285,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		if (!view.confirm(msg, "Confirmar ofrecimiento")) return;
 
 		
-		model.ofrecerEmpresa(idEvento, ids);
+		model.ofrecerEmpresa(idEvento, ids, idAgencia);
 
 		view.showInfo("Asignación guardada correctamente.");
 		view.getFrame().dispose();

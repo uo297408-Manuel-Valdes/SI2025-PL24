@@ -76,7 +76,8 @@ WHERE es_responsable = 1;
 
 CREATE TABLE empresa (
   id_empresa INTEGER PRIMARY KEY AUTOINCREMENT,
-  nombre TEXT NOT NULL UNIQUE
+  nombre TEXT NOT NULL UNIQUE,
+  embargos INTEGER DEFAULT 0 CHECK (embargos IN (0,1))
 );
 
 CREATE TABLE ofrecer_reportaje (
@@ -103,6 +104,7 @@ CREATE TABLE reportaje (
   id_reportaje INTEGER PRIMARY KEY AUTOINCREMENT,
   id_evento INTEGER NOT NULL UNIQUE,
   titulo TEXT NOT NULL UNIQUE,
+  fecha_embargo TEXT NULL,
   id_reportero_entrega INTEGER NOT NULL,
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_reportero_entrega) REFERENCES reportero(id_reportero)

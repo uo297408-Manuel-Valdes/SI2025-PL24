@@ -8,8 +8,9 @@ INSERT INTO agencia_prensa (nombre) VALUES ('Agencia Sur');
 -- ===============================
 -- EMPRESAS DE COMUNICACIÓN
 -- ===============================
-INSERT INTO empresa (nombre) VALUES ('El Comercio');
+INSERT INTO empresa (nombre, embargos) VALUES ('El Comercio', 1);
 INSERT INTO empresa (nombre) VALUES ('La Nueva España');
+INSERT INTO empresa (nombre) VALUES ('El País');
 
 -- ===============================
 -- PAISES Y PROVINCIAS
@@ -82,7 +83,23 @@ INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (2, 2);
 -- Tarifas
 -- ===============================
 
-INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 1);
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 0);
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 3, 1);
+
+
+
+-- ===============================
+-- Reportajes con embargo
+-- ===============================
+
+INSERT INTO evento (id_agencia, id_provincia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 1, 'Entrevista al presidente', '2026-03-10', '2026-03-12', 1);
+INSERT INTO evento (id_agencia, id_provincia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 2, 'Entrevista en zona de guerra', '2026-03-13', '2026-03-14', 1); 
+
+INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (8, 1, 1);
+INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (9, 2, 1);
+
+INSERT INTO reportaje (id_evento, titulo, fecha_embargo, id_reportero_entrega) VALUES (8, 'Entrevista al presidente', '2026-06-12', 1);
+INSERT INTO reportaje (id_evento, titulo, fecha_embargo, id_reportero_entrega) VALUES (9, 'Entrevista en zona de guerra', '2026-03-12', 2);
 
 
 
@@ -92,6 +109,3 @@ INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 1);
 --INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'DEFINITIVO', 'a');
 --INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'IMAGEN', 'DEFINITIVO', 'b');
 --INSERT INTO multimedia_reportaje (id_reportero, id_reportaje, tipo, estado, path) VALUES (1, 1, 'VIDEO', 'BORRADOR', 'c');
-
-
-

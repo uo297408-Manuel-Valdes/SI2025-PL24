@@ -34,6 +34,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		view.addAgenciaChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarReportajes()));
 		view.addFiltroChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltro()));
 		view.addFiltroTematicaChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltroTematica()));
+		view.addFiltroTarifaChangedListener(e -> SwingUtil.exceptionWrapper(() -> aplicarFiltroTarifa()));
 		view.addReportajesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onReportajeSeleccionado(e)));
 		view.addAsignarListener(e -> SwingUtil.exceptionWrapper(() -> moverDisponiblesASeleccionados()));
 		view.addOfrecerListener(e -> SwingUtil.exceptionWrapper(() -> confirmarYGuardar()));
@@ -54,17 +55,28 @@ public class OfrecerReportajeAgenciaComunicacionController {
 			return;
 		}
 
-		reportajes = model.getReportajes(agencia.getIdAgencia());
+		reportajes = model.getEventos(agencia.getIdAgencia());
 		view.setReportajes(reportajes);
 
 		disponibles = new ArrayList<>();
 		seleccionados = new ArrayList<>();
-		view.setDisponibles(disponibles);
+		List<String> t= new ArrayList<>();
+		for(int i=0;i<disponibles.size();i++) {
+			int tarifa=model.buscarTarifa(agencia.getIdAgencia(),disponibles.get(i).getIdEmpresa());
+			if(tarifa==-1) {
+				t.add("No");
+			}
+			else {
+				t.add("Sí");
+			}
+		}
+		view.setDisponibles(disponibles,t);
 		view.setAsignados(seleccionados);
 	}
 	
 	private void aplicarFiltro() {
 		Integer idEvento = view.getIdReportajeSeleccionado();
+		Integer idAgencia = view.getAgenciaSeleccionada().getIdAgencia();
 		String filtro = view.getFiltroSeleccionado();
 		
 		if(idEvento==null)return;
@@ -73,11 +85,23 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		
 		if(filtro.equals("Empresas con ofrecimiento")) disponibles = model.getEmpresasConOfrecimiento(idEvento);
 		
-		view.setDisponibles(disponibles);
+		List<String> t= new ArrayList<>();
+		for(int i=0;i<disponibles.size();i++) {
+			int tarifa=model.buscarTarifa(idAgencia,disponibles.get(i).getIdEmpresa());
+			if(tarifa==-1) {
+				t.add("No");
+			}
+			else {
+				t.add("Sí");
+			}
+		}
+		view.setDisponibles(disponibles, t);
+		
 	}
 	
 	private void aplicarFiltroTematica() {
 		Integer idEvento = view.getIdReportajeSeleccionado();
+		Integer idAgencia = view.getAgenciaSeleccionada().getIdAgencia();
 		String filtro = view.getFiltroTematicaSeleccionado();
 		
 		List<String> tematicaE = new ArrayList<>();
@@ -86,7 +110,10 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		
 		if(idEvento==null)return;
 		
-		if(filtro.equals("Desactivado"))return;
+		if(filtro.equals("Desactivado")) {
+			aplicarFiltro();
+			return;
+		}
 		
 		if(filtro.equals("Activado")) {
 			tematicaE=model.getTematicaEvento(idEvento);
@@ -100,9 +127,54 @@ public class OfrecerReportajeAgenciaComunicacionController {
 					}
 				}
 			}
-			view.setDisponibles(nuevosDisponibles);
+			List<String> t= new ArrayList<>();
+			for(int i=0;i<nuevosDisponibles.size();i++) {
+				int tarifa=model.buscarTarifa(idAgencia,nuevosDisponibles.get(i).getIdEmpresa());
+				if(tarifa==-1) {
+					t.add("No");
+				}
+				else {
+					t.add("Sí");
+				}
+			}
+			view.setDisponibles(nuevosDisponibles, t);
 		}
 		
+	}
+	
+	private void aplicarFiltroTarifa() {
+		Integer idEvento = view.getIdReportajeSeleccionado();
+		Integer idAgencia = view.getAgenciaSeleccionada().getIdAgencia();
+		String filtro = view.getFiltroTarifaSeleccionado();
+		
+		List<EmpresaDTO> nuevosDisponibles = new ArrayList<>();
+		
+		if(idEvento==null)return;
+		
+		if(filtro.equals("Desactivado")) {
+			aplicarFiltro();
+			return;
+		}
+		
+		if(filtro.equals("Activado")) {
+			for(int i=0;i<disponibles.size();i++) {
+				int tarifa=model.buscarTarifa(idAgencia,disponibles.get(i).getIdEmpresa());
+				if(tarifa!=-1) {
+					nuevosDisponibles.add(disponibles.get(i));
+				}
+			}
+			List<String> t= new ArrayList<>();
+			for(int i=0;i<nuevosDisponibles.size();i++) {
+				int tarifa=model.buscarTarifa(idAgencia,nuevosDisponibles.get(i).getIdEmpresa());
+				if(tarifa==-1) {
+					t.add("No");
+				}
+				else {
+					t.add("Sí");
+				}
+			}
+			view.setDisponibles(nuevosDisponibles, t);
+		}
 	}
 	
 	private void onReportajeSeleccionado(ListSelectionEvent e) {
@@ -116,7 +188,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		if (idEvento == null || agencia == null || fecha == null) {
 			disponibles = new ArrayList<>();
 			seleccionados = new ArrayList<>();
-			view.setDisponibles(disponibles);
+			view.setDisponibles(disponibles, null);
 			view.setAsignados(seleccionados);
 			return;
 		}
@@ -127,12 +199,22 @@ public class OfrecerReportajeAgenciaComunicacionController {
 			
 		if(filtro.equals("Empresas con ofrecimiento")) disponibles = model.getEmpresasConOfrecimiento(idEvento);
 		
-
-		view.setDisponibles(disponibles);
+		List<String> t= new ArrayList<>();
+		for(int i=0;i<disponibles.size();i++) {
+			int tarifa=model.buscarTarifa(agencia.getIdAgencia(),disponibles.get(i).getIdEmpresa());
+			if(tarifa==-1) {
+				t.add("No");
+			}
+			else {
+				t.add("Sí");
+			}
+		}
+		view.setDisponibles(disponibles, t);
 		view.setAsignados(seleccionados);
 	}
 	
 	private void moverDisponiblesASeleccionados() {
+		Integer idAgencia = view.getAgenciaSeleccionada().getIdAgencia();
 		int[] selectedRows = view.getFilasDisponiblesSeleccionadas();
 		if (selectedRows == null || selectedRows.length == 0) {
 			view.showInfo("Selecciona una o varias empresas disponibles.");
@@ -153,8 +235,19 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		disponibles = disponibles.stream()
 				.filter(r -> !idsMovidos.contains(r.getIdEmpresa()))
 				.collect(Collectors.toList());
+		
+		List<String> t= new ArrayList<>();
+		for(int i=0;i<disponibles.size();i++) {
+			int tarifa=model.buscarTarifa(idAgencia,disponibles.get(i).getIdEmpresa());
+			if(tarifa==-1) {
+				t.add("No");
+			}
+			else {
+				t.add("Sí");
+			}
+		}
 
-		view.setDisponibles(disponibles);
+		view.setDisponibles(disponibles, t);
 		view.setAsignados(seleccionados);
 	}
 	
@@ -184,15 +277,6 @@ public class OfrecerReportajeAgenciaComunicacionController {
 
 		List<Integer> ids = seleccionados.stream().map(EmpresaDTO::getIdEmpresa).collect(Collectors.toList());
 		
-		for(int i=0;i<ids.size();i++) {
-			int pend=model.buscarTarifa(idAgencia,ids.get(i));
-			if(pend==1) {
-				view.showInfo("No se puede ofrecer este evento porque la empresa de comunicación esta pendiente de pagos.");
-				return;
-			}
-		}
-		
-		
 		String msg = "Vas a ofrecer el siguiente evento a las siguientes empresas:\n\n"
 				+ "Evento: " + evento + " (" + fecha + ")\n"
 				+ "Empresa: " + listaEmpresass + "\n\n"
@@ -201,7 +285,7 @@ public class OfrecerReportajeAgenciaComunicacionController {
 		if (!view.confirm(msg, "Confirmar ofrecimiento")) return;
 
 		
-		model.ofrecerEmpresa(idEvento, ids);
+		model.ofrecerEmpresa(idEvento, ids, idAgencia);
 
 		view.showInfo("Asignación guardada correctamente.");
 		view.getFrame().dispose();

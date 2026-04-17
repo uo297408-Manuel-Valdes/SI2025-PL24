@@ -83,7 +83,9 @@ INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (2, 2);
 -- Tarifas
 -- ===============================
 
-INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 1);
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 0);
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 3, 1);
+
 
 
 -- ===============================

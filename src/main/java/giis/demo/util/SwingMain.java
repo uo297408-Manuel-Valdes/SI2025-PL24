@@ -1,6 +1,7 @@
 package giis.demo.util;
 
 import java.awt.EventQueue;
+
 import javax.swing.JFrame;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,6 +30,9 @@ import giis.demo.view.RevisarReportajeView;
 import giis.demo.controller.GestionarOfrecimientosRecibidosController;
 import giis.demo.model.GestionarOfrecimientosRecibidosModel;
 import giis.demo.view.GestionarOfrecimientosRecibidosView;
+import giis.demo.controller.ConsultarImporteEventoController;
+import giis.demo.model.ConsultarImporteEventoModel;
+import giis.demo.view.ConsultarImporteEventoView;
 
 /**
  * Punto de entrada principal que incluye botones para la ejecucion de las pantallas 
@@ -70,7 +74,7 @@ public class SwingMain {
 	private void initialize() {
 		frame = new JFrame();
 		frame.setTitle("Main");
-		frame.setBounds(0, 0, 350, 270);
+		frame.setBounds(0, 0, 420, 350);
 		frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		
 		/*JButton btnEjecutarTkrun = new JButton("Ejecutar giis.demo.tkrun");
@@ -82,7 +86,8 @@ public class SwingMain {
 		});
 		frame.getContentPane().add(btnEjecutarTkrun);
 		*/
-		
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
 
 		JButton btnInicializarBaseDeDatos = new JButton("Inicializar Base de Datos en Blanco");
@@ -185,6 +190,17 @@ public class SwingMain {
 			controller.initController();
 		});
 		frame.getContentPane().add(btnHU33555);
+		
+		JButton btnHU34366 = new JButton("HU 34366 - Consultar importe de evento");
+		btnHU34366.addActionListener(e -> {
+			ConsultarImporteEventoController controller =
+				new ConsultarImporteEventoController(
+					new ConsultarImporteEventoModel(),
+					new ConsultarImporteEventoView()
+				);
+			controller.initController();
+		});
+		frame.getContentPane().add(btnHU34366);
 			
 	}
 

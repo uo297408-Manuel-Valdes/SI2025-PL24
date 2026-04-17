@@ -49,7 +49,7 @@ public class AsignarReporterosAEventosView {
 	private void initialize() {
 		frame = new JFrame("HU 34362/34363/34358 - Asignación de reporteros");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(1280, 800);
+		frame.setSize(1400, 820);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
@@ -80,7 +80,7 @@ public class AsignarReporterosAEventosView {
 		JPanel pnlFiltros = new JPanel();
 		pnlFiltros.setLayout(null);
 		pnlFiltros.setBorder(new TitledBorder("Filtros de reporteros"));
-		pnlFiltros.setBounds(20, 80, 1220, 95);
+		pnlFiltros.setBounds(20, 80, 1340, 95);
 		frame.getContentPane().add(pnlFiltros);
 
 		chkSoloEspecialistas = new JCheckBox("Mostrar solo reporteros con temática coincidente con el evento");
@@ -110,7 +110,7 @@ public class AsignarReporterosAEventosView {
 		frame.getContentPane().add(lblEventos);
 
 		tmEventos = new DefaultTableModel(
-				new Object[] { "Nombre", "Fecha inicio", "Fecha fin", "Temáticas", "id_evento" }, 0) {
+				new Object[] { "Nombre", "Fecha inicio", "Fecha fin", "Provincia", "País", "Temáticas", "id_evento" }, 0) {
 			@Override
 			public boolean isCellEditable(int row, int col) {
 				return false;
@@ -122,14 +122,16 @@ public class AsignarReporterosAEventosView {
 		tblEventos.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spEventos = new JScrollPane(tblEventos);
-		spEventos.setBounds(20, 215, 1220, 180);
+		spEventos.setBounds(20, 215, 1340, 180);
 		frame.getContentPane().add(spEventos);
 
-		ocultarColumna(tblEventos, 4);
-		tblEventos.getColumnModel().getColumn(0).setPreferredWidth(260);
-		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(110);
-		tblEventos.getColumnModel().getColumn(2).setPreferredWidth(110);
-		tblEventos.getColumnModel().getColumn(3).setPreferredWidth(620);
+		ocultarColumna(tblEventos, 6);
+		tblEventos.getColumnModel().getColumn(0).setPreferredWidth(220);
+		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(95);
+		tblEventos.getColumnModel().getColumn(2).setPreferredWidth(95);
+		tblEventos.getColumnModel().getColumn(3).setPreferredWidth(120);
+		tblEventos.getColumnModel().getColumn(4).setPreferredWidth(120);
+		tblEventos.getColumnModel().getColumn(5).setPreferredWidth(510);
 
 		JLabel lblEstadoAsignacion = new JLabel("Estado de la asignación:");
 		lblEstadoAsignacion.setFont(new Font("Tahoma", Font.BOLD, 12));
@@ -142,7 +144,7 @@ public class AsignarReporterosAEventosView {
 		frame.getContentPane().add(lblEstadoAsignacionValor);
 
 		btnFinalizarAsignacion = new JButton("Finalizar asignación");
-		btnFinalizarAsignacion.setBounds(1040, 400, 200, 30);
+		btnFinalizarAsignacion.setBounds(1160, 400, 200, 30);
 		frame.getContentPane().add(btnFinalizarAsignacion);
 
 		JLabel lblDisp = new JLabel("Reporteros disponibles");
@@ -152,11 +154,11 @@ public class AsignarReporterosAEventosView {
 
 		JLabel lblAsig = new JLabel("Reporteros asignados al evento");
 		lblAsig.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblAsig.setBounds(720, 440, 240, 20);
+		lblAsig.setBounds(770, 440, 240, 20);
 		frame.getContentPane().add(lblAsig);
 
 		tmDisponibles = new DefaultTableModel(
-				new Object[] { "Nombre", "Tipo", "Temáticas", "id_reportero" }, 0) {
+				new Object[] { "Nombre", "Tipo", "Provincia", "País", "Temáticas", "id_reportero" }, 0) {
 			@Override
 			public boolean isCellEditable(int row, int col) {
 				return false;
@@ -168,16 +170,18 @@ public class AsignarReporterosAEventosView {
 		tblDisponibles.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spDisp = new JScrollPane(tblDisponibles);
-		spDisp.setBounds(20, 465, 500, 240);
+		spDisp.setBounds(20, 465, 580, 240);
 		frame.getContentPane().add(spDisp);
 
-		ocultarColumna(tblDisponibles, 3);
-		tblDisponibles.getColumnModel().getColumn(0).setPreferredWidth(150);
-		tblDisponibles.getColumnModel().getColumn(1).setPreferredWidth(100);
-		tblDisponibles.getColumnModel().getColumn(2).setPreferredWidth(230);
+		ocultarColumna(tblDisponibles, 5);
+		tblDisponibles.getColumnModel().getColumn(0).setPreferredWidth(120);
+		tblDisponibles.getColumnModel().getColumn(1).setPreferredWidth(90);
+		tblDisponibles.getColumnModel().getColumn(2).setPreferredWidth(100);
+		tblDisponibles.getColumnModel().getColumn(3).setPreferredWidth(100);
+		tblDisponibles.getColumnModel().getColumn(4).setPreferredWidth(170);
 
 		tmAsignados = new DefaultTableModel(
-				new Object[] { "Nombre", "Tipo", "Temáticas", "Responsable", "id_reportero" }, 0) {
+				new Object[] { "Nombre", "Tipo", "Provincia", "País", "Temáticas", "Responsable", "id_reportero" }, 0) {
 			@Override
 			public boolean isCellEditable(int row, int col) {
 				return false;
@@ -189,29 +193,31 @@ public class AsignarReporterosAEventosView {
 		tblAsignados.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spAsig = new JScrollPane(tblAsignados);
-		spAsig.setBounds(740, 465, 500, 240);
+		spAsig.setBounds(780, 465, 580, 240);
 		frame.getContentPane().add(spAsig);
 
-		ocultarColumna(tblAsignados, 4);
-		tblAsignados.getColumnModel().getColumn(0).setPreferredWidth(130);
-		tblAsignados.getColumnModel().getColumn(1).setPreferredWidth(90);
-		tblAsignados.getColumnModel().getColumn(2).setPreferredWidth(190);
-		tblAsignados.getColumnModel().getColumn(3).setPreferredWidth(80);
+		ocultarColumna(tblAsignados, 6);
+		tblAsignados.getColumnModel().getColumn(0).setPreferredWidth(110);
+		tblAsignados.getColumnModel().getColumn(1).setPreferredWidth(80);
+		tblAsignados.getColumnModel().getColumn(2).setPreferredWidth(95);
+		tblAsignados.getColumnModel().getColumn(3).setPreferredWidth(95);
+		tblAsignados.getColumnModel().getColumn(4).setPreferredWidth(140);
+		tblAsignados.getColumnModel().getColumn(5).setPreferredWidth(60);
 
 		btnAsignar = new JButton("Asignar ->");
-		btnAsignar.setBounds(560, 505, 140, 32);
+		btnAsignar.setBounds(625, 505, 130, 32);
 		frame.getContentPane().add(btnAsignar);
 
 		btnEliminar = new JButton("<- Eliminar");
-		btnEliminar.setBounds(560, 555, 140, 32);
+		btnEliminar.setBounds(625, 555, 130, 32);
 		frame.getContentPane().add(btnEliminar);
 
 		btnMarcarResponsable = new JButton("Marcar responsable");
-		btnMarcarResponsable.setBounds(540, 605, 180, 32);
+		btnMarcarResponsable.setBounds(600, 605, 180, 32);
 		frame.getContentPane().add(btnMarcarResponsable);
 
 		btnGuardar = new JButton("Aceptar");
-		btnGuardar.setBounds(1100, 725, 140, 30);
+		btnGuardar.setBounds(1220, 730, 140, 30);
 		frame.getContentPane().add(btnGuardar);
 
 		instalarTooltipsTabla(tblEventos);
@@ -267,11 +273,13 @@ public class AsignarReporterosAEventosView {
 					e.getNombre(),
 					e.getFechaInicio(),
 					e.getFechaFin(),
+					e.getProvincia(),
+					e.getPais(),
 					e.getTematicasTexto(),
 					e.getIdEvento()
 			});
 		}
-		ocultarColumna(tblEventos, 4);
+		ocultarColumna(tblEventos, 6);
 	}
 
 	public void setDisponibles(List<ReporteroDTO> reporteros) {
@@ -280,11 +288,13 @@ public class AsignarReporterosAEventosView {
 			tmDisponibles.addRow(new Object[] {
 					r.getNombre(),
 					r.getTipoReportero(),
+					r.getProvincia(),
+					r.getPais(),
 					r.getTematicasTexto(),
 					r.getIdReportero()
 			});
 		}
-		ocultarColumna(tblDisponibles, 3);
+		ocultarColumna(tblDisponibles, 5);
 	}
 
 	public void setAsignados(List<ReporteroDTO> reporteros) {
@@ -293,12 +303,14 @@ public class AsignarReporterosAEventosView {
 			tmAsignados.addRow(new Object[] {
 					r.getNombre(),
 					r.getTipoReportero(),
+					r.getProvincia(),
+					r.getPais(),
 					r.getTematicasTexto(),
 					r.isResponsable() ? "Sí" : "No",
 					r.getIdReportero()
 			});
 		}
-		ocultarColumna(tblAsignados, 4);
+		ocultarColumna(tblAsignados, 6);
 	}
 
 	public void setEstadoAsignacion(boolean finalizada) {
@@ -334,7 +346,7 @@ public class AsignarReporterosAEventosView {
 		if (row < 0 || row >= tmEventos.getRowCount()) {
 			return null;
 		}
-		Object value = tmEventos.getValueAt(row, 4);
+		Object value = tmEventos.getValueAt(row, 6);
 		return value == null ? null : ((Number) value).intValue();
 	}
 
@@ -351,7 +363,7 @@ public class AsignarReporterosAEventosView {
 		if (row < 0 || row >= tmAsignados.getRowCount()) {
 			return null;
 		}
-		return ((Number) tmAsignados.getValueAt(row, 4)).intValue();
+		return ((Number) tmAsignados.getValueAt(row, 6)).intValue();
 	}
 
 	public ReporteroDTO getReporteroDisponibleEnFila(int row) {
@@ -360,9 +372,11 @@ public class AsignarReporterosAEventosView {
 		}
 		String nombre = (String) tmDisponibles.getValueAt(row, 0);
 		String tipo = (String) tmDisponibles.getValueAt(row, 1);
-		String tematicas = (String) tmDisponibles.getValueAt(row, 2);
-		int id = ((Number) tmDisponibles.getValueAt(row, 3)).intValue();
-		return new ReporteroDTO(id, 0, nombre, tematicas, tipo);
+		String provincia = (String) tmDisponibles.getValueAt(row, 2);
+		String pais = (String) tmDisponibles.getValueAt(row, 3);
+		String tematicas = (String) tmDisponibles.getValueAt(row, 4);
+		int id = ((Number) tmDisponibles.getValueAt(row, 5)).intValue();
+		return new ReporteroDTO(id, 0, nombre, tematicas, tipo, provincia, pais);
 	}
 
 	public ReporteroDTO getReporteroAsignadoEnFila(int row) {
@@ -371,9 +385,11 @@ public class AsignarReporterosAEventosView {
 		}
 		String nombre = (String) tmAsignados.getValueAt(row, 0);
 		String tipo = (String) tmAsignados.getValueAt(row, 1);
-		String tematicas = (String) tmAsignados.getValueAt(row, 2);
-		int id = ((Number) tmAsignados.getValueAt(row, 4)).intValue();
-		return new ReporteroDTO(id, 0, nombre, tematicas, tipo);
+		String provincia = (String) tmAsignados.getValueAt(row, 2);
+		String pais = (String) tmAsignados.getValueAt(row, 3);
+		String tematicas = (String) tmAsignados.getValueAt(row, 4);
+		int id = ((Number) tmAsignados.getValueAt(row, 6)).intValue();
+		return new ReporteroDTO(id, 0, nombre, tematicas, tipo, provincia, pais);
 	}
 
 	public void clearSeleccionEvento() {

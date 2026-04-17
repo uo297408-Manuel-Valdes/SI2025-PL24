@@ -1,9 +1,7 @@
 package giis.demo.model;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import giis.demo.util.Database;
 
@@ -29,6 +27,7 @@ public class AsignarReporterosAEventosModel {
 		StringBuilder sql = new StringBuilder();
 		sql.append(
 			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio, e.fecha_fin, e.finalizada, " +
+			"       pr.nombre AS provincia, pa.nombre AS pais, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM evento_tematica et " +
@@ -36,6 +35,8 @@ public class AsignarReporterosAEventosModel {
 			"           WHERE et.id_evento = e.id_evento " +
 			"       ), '') AS tematicas " +
 			"FROM evento e " +
+			"JOIN provincia pr ON pr.id_provincia = e.id_provincia " +
+			"JOIN pais pa ON pa.id_pais = pr.id_pais " +
 			"WHERE e.id_agencia = ? "
 		);
 
@@ -66,10 +67,12 @@ public class AsignarReporterosAEventosModel {
 				((Number) r[1]).intValue(),
 				(String) r[2],
 				(String) r[3],
-				(String) r[4]
+				(String) r[4],
+				(String) r[6],
+				(String) r[7]
 			);
 			e.setAsignacionFinalizada(((Number) r[5]).intValue() == 1);
-			e.setTematicasTexto((String) r[6]);
+			e.setTematicasTexto((String) r[8]);
 			res.add(e);
 		}
 		return res;
@@ -87,6 +90,7 @@ public class AsignarReporterosAEventosModel {
 	public List<ReporteroDTO> getReporterosAsignados(int idEvento) {
 		String sql =
 			"SELECT r.id_reportero, r.id_agencia, r.nombre, r.tipo_reportero, ar.es_responsable, " +
+			"       pr.nombre AS provincia, pa.nombre AS pais, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM reportero_tematica rt " +
@@ -95,6 +99,8 @@ public class AsignarReporterosAEventosModel {
 			"       ), '') AS tematicas " +
 			"FROM asignacion_reportero ar " +
 			"JOIN reportero r ON r.id_reportero = ar.id_reportero " +
+			"JOIN provincia pr ON pr.id_provincia = r.id_provincia " +
+			"JOIN pais pa ON pa.id_pais = pr.id_pais " +
 			"WHERE ar.id_evento = ? " +
 			"ORDER BY r.nombre";
 
@@ -106,8 +112,10 @@ public class AsignarReporterosAEventosModel {
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				(String) r[2],
+				(String) r[7],
+				(String) r[3],
 				(String) r[5],
-				(String) r[3]
+				(String) r[6]
 			);
 			dto.setResponsable(((Number) r[4]).intValue() == 1);
 			res.add(dto);
@@ -126,6 +134,7 @@ public class AsignarReporterosAEventosModel {
 
 		sql.append(
 			"SELECT r.id_reportero, r.id_agencia, r.nombre, r.tipo_reportero, " +
+			"       pr.nombre AS provincia, pa.nombre AS pais, " +
 			"       COALESCE(( " +
 			"           SELECT GROUP_CONCAT(t.nombre, ', ') " +
 			"           FROM reportero_tematica rt2 " +
@@ -133,6 +142,8 @@ public class AsignarReporterosAEventosModel {
 			"           WHERE rt2.id_reportero = r.id_reportero " +
 			"       ), '') AS tematicas " +
 			"FROM reportero r " +
+			"JOIN provincia pr ON pr.id_provincia = r.id_provincia " +
+			"JOIN pais pa ON pa.id_pais = pr.id_pais " +
 			"WHERE r.id_agencia = ? "
 		);
 		params.add(idAgencia);
@@ -188,8 +199,10 @@ public class AsignarReporterosAEventosModel {
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				(String) r[2],
+				(String) r[6],
+				(String) r[3],
 				(String) r[4],
-				(String) r[3]
+				(String) r[5]
 			);
 			dto.setResponsable(false);
 			res.add(dto);
@@ -204,92 +217,74 @@ public class AsignarReporterosAEventosModel {
 			"JOIN evento_tematica et ON et.id_tematica = rt.id_tematica " +
 			"WHERE rt.id_reportero = ? " +
 			"  AND et.id_evento = ?";
-
 		List<Object[]> rows = db.executeQueryArray(sql, idReportero, idEvento);
-		return ((Number) rows.get(0)[0]).intValue() > 0;
-	}
-
-	public boolean reporteroOcupadoEnRangoFechas(int idEvento, int idReportero) {
-		String sql =
-			"SELECT COUNT(*) " +
-			"FROM asignacion_reportero ar " +
-			"JOIN evento e_asig ON e_asig.id_evento = ar.id_evento " +
-			"JOIN evento e_sel ON e_sel.id_evento = ? " +
-			"WHERE ar.id_reportero = ? " +
-			"  AND ar.id_evento <> e_sel.id_evento " +
-			"  AND e_asig.fecha_inicio <= e_sel.fecha_fin " +
-			"  AND e_sel.fecha_inicio <= e_asig.fecha_fin";
-
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento, idReportero);
-		return ((Number) rows.get(0)[0]).intValue() > 0;
-	}
-
-	public boolean tieneResponsable(int idEvento) {
-		String sql =
-			"SELECT COUNT(*) " +
-			"FROM asignacion_reportero " +
-			"WHERE id_evento = ? AND es_responsable = 1";
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-		return ((Number) rows.get(0)[0]).intValue() > 0;
-	}
-
-	public boolean tieneReporteroBasico(int idEvento) {
-		String sql =
-			"SELECT COUNT(*) " +
-			"FROM asignacion_reportero ar " +
-			"JOIN reportero r ON r.id_reportero = ar.id_reportero " +
-			"WHERE ar.id_evento = ? " +
-			"  AND r.tipo_reportero = 'Básico'";
-		List<Object[]> rows = db.executeQueryArray(sql, idEvento);
-		return ((Number) rows.get(0)[0]).intValue() > 0;
-	}
-
-	public void finalizarAsignacion(int idEvento) {
-		if (isAsignacionFinalizada(idEvento)) {
-			throw new IllegalStateException("La asignación del evento ya está finalizada.");
-		}
-		if (!tieneResponsable(idEvento)) {
-			throw new IllegalStateException("No se puede finalizar la asignación porque no hay un responsable asignado.");
-		}
-		if (!tieneReporteroBasico(idEvento)) {
-			throw new IllegalStateException("No se puede finalizar la asignación porque no hay ningún reportero básico asignado.");
-		}
-
-		db.executeUpdate("UPDATE evento SET finalizada = 1 WHERE id_evento = ?", idEvento);
+		return !rows.isEmpty() && ((Number) rows.get(0)[0]).intValue() > 0;
 	}
 
 	public void guardarAsignaciones(int idEvento, List<ReporteroDTO> asignados) {
-		if (isAsignacionFinalizada(idEvento)) {
-			throw new IllegalStateException("No se puede modificar la asignación porque está finalizada.");
+		if (asignados == null || asignados.isEmpty()) {
+			throw new IllegalStateException("Debe haber al menos un reportero asignado.");
 		}
 
-		Integer idResponsable = null;
-		Set<Integer> idsYaInsertados = new HashSet<>();
+		boolean hayBasico = false;
+		boolean hayResponsable = false;
+		int responsables = 0;
 
 		for (ReporteroDTO r : asignados) {
-			if (!idsYaInsertados.add(r.getIdReportero())) {
-				throw new IllegalStateException("Hay reporteros repetidos en la lista de asignados.");
-			}
-			if (reporteroOcupadoEnRangoFechas(idEvento, r.getIdReportero())) {
-				throw new IllegalStateException(
-					"El reportero " + r.getNombre() + " ya está asignado a otro evento en fechas solapadas."
-				);
+			if ("Básico".equals(r.getTipoReportero())) {
+				hayBasico = true;
 			}
 			if (r.isResponsable()) {
-				if (idResponsable != null) {
-					throw new IllegalStateException("Solo puede haber un responsable por evento.");
-				}
-				idResponsable = r.getIdReportero();
+				hayResponsable = true;
+				responsables++;
 			}
+		}
+
+		if (!hayBasico) {
+			throw new IllegalStateException("Debe haber al menos un reportero básico asignado.");
+		}
+		if (!hayResponsable) {
+			throw new IllegalStateException("Debe haber un reportero responsable asignado.");
+		}
+		if (responsables > 1) {
+			throw new IllegalStateException("Solo puede haber un reportero responsable.");
 		}
 
 		db.executeUpdate("DELETE FROM asignacion_reportero WHERE id_evento = ?", idEvento);
 
 		for (ReporteroDTO r : asignados) {
 			db.executeUpdate(
-				"INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (?, ?, ?)",
+				"INSERT INTO asignacion_reportero(id_evento, id_reportero, es_responsable) VALUES (?, ?, ?)",
 				idEvento, r.getIdReportero(), r.isResponsable() ? 1 : 0
 			);
 		}
+	}
+
+	public void finalizarAsignacion(int idEvento) {
+		List<ReporteroDTO> asignados = getReporterosAsignados(idEvento);
+		if (asignados.isEmpty()) {
+			throw new IllegalStateException("Debe haber al menos un reportero asignado.");
+		}
+
+		boolean hayBasico = false;
+		boolean hayResponsable = false;
+
+		for (ReporteroDTO r : asignados) {
+			if ("Básico".equals(r.getTipoReportero())) {
+				hayBasico = true;
+			}
+			if (r.isResponsable()) {
+				hayResponsable = true;
+			}
+		}
+
+		if (!hayBasico) {
+			throw new IllegalStateException("Para finalizar debe haber al menos un reportero básico asignado.");
+		}
+		if (!hayResponsable) {
+			throw new IllegalStateException("Para finalizar debe haber un responsable asignado.");
+		}
+
+		db.executeUpdate("UPDATE evento SET finalizada = 1 WHERE id_evento = ?", idEvento);
 	}
 }

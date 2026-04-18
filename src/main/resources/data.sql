@@ -94,12 +94,21 @@ INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 3, 1);
 
 INSERT INTO evento (id_agencia, id_provincia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 1, 'Entrevista al presidente', '2026-03-10', '2026-03-12', 1);
 INSERT INTO evento (id_agencia, id_provincia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 2, 'Entrevista en zona de guerra', '2026-03-13', '2026-03-14', 1); 
+INSERT INTO evento (id_agencia, id_provincia, nombre, fecha_inicio, fecha_fin, finalizada) VALUES (1, 1, 'Entrevista a presidente extranjero', '2026-03-10', '2026-03-12', 1);
 
 INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (8, 1, 1);
 INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (9, 2, 1);
+INSERT INTO asignacion_reportero (id_evento, id_reportero, es_responsable) VALUES (10, 3, 1);
 
 INSERT INTO reportaje (id_evento, titulo, fecha_embargo, id_reportero_entrega) VALUES (8, 'Entrevista al presidente', '2026-06-12', 1);
 INSERT INTO reportaje (id_evento, titulo, fecha_embargo, id_reportero_entrega) VALUES (9, 'Entrevista en zona de guerra', '2026-03-12', 2);
+INSERT INTO reportaje (id_evento, titulo, fecha_embargo, id_reportero_entrega) VALUES (10, 'Entrevista a presidente extranjero', '2026-06-12', 3);
+
+INSERT INTO ofrecer_reportaje (id_evento, id_empresa, decision) VALUES (10, 1 , 'ACEPTADO');
+INSERT INTO ofrecer_reportaje (id_evento, id_empresa, decision) VALUES (10, 2 , 'ACEPTADO');
+
+INSERT INTO acceso_reportaje (id_evento, id_empresa, especial) VALUES (10, 1, 1);
+INSERT INTO acceso_reportaje (id_evento, id_empresa, especial) VALUES (10, 2, 0);
 
 
 

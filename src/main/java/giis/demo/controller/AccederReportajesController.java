@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import giis.demo.model.EventoDTO;
 import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReportajeDTO;
 import giis.demo.model.VersionDTO;
+import giis.demo.util.ApplicationException;
 import giis.demo.util.SwingUtil;
 import giis.demo.view.AccederReportajesView;
 
@@ -79,15 +81,22 @@ public class AccederReportajesController {
 	
 	private void onReportajeSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
-
+		
+		view.vaciarMultimedia();
+		
 		Integer idEvento = view.getIdReportajeSeleccionado();
 		EmpresaDTO empresa = view.getEmpresaSeleccionada();
-
+		
 		if (idEvento == null || empresa == null) {
 			view.setInfo(null, null, null);
 			return;
 		}
-
+		
+		int especial=model.getAccesoEspecial(idEvento, empresa.getIdEmpresa());
+		String aux="Información no disponible hasta fin de embargo (";
+		LocalDate fecha_hoy=LocalDate.now();
+		LocalDate fecha_embargo=fecha_hoy;
+		int embargo=0;
 		reportaje=model.getInfoReportaje(idEvento);
 		
 		if (reportaje == null) {
@@ -95,16 +104,25 @@ public class AccederReportajesController {
 			return;
 		}
 		
-		cargarMultimedia(reportaje.getIdReportaje());
+		if(reportaje.getFecha_embargo()!=null) {
+			aux+=reportaje.getFecha_embargo()+")";
+			fecha_embargo=LocalDate.parse(reportaje.getFecha_embargo());
+			embargo=1;
+		}
+		
+		if(embargo==1 && fecha_embargo.isAfter(fecha_hoy)) view.setMultimediaEmbargo(aux);
+		else cargarMultimedia(reportaje.getIdReportaje());
 		
 		version=model.getVersion(reportaje.getIdReportaje());
 		
 		if (version == null) {
-			view.setInfo(reportaje.getTitulo(), null, null);
+			if(embargo==1 && fecha_embargo.isAfter(fecha_hoy) && especial==0) view.setInfo(aux, null, null);
+			else view.setInfo(reportaje.getTitulo(), null, null);
 			return;
 		}
 		
-		view.setInfo(reportaje.getTitulo(), version.getSubtitulo(), version.getCuerpo());
+		if(embargo==1 && fecha_embargo.isAfter(fecha_hoy)&& especial==0) view.setInfo(aux, aux, aux);
+		else view.setInfo(reportaje.getTitulo(), version.getSubtitulo(), version.getCuerpo());
 	}
 	
 	private void finalizar() {
@@ -114,6 +132,15 @@ public class AccederReportajesController {
 	private void descargar() {
 		if(reportaje==null) {
 			view.showInfo("Selecciona un evento.");
+			return;
+		}
+		
+		if(reportaje.getFecha_embargo()!=null) {
+			LocalDate fecha_hoy=LocalDate.now();
+			LocalDate fecha_embargo=LocalDate.parse(reportaje.getFecha_embargo());
+			if(fecha_embargo.isAfter(fecha_hoy)) {
+				view.showInfo("Este reportaje no puede ser descargado hasta fin de embargo ("+reportaje.getFecha_embargo()+")");
+			}
 			return;
 		}
 		try {

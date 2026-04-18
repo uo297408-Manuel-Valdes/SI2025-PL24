@@ -13,6 +13,7 @@ public class AccesoDTO {
 		this.idAgencia=idAgencia;
 		this.descargado=descargado;
 	}
+	
 
 	public AccesoDTO() {
 		super();

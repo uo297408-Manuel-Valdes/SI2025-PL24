@@ -25,16 +25,27 @@ public class ConcederAccesoModel {
 	// ── Eventos ───────────────────────────────────────────────────────────
 
 	/**
-	 * Eventos de la agencia que tienen reportaje entregado y estan FINALIZADOS.
+	 * Eventos finalizados de la agencia que tienen reportaje entregado,
+	 * filtrados por si el reportaje tiene o no fecha de embargo.
+	 *
+	 * @param idAgencia    Agencia seleccionada
+	 * @param conEmbargo   true  → reportajes CON fecha_embargo (en periodo de embargo)
+	 *                     false → reportajes SIN fecha_embargo
 	 */
-	public List<EventoDTO> getEventosCubiertos(int idAgencia) {
+	public List<EventoDTO> getEventosCubiertos(int idAgencia, boolean conEmbargo) {
+		String filtroEmbargo = conEmbargo
+			? "AND r.fecha_embargo IS NOT NULL"
+			: "AND r.fecha_embargo IS NULL";
+
 		String sql =
 			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio " +
 			"FROM EVENTO e " +
 			"JOIN REPORTAJE r ON r.id_evento = e.id_evento " +
 			"WHERE e.id_agencia = ? " +
 			"AND e.finalizada = 1 " +
+			filtroEmbargo + " " +
 			"ORDER BY e.fecha_inicio, e.nombre";
+
 		List<Object[]> rows = db.executeQueryArray(sql, idAgencia);
 		List<EventoDTO> res = new ArrayList<>();
 		for (Object[] row : rows) {
@@ -53,23 +64,36 @@ public class ConcederAccesoModel {
 	/**
 	 * Devuelve las empresas APTAS para recibir el reportaje de un evento.
 	 *
-	 * Una empresa es apta si cumple TODAS estas condiciones:
-	 *   1. Tiene el ofrecimiento ACEPTADO para este evento.
-	 *   2. Tiene una tarifa con pendiente=0 para la agencia del evento
-	 *      (tarifa plana al corriente de pagos).
+	 * Reglas:
+	 *  - La empresa debe tener ofrecimiento ACEPTADO para este evento.
+	 *  - La empresa debe tener tarifa plana al corriente (pendiente=0).
+	 *  - Si el reportaje tiene embargo (conEmbargo=true) y NO es acceso especial:
+	 *      solo empresas con embargos=1 (interesadas en reportajes con embargo).
+	 *  - Si es acceso especial (accesoEspecial=true):
+	 *      se ignora el campo embargos; cualquier empresa con tarifa al corriente es apta.
 	 *
-	 * El justificante mostrado siempre es "TP: Al corriente de pagos".
+	 * Justificante: siempre "T.P.: Al corriente de pagos".
 	 *
-	 * @param idEvento   Evento seleccionado
-	 * @param sinAcceso  true  → empresas que todavia NO tienen acceso concedido
-	 *                   false → empresas que YA tienen acceso concedido
+	 * @param idEvento       Evento seleccionado
+	 * @param sinAcceso      true  → empresas SIN acceso concedido aun
+	 *                       false → empresas CON acceso ya concedido
+	 * @param conEmbargo     true  → el reportaje tiene embargo (aplica filtro embargos)
+	 *                       false → sin embargo, no se filtra por embargos
+	 * @param accesoEspecial true  → omite la restriccion de embargos por empresa
 	 */
-	public List<EmpresaDTO> getEmpresasAptas(int idEvento, boolean sinAcceso) {
+	public List<EmpresaDTO> getEmpresasAptas(int idEvento, boolean sinAcceso,
+	                                          boolean conEmbargo, boolean accesoEspecial) {
 		String filtroAcceso = sinAcceso
 			? "AND NOT EXISTS (SELECT 1 FROM ACCESO_REPORTAJE acc " +
 			  "WHERE acc.id_evento = ofr.id_evento AND acc.id_empresa = emp.id_empresa)"
 			: "AND EXISTS (SELECT 1 FROM ACCESO_REPORTAJE acc " +
 			  "WHERE acc.id_evento = ofr.id_evento AND acc.id_empresa = emp.id_empresa)";
+
+		// Solo se restringe por embargos cuando el reportaje tiene embargo
+		// y el usuario NO ha marcado acceso especial
+		String filtroEmbargos = (conEmbargo && !accesoEspecial)
+			? "AND emp.embargos = 1"
+			: "";
 
 		String sql =
 			"SELECT emp.id_empresa, emp.nombre, emp.embargos " +
@@ -85,6 +109,7 @@ public class ConcederAccesoModel {
 			"  AND   t.id_empresa = emp.id_empresa " +
 			"  AND   t.pendiente  = 0 " +
 			") " +
+			filtroEmbargos + " " +
 			filtroAcceso + " " +
 			"ORDER BY emp.nombre";
 
@@ -95,7 +120,7 @@ public class ConcederAccesoModel {
 				((Number) r[0]).intValue(),
 				(String)  r[1],
 				((Number) r[2]).intValue(),
-				"TP: Al corriente de pagos"
+				"T.P.: Al corriente de pagos"
 			));
 		}
 		return res;
@@ -123,21 +148,35 @@ public class ConcederAccesoModel {
 
 	/**
 	 * Concede acceso al reportaje del evento a las empresas seleccionadas.
-	 * Valida que el evento este finalizado, que la empresa tenga ofrecimiento
-	 * aceptado, que sea apta (tarifa plana al corriente) y que no tenga ya acceso.
+	 *
+	 * Validaciones:
+	 *  - El evento debe estar finalizado y tener reportaje.
+	 *  - La empresa debe tener ofrecimiento ACEPTADO.
+	 *  - La empresa debe tener tarifa plana al corriente.
+	 *  - Si el reportaje tiene embargo y NO es acceso especial:
+	 *      la empresa debe tener embargos=1.
+	 *  - La empresa no debe tener acceso ya concedido.
+	 *
+	 * @param idEvento       Evento al que se concede acceso
+	 * @param idsEmpresas    Lista de empresas seleccionadas
+	 * @param accesoEspecial true → omite restriccion de embargos por empresa
 	 */
-	public void concederAcceso(int idEvento, List<Integer> idsEmpresas) {
+	public void concederAcceso(int idEvento, List<Integer> idsEmpresas, boolean accesoEspecial) {
 		if (idsEmpresas == null || idsEmpresas.isEmpty())
 			throw new ApplicationException("Debes seleccionar al menos una empresa para conceder acceso.");
 
 		// El evento debe estar finalizado y tener reportaje
 		String checkFin =
-			"SELECT 1 FROM REPORTAJE r " +
+			"SELECT r.fecha_embargo FROM REPORTAJE r " +
 			"JOIN EVENTO e ON e.id_evento = r.id_evento " +
 			"WHERE r.id_evento = ? AND e.finalizada = 1 LIMIT 1";
-		if (db.executeQueryArray(checkFin, idEvento).isEmpty())
+		List<Object[]> rowsFin = db.executeQueryArray(checkFin, idEvento);
+		if (rowsFin.isEmpty())
 			throw new ApplicationException(
 				"El evento no esta finalizado o no tiene reportaje entregado.");
+
+		// Determinar si el reportaje tiene embargo
+		boolean tieneEmbargo = rowsFin.get(0)[0] != null;
 
 		for (Integer idEmpresa : idsEmpresas) {
 			if (idEmpresa == null) continue;
@@ -160,6 +199,17 @@ public class ConcederAccesoModel {
 				throw new ApplicationException(
 					"La empresa con id " + idEmpresa +
 					" no tiene tarifa plana al corriente de pagos.");
+
+			// Si hay embargo y NO es acceso especial, la empresa debe tener embargos=1
+			if (tieneEmbargo && !accesoEspecial) {
+				String checkEmbargo =
+					"SELECT 1 FROM EMPRESA WHERE id_empresa = ? AND embargos = 1 LIMIT 1";
+				if (db.executeQueryArray(checkEmbargo, idEmpresa).isEmpty())
+					throw new ApplicationException(
+						"La empresa con id " + idEmpresa +
+						" no esta interesada en reportajes con embargo. " +
+						"Usa 'Conceder acceso especial' para distribuirlo igualmente.");
+			}
 
 			// No debe tener acceso ya concedido
 			String checkAcc =

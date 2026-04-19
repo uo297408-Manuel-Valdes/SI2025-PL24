@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import javax.swing.event.ListSelectionEvent;
 
 import giis.demo.model.AgenciaDTO;
-import giis.demo.model.AccesoDTO;
 import giis.demo.model.ConcederAccesoModel;
 import giis.demo.model.EmpresaDTO;
 import giis.demo.model.EventoDTO;
@@ -29,11 +28,13 @@ public class ConcederAccesoController {
 	}
 
 	public void initController() {
-		view.addAgenciaChangedListener     (e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
-		view.addFiltroChangedListener      (e -> SwingUtil.exceptionWrapper(() -> aplicarFiltro()));
-		view.addEventosSelectionListener   (e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
-		view.addAceptantesSelectionListener(e -> SwingUtil.exceptionWrapper(() -> onAceptanteSeleccionado(e)));
-		view.addConcederAccesoListener     (e -> SwingUtil.exceptionWrapper(() -> onConcederAcceso()));
+		view.addAgenciaChangedListener      (e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addFiltroEmbargoChangedListener(e -> SwingUtil.exceptionWrapper(() -> cargarEventos()));
+		view.addFiltroAccesoChangedListener (e -> SwingUtil.exceptionWrapper(() -> recargarEmpresas()));
+		view.addAccesoEspecialListener      (e -> SwingUtil.exceptionWrapper(() -> recargarEmpresas()));
+		view.addEventosSelectionListener    (e -> SwingUtil.exceptionWrapper(() -> onEventoSeleccionado(e)));
+		view.addAceptantesSelectionListener (e -> SwingUtil.exceptionWrapper(() -> onAceptanteSeleccionado(e)));
+		view.addConcederAccesoListener      (e -> SwingUtil.exceptionWrapper(() -> onConcederAcceso()));
 
 		SwingUtil.exceptionWrapper(() -> {
 			List<AgenciaDTO> agencias = model.getAgencias();
@@ -44,6 +45,10 @@ public class ConcederAccesoController {
 
 	// ── Carga de eventos ─────────────────────────────────────────────────
 
+	/**
+	 * Recarga los eventos segun agencia y filtro de embargo.
+	 * Al cambiar cualquiera de los dos se resetea el panel derecho.
+	 */
 	private void cargarEventos() {
 		AgenciaDTO agencia = view.getAgenciaSeleccionada();
 		if (agencia == null) {
@@ -51,22 +56,27 @@ public class ConcederAccesoController {
 			view.limpiarPanelDerecho();
 			return;
 		}
-		eventos = model.getEventosCubiertos(agencia.getIdAgencia());
+		boolean conEmbargo = view.getFiltroEmbargo().equals("Reportajes con embargo");
+		eventos = model.getEventosCubiertos(agencia.getIdAgencia(), conEmbargo);
 		view.setEventos(eventos);
 		seleccionadas = new ArrayList<>();
 		aceptantes    = new ArrayList<>();
 		view.limpiarPanelDerecho();
 	}
 
-	// ── Filtro de acceso ──────────────────────────────────────────────────
+	// ── Recarga de empresas ───────────────────────────────────────────────
 
-	private void aplicarFiltro() {
+	/**
+	 * Recarga la tabla de empresas manteniendo el evento seleccionado.
+	 * Se llama al cambiar el filtro de acceso o el checkbox de acceso especial.
+	 */
+	private void recargarEmpresas() {
 		Integer idEvento     = view.getIdEventoSeleccionado();
 		String  nombreEvento = view.getNombreEventoSeleccionado();
 		if (idEvento == null) return;
 
 		seleccionadas = new ArrayList<>();
-		aceptantes    = getEmpresasSegunFiltro(idEvento);
+		aceptantes    = getEmpresasSegunFiltros(idEvento);
 		view.setEmpresasAceptantes(aceptantes, nombreEvento);
 		view.setEmpresasSeleccionadas(seleccionadas);
 	}
@@ -87,14 +97,20 @@ public class ConcederAccesoController {
 		}
 
 		seleccionadas = new ArrayList<>();
-		aceptantes    = getEmpresasSegunFiltro(idEvento);
+		aceptantes    = getEmpresasSegunFiltros(idEvento);
 		view.setEmpresasAceptantes(aceptantes, nombreEvento);
 		view.setEmpresasSeleccionadas(seleccionadas);
 	}
 
-	private List<EmpresaDTO> getEmpresasSegunFiltro(int idEvento) {
-		boolean sinAcceso = view.getFiltroSeleccionado().equals("Empresas sin acceso");
-		return model.getEmpresasAptas(idEvento, sinAcceso);
+	/**
+	 * Devuelve las empresas aptas segun todos los filtros activos:
+	 * filtro de acceso, filtro de embargo y estado del checkbox.
+	 */
+	private List<EmpresaDTO> getEmpresasSegunFiltros(int idEvento) {
+		boolean sinAcceso      = view.getFiltroAcceso().equals("Empresas sin acceso");
+		boolean conEmbargo     = view.getFiltroEmbargo().equals("Reportajes con embargo");
+		boolean accesoEspecial = view.isAccesoEspecial();
+		return model.getEmpresasAptas(idEvento, sinAcceso, conEmbargo, accesoEspecial);
 	}
 
 	// ── Seleccion de empresa apta ─────────────────────────────────────────
@@ -128,14 +144,20 @@ public class ConcederAccesoController {
 			return;
 		}
 
-		String nombreEvento  = view.getNombreEventoSeleccionado();
-		String listaEmpresas = seleccionadas.stream()
+		boolean accesoEspecial = view.isAccesoEspecial();
+		String nombreEvento    = view.getNombreEventoSeleccionado();
+		String listaEmpresas   = seleccionadas.stream()
 			.map(EmpresaDTO::getNombre)
 			.collect(Collectors.joining(", "));
 
+		String advertencia = accesoEspecial
+			? "\n\n⚠ ACCESO ESPECIAL: se concede aunque la empresa no este interesada en embargos."
+			: "";
+
 		String msg = "Vas a conceder acceso al reportaje de:\n\n"
 				+ "Evento:   " + nombreEvento + "\n"
-				+ "Empresas: " + listaEmpresas + "\n\n"
+				+ "Empresas: " + listaEmpresas
+				+ advertencia + "\n\n"
 				+ "¿Confirmas la operacion?";
 
 		if (!view.confirm(msg, "Confirmar acceso")) return;
@@ -144,7 +166,7 @@ public class ConcederAccesoController {
 			.map(EmpresaDTO::getIdEmpresa)
 			.collect(Collectors.toList());
 
-		model.concederAcceso(idEvento, ids);
+		model.concederAcceso(idEvento, ids, accesoEspecial);
 
 		view.showInfo("Acceso concedido correctamente.");
 		view.getFrame().dispose();

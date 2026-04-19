@@ -19,8 +19,11 @@ public class ConcederAccesoView {
 	// Combo agencia
 	private JComboBox<AgenciaDTO> cbAgencias;
 
-	// Combo filtro (con/sin acceso)
-	private JComboBox<String> cbFiltro;
+	// Filtro 1: con/sin acceso
+	private JComboBox<String> cbFiltroAcceso;
+
+	// Filtro 2: con/sin embargo
+	private JComboBox<String> cbFiltroEmbargo;
 
 	// Tabla eventos cubiertos (izquierda)
 	private JTable            tblEventos;
@@ -35,8 +38,9 @@ public class ConcederAccesoView {
 	private JTable            tblSeleccionadas;
 	private DefaultTableModel tmSeleccionadas;
 
-	// Boton principal
-	private JButton btnConcederAcceso;
+	// Checkbox acceso especial y boton principal
+	private JCheckBox chkAccesoEspecial;
+	private JButton   btnConcederAcceso;
 
 	public ConcederAccesoView() {
 		initialize();
@@ -45,34 +49,44 @@ public class ConcederAccesoView {
 	private void initialize() {
 		frame = new JFrame(" Conceder Acceso a Reportaje ");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setSize(780, 610);
+		frame.setSize(780, 660);
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
 		// ── Agencia de prensa ─────────────────────────────────────────────
 		JLabel lblAgencia = new JLabel("Agencia de Prensa:");
 		lblAgencia.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblAgencia.setBounds(20, 15, 160, 20);
+		lblAgencia.setBounds(20, 15, 155, 20);
 		frame.getContentPane().add(lblAgencia);
 
 		cbAgencias = new JComboBox<>();
-		cbAgencias.setBounds(180, 15, 350, 22);
+		cbAgencias.setBounds(175, 15, 350, 22);
 		frame.getContentPane().add(cbAgencias);
 
-		// ── Filtro acceso ─────────────────────────────────────────────────
-		JLabel lblFiltro = new JLabel("Filtrar por:");
-		lblFiltro.setFont(new Font("Tahoma", Font.BOLD, 11));
-		lblFiltro.setBounds(20, 48, 90, 20);
-		frame.getContentPane().add(lblFiltro);
+		// ── Filtro 1: con/sin acceso ──────────────────────────────────────
+		JLabel lblFiltroAcceso = new JLabel("Filtrar por:");
+		lblFiltroAcceso.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblFiltroAcceso.setBounds(20, 48, 90, 20);
+		frame.getContentPane().add(lblFiltroAcceso);
 
-		cbFiltro = new JComboBox<>(new String[]{"Empresas sin acceso", "Empresas con acceso"});
-		cbFiltro.setBounds(115, 48, 230, 22);
-		frame.getContentPane().add(cbFiltro);
+		cbFiltroAcceso = new JComboBox<>(new String[]{"Empresas sin acceso", "Empresas con acceso"});
+		cbFiltroAcceso.setBounds(115, 48, 230, 22);
+		frame.getContentPane().add(cbFiltroAcceso);
+
+		// ── Filtro 2: con/sin embargo ─────────────────────────────────────
+		JLabel lblFiltroEmbargo = new JLabel("Filtrar por:");
+		lblFiltroEmbargo.setFont(new Font("Tahoma", Font.BOLD, 11));
+		lblFiltroEmbargo.setBounds(20, 78, 90, 20);
+		frame.getContentPane().add(lblFiltroEmbargo);
+
+		cbFiltroEmbargo = new JComboBox<>(new String[]{"Reportajes sin embargo", "Reportajes con embargo"});
+		cbFiltroEmbargo.setBounds(115, 78, 230, 22);
+		frame.getContentPane().add(cbFiltroEmbargo);
 
 		// ── Tabla eventos cubiertos (izquierda) ───────────────────────────
 		JLabel lblEventos = new JLabel("Eventos Cubiertos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblEventos.setBounds(20, 85, 200, 20);
+		lblEventos.setBounds(20, 118, 200, 20);
 		frame.getContentPane().add(lblEventos);
 
 		tmEventos = new DefaultTableModel(new Object[]{"Nombre", "Fecha", "id_evento"}, 0) {
@@ -83,7 +97,7 @@ public class ConcederAccesoView {
 		tblEventos.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spEventos = new JScrollPane(tblEventos);
-		spEventos.setBounds(20, 108, 310, 200);
+		spEventos.setBounds(20, 141, 310, 200);
 		frame.getContentPane().add(spEventos);
 
 		ocultarColumna(tblEventos, 2);
@@ -93,10 +107,9 @@ public class ConcederAccesoView {
 		// ── Tabla empresas aptas (derecha arriba) ─────────────────────────
 		lblEmpresasAptas = new JLabel("Empresas Aptas de: (ninguno)");
 		lblEmpresasAptas.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblEmpresasAptas.setBounds(360, 85, 390, 20);
+		lblEmpresasAptas.setBounds(360, 118, 390, 20);
 		frame.getContentPane().add(lblEmpresasAptas);
 
-		// Columnas: Nombre | Justificante | id_empresa (oculto)
 		tmAceptantes = new DefaultTableModel(new Object[]{"Nombre de empresa", "Justificante", "id_empresa"}, 0) {
 			@Override public boolean isCellEditable(int row, int col) { return false; }
 		};
@@ -105,7 +118,7 @@ public class ConcederAccesoView {
 		tblAceptantes.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
 		JScrollPane spAceptantes = new JScrollPane(tblAceptantes);
-		spAceptantes.setBounds(360, 108, 390, 200);
+		spAceptantes.setBounds(360, 141, 390, 200);
 		frame.getContentPane().add(spAceptantes);
 
 		ocultarColumna(tblAceptantes, 2);
@@ -116,7 +129,7 @@ public class ConcederAccesoView {
 		// ── Tabla empresas seleccionadas (abajo) ──────────────────────────
 		JLabel lblSeleccionadas = new JLabel("Empresas seleccionadas");
 		lblSeleccionadas.setFont(new Font("Tahoma", Font.BOLD, 12));
-		lblSeleccionadas.setBounds(20, 325, 200, 20);
+		lblSeleccionadas.setBounds(20, 358, 200, 20);
 		frame.getContentPane().add(lblSeleccionadas);
 
 		tmSeleccionadas = new DefaultTableModel(new Object[]{"Nombre de empresa", "id_empresa"}, 0) {
@@ -127,14 +140,20 @@ public class ConcederAccesoView {
 		tblSeleccionadas.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
 		JScrollPane spSeleccionadas = new JScrollPane(tblSeleccionadas);
-		spSeleccionadas.setBounds(20, 348, 730, 170);
+		spSeleccionadas.setBounds(20, 381, 730, 170);
 		frame.getContentPane().add(spSeleccionadas);
 
 		ocultarColumna(tblSeleccionadas, 1);
 
+		// ── Checkbox acceso especial ──────────────────────────────────────
+		chkAccesoEspecial = new JCheckBox("Conceder acceso especial");
+		chkAccesoEspecial.setFont(new Font("Tahoma", Font.BOLD, 11));
+		chkAccesoEspecial.setBounds(20, 566, 220, 26);
+		frame.getContentPane().add(chkAccesoEspecial);
+
 		// ── Boton conceder acceso ─────────────────────────────────────────
 		btnConcederAcceso = new JButton("Conceder Acceso");
-		btnConcederAcceso.setBounds(300, 530, 180, 30);
+		btnConcederAcceso.setBounds(300, 563, 180, 30);
 		frame.getContentPane().add(btnConcederAcceso);
 
 		frame.setLocationRelativeTo(null);
@@ -206,8 +225,10 @@ public class ConcederAccesoView {
 
 	// ── Getters de datos ──────────────────────────────────────────────────
 
-	public AgenciaDTO getAgenciaSeleccionada() { return (AgenciaDTO) cbAgencias.getSelectedItem(); }
-	public String     getFiltroSeleccionado()  { return (String) cbFiltro.getSelectedItem(); }
+	public AgenciaDTO getAgenciaSeleccionada()  { return (AgenciaDTO) cbAgencias.getSelectedItem(); }
+	public String     getFiltroAcceso()         { return (String) cbFiltroAcceso.getSelectedItem(); }
+	public String     getFiltroEmbargo()        { return (String) cbFiltroEmbargo.getSelectedItem(); }
+	public boolean    isAccesoEspecial()        { return chkAccesoEspecial.isSelected(); }
 
 	public Integer getIdEventoSeleccionado() {
 		int row = tblEventos.getSelectedRow();
@@ -237,9 +258,11 @@ public class ConcederAccesoView {
 	// ── Listeners ─────────────────────────────────────────────────────────
 
 	public void addAgenciaChangedListener(ActionListener l)             { cbAgencias.addActionListener(l); }
-	public void addFiltroChangedListener(ActionListener l)              { cbFiltro.addActionListener(l); }
+	public void addFiltroAccesoChangedListener(ActionListener l)        { cbFiltroAcceso.addActionListener(l); }
+	public void addFiltroEmbargoChangedListener(ActionListener l)       { cbFiltroEmbargo.addActionListener(l); }
 	public void addEventosSelectionListener(ListSelectionListener l)    { tblEventos.getSelectionModel().addListSelectionListener(l); }
 	public void addAceptantesSelectionListener(ListSelectionListener l) { tblAceptantes.getSelectionModel().addListSelectionListener(l); }
+	public void addAccesoEspecialListener(ActionListener l)             { chkAccesoEspecial.addActionListener(l); }
 	public void addConcederAccesoListener(ActionListener l)             { btnConcederAcceso.addActionListener(l); }
 
 	// ── Dialogos ──────────────────────────────────────────────────────────

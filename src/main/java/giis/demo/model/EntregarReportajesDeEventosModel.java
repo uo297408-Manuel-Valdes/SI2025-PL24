@@ -12,7 +12,6 @@ public class EntregarReportajesDeEventosModel {
 
 	private final Database db = new Database();
 
-	// ── Reporteros ────────────────────────────────────────────────────────
 
 	public List<ReporteroDTO> getReporteros() {
 		String sql = "SELECT id_reportero, id_agencia, nombre, tipo_reportero FROM REPORTERO ORDER BY nombre";
@@ -29,7 +28,6 @@ public class EntregarReportajesDeEventosModel {
 		return res;
 	}
 
-	// ── Eventos ───────────────────────────────────────────────────────────
 
 	public List<EventoDTO> getEventosAsignadosAReportero(int idReportero, boolean conReportaje) {
 		String condicion = conReportaje
@@ -54,8 +52,6 @@ public class EntregarReportajesDeEventosModel {
 		}
 		return res;
 	}
-
-	// ── Reportaje ─────────────────────────────────────────────────────────
 
 	public ReportajeDTO getReportaje(int idEvento) {
 		String sql =
@@ -182,7 +178,6 @@ public class EntregarReportajesDeEventosModel {
 		);
 	}
 
-	// ── Multimedia ────────────────────────────────────────────────────────
 
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
@@ -267,7 +262,6 @@ public class EntregarReportajesDeEventosModel {
 			nuevoEstado, idMultimedia);
 	}
 
-	// ── Revision ──────────────────────────────────────────────────────────
 
 	/**
 	 * Un reportaje esta pendiente de revision si:
@@ -423,7 +417,6 @@ public class EntregarReportajesDeEventosModel {
 		);
 	}
 
-	// ── Helpers privados ──────────────────────────────────────────────────
 
 	private String generarCambios(ReportajeDTO reportaje, String nuevoSubtitulo, String nuevoCuerpo) {
 		String ahora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));

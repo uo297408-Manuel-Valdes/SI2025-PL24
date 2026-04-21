@@ -43,8 +43,6 @@ public class ConcederAccesoController {
 		});
 	}
 
-	// ── Carga de eventos ─────────────────────────────────────────────────
-
 	/**
 	 * Recarga los eventos segun agencia y filtro de embargo.
 	 * Al cambiar cualquiera de los dos se resetea el panel derecho.
@@ -64,8 +62,6 @@ public class ConcederAccesoController {
 		view.limpiarPanelDerecho();
 	}
 
-	// ── Recarga de empresas ───────────────────────────────────────────────
-
 	/**
 	 * Recarga la tabla de empresas manteniendo el evento seleccionado.
 	 * Se llama al cambiar el filtro de acceso o el checkbox de acceso especial.
@@ -80,8 +76,6 @@ public class ConcederAccesoController {
 		view.setEmpresasAceptantes(aceptantes, nombreEvento);
 		view.setEmpresasSeleccionadas(seleccionadas);
 	}
-
-	// ── Seleccion de evento ──────────────────────────────────────────────
 
 	private void onEventoSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
@@ -113,8 +107,6 @@ public class ConcederAccesoController {
 		return model.getEmpresasAptas(idEvento, sinAcceso, conEmbargo, accesoEspecial);
 	}
 
-	// ── Seleccion de empresa apta ─────────────────────────────────────────
-
 	private void onAceptanteSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
 
@@ -130,8 +122,6 @@ public class ConcederAccesoController {
 
 		view.setEmpresasSeleccionadas(seleccionadas);
 	}
-
-	// ── Conceder acceso ───────────────────────────────────────────────────
 
 	private void onConcederAcceso() {
 		Integer idEvento = view.getIdEventoSeleccionado();

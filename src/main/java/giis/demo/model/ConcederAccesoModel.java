@@ -10,8 +10,6 @@ public class ConcederAccesoModel {
 
 	private final Database db = new Database();
 
-	// ── Agencias ──────────────────────────────────────────────────────────
-
 	public List<AgenciaDTO> getAgencias() {
 		String sql = "SELECT id_agencia, nombre FROM AGENCIA_PRENSA ORDER BY nombre";
 		List<Object[]> rows = db.executeQueryArray(sql);
@@ -21,8 +19,6 @@ public class ConcederAccesoModel {
 		}
 		return res;
 	}
-
-	// ── Eventos ───────────────────────────────────────────────────────────
 
 	/**
 	 * Eventos finalizados de la agencia que tienen reportaje entregado,
@@ -58,8 +54,6 @@ public class ConcederAccesoModel {
 		}
 		return res;
 	}
-
-	// ── Empresas aptas ────────────────────────────────────────────────────
 
 	/**
 	 * Devuelve las empresas APTAS para recibir el reportaje de un evento.
@@ -125,8 +119,6 @@ public class ConcederAccesoModel {
 		}
 		return res;
 	}
-
-	// ── Acceso ────────────────────────────────────────────────────────────
 
 	public AccesoDTO getAcceso(int idEmpresa, int idEvento) {
 		String sql =

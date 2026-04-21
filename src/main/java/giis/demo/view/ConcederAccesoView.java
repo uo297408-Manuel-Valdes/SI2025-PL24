@@ -53,7 +53,6 @@ public class ConcederAccesoView {
 		frame.setResizable(false);
 		frame.getContentPane().setLayout(null);
 
-		// ── Agencia de prensa ─────────────────────────────────────────────
 		JLabel lblAgencia = new JLabel("Agencia de Prensa:");
 		lblAgencia.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblAgencia.setBounds(20, 15, 155, 20);
@@ -63,7 +62,6 @@ public class ConcederAccesoView {
 		cbAgencias.setBounds(175, 15, 350, 22);
 		frame.getContentPane().add(cbAgencias);
 
-		// ── Filtro 1: con/sin acceso ──────────────────────────────────────
 		JLabel lblFiltroAcceso = new JLabel("Filtrar por:");
 		lblFiltroAcceso.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblFiltroAcceso.setBounds(20, 48, 90, 20);
@@ -73,7 +71,6 @@ public class ConcederAccesoView {
 		cbFiltroAcceso.setBounds(115, 48, 230, 22);
 		frame.getContentPane().add(cbFiltroAcceso);
 
-		// ── Filtro 2: con/sin embargo ─────────────────────────────────────
 		JLabel lblFiltroEmbargo = new JLabel("Filtrar por:");
 		lblFiltroEmbargo.setFont(new Font("Tahoma", Font.BOLD, 11));
 		lblFiltroEmbargo.setBounds(20, 78, 90, 20);
@@ -83,7 +80,6 @@ public class ConcederAccesoView {
 		cbFiltroEmbargo.setBounds(115, 78, 230, 22);
 		frame.getContentPane().add(cbFiltroEmbargo);
 
-		// ── Tabla eventos cubiertos (izquierda) ───────────────────────────
 		JLabel lblEventos = new JLabel("Eventos Cubiertos");
 		lblEventos.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblEventos.setBounds(20, 118, 200, 20);
@@ -104,7 +100,7 @@ public class ConcederAccesoView {
 		tblEventos.getColumnModel().getColumn(0).setPreferredWidth(190);
 		tblEventos.getColumnModel().getColumn(1).setPreferredWidth(100);
 
-		// ── Tabla empresas aptas (derecha arriba) ─────────────────────────
+	
 		lblEmpresasAptas = new JLabel("Empresas Aptas de: (ninguno)");
 		lblEmpresasAptas.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblEmpresasAptas.setBounds(360, 118, 390, 20);
@@ -126,7 +122,7 @@ public class ConcederAccesoView {
 		tblAceptantes.getColumnModel().getColumn(1).setPreferredWidth(200);
 		instalarTooltipsTabla(tblAceptantes);
 
-		// ── Tabla empresas seleccionadas (abajo) ──────────────────────────
+	
 		JLabel lblSeleccionadas = new JLabel("Empresas seleccionadas");
 		lblSeleccionadas.setFont(new Font("Tahoma", Font.BOLD, 12));
 		lblSeleccionadas.setBounds(20, 358, 200, 20);
@@ -145,13 +141,12 @@ public class ConcederAccesoView {
 
 		ocultarColumna(tblSeleccionadas, 1);
 
-		// ── Checkbox acceso especial ──────────────────────────────────────
+		
 		chkAccesoEspecial = new JCheckBox("Conceder acceso especial");
 		chkAccesoEspecial.setFont(new Font("Tahoma", Font.BOLD, 11));
 		chkAccesoEspecial.setBounds(20, 566, 220, 26);
 		frame.getContentPane().add(chkAccesoEspecial);
 
-		// ── Boton conceder acceso ─────────────────────────────────────────
 		btnConcederAcceso = new JButton("Conceder Acceso");
 		btnConcederAcceso.setBounds(300, 563, 180, 30);
 		frame.getContentPane().add(btnConcederAcceso);
@@ -160,7 +155,6 @@ public class ConcederAccesoView {
 		frame.setVisible(true);
 	}
 
-	// ── Utilidades privadas ───────────────────────────────────────────────
 
 	private void ocultarColumna(JTable table, int colIndex) {
 		table.getColumnModel().getColumn(colIndex).setMaxWidth(0);
@@ -183,7 +177,6 @@ public class ConcederAccesoView {
 		});
 	}
 
-	// ── Setters de datos ──────────────────────────────────────────────────
 
 	public void setAgencias(List<AgenciaDTO> agencias) {
 		DefaultComboBoxModel<AgenciaDTO> model = new DefaultComboBoxModel<>();
@@ -223,7 +216,6 @@ public class ConcederAccesoView {
 		tmSeleccionadas.setRowCount(0);
 	}
 
-	// ── Getters de datos ──────────────────────────────────────────────────
 
 	public AgenciaDTO getAgenciaSeleccionada()  { return (AgenciaDTO) cbAgencias.getSelectedItem(); }
 	public String     getFiltroAcceso()         { return (String) cbFiltroAcceso.getSelectedItem(); }
@@ -255,7 +247,6 @@ public class ConcederAccesoView {
 
 	public JFrame getFrame() { return frame; }
 
-	// ── Listeners ─────────────────────────────────────────────────────────
 
 	public void addAgenciaChangedListener(ActionListener l)             { cbAgencias.addActionListener(l); }
 	public void addFiltroAccesoChangedListener(ActionListener l)        { cbFiltroAcceso.addActionListener(l); }
@@ -265,7 +256,6 @@ public class ConcederAccesoView {
 	public void addAccesoEspecialListener(ActionListener l)             { chkAccesoEspecial.addActionListener(l); }
 	public void addConcederAccesoListener(ActionListener l)             { btnConcederAcceso.addActionListener(l); }
 
-	// ── Dialogos ──────────────────────────────────────────────────────────
 
 	public void showInfo(String msg) {
 		JOptionPane.showMessageDialog(frame, msg, "Informacion", JOptionPane.INFORMATION_MESSAGE);

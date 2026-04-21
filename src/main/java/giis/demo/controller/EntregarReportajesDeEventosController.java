@@ -50,7 +50,6 @@ public class EntregarReportajesDeEventosController {
 		});
 	}
 
-	// ── Carga de eventos ─────────────────────────────────────────────────
 
 	private void cargarEventos() {
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
@@ -72,7 +71,6 @@ public class EntregarReportajesDeEventosController {
 		view.setModoPrivilegiado(false);
 	}
 
-	// ── Seleccion de evento ──────────────────────────────────────────────
 
 	private void onEventoSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
@@ -150,7 +148,6 @@ public class EntregarReportajesDeEventosController {
 		return -1;
 	}
 
-	// ── Multimedia ────────────────────────────────────────────────────────
 
 	private void cargarMultimedia() {
 		if (idReportajeActual <= 0) { view.setMultimedia(new ArrayList<>()); return; }
@@ -212,7 +209,6 @@ public class EntregarReportajesDeEventosController {
 		cargarMultimedia();
 	}
 
-	// ── Validar titulo ────────────────────────────────────────────────────
 
 	private void onValidarTitulo() {
 		try {
@@ -228,7 +224,6 @@ public class EntregarReportajesDeEventosController {
 		}
 	}
 
-	// ── Solicitar revision ────────────────────────────────────────────────
 
 	private void onSolicitarRevision() {
 		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }
@@ -246,7 +241,6 @@ public class EntregarReportajesDeEventosController {
 		view.showInfo("Revision solicitada correctamente.");
 	}
 
-	// ── Finalizar (modo privilegiado) ─────────────────────────────────────
 
 	private void onFinalizar() {
 		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }
@@ -280,7 +274,6 @@ public class EntregarReportajesDeEventosController {
 		cargarEventos();
 	}
 
-	// ── Entregar ──────────────────────────────────────────────────────────
 
 	private void onEntregar() {
 		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }

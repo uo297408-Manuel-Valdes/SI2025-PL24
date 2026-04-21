@@ -22,8 +22,7 @@ public class RevisarReportajeModel {
 			res.add(new ReporteroDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
-				(String)  r[2],
-				"",
+				(String)  r[2], "",
 				(String)  r[3]
 			));
 		}
@@ -33,9 +32,11 @@ public class RevisarReportajeModel {
 	// ── Reportajes pendientes ─────────────────────────────────────────────
 
 	/**
-	 * Devuelve los reportajes pendientes de revision a los que el reportero esta asignado.
-	 * Un reportaje esta pendiente si tiene al menos un comentario de solicitud (es_finalizacion=0)
-	 * y este reportero no ha finalizado todavia su revision.
+	 * Reportajes pendientes de revision para ESTE reportero.
+	 * Un reportaje aparece si:
+	 *   - El reportero esta asignado al evento.
+	 *   - El reportaje tiene una solicitud de revision (es_finalizacion=0).
+	 *   - ESTE reportero NO ha finalizado aun su revision (no tiene es_finalizacion=1).
 	 */
 	public List<ReportajeDTO> getReportajesPendientesDeRevision(int idReportero) {
 		String sql =
@@ -48,8 +49,8 @@ public class RevisarReportajeModel {
 			"AND NOT EXISTS ( " +
 			"  SELECT 1 FROM COMENTARIO_REVISION cr2 " +
 			"  WHERE cr2.id_reportaje = r.id_reportaje " +
-			"  AND cr2.id_reportero  = ? " +
-			"  AND cr2.es_finalizacion = 1 " +
+			"  AND   cr2.id_reportero = ? " +
+			"  AND   cr2.es_finalizacion = 1 " +
 			") " +
 			"ORDER BY r.titulo";
 		List<Object[]> rows = db.executeQueryArray(sql, idReportero, idReportero);
@@ -70,9 +71,7 @@ public class RevisarReportajeModel {
 	public VersionReportajeDTO getUltimaVersion(int idReportaje) {
 		String sql =
 			"SELECT id_version, id_reportaje, subtitulo, cuerpo, cambios " +
-			"FROM VERSION_REPORTAJE " +
-			"WHERE id_reportaje = ? " +
-			"ORDER BY id_version DESC LIMIT 1";
+			"FROM VERSION_REPORTAJE WHERE id_reportaje = ? ORDER BY id_version DESC LIMIT 1";
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
 		if (rows.isEmpty()) return null;
 		Object[] r = rows.get(0);
@@ -85,15 +84,10 @@ public class RevisarReportajeModel {
 		);
 	}
 
-	/**
-	 * Devuelve TODO el multimedia del reportaje (borrador y definitivo).
-	 */
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
 			"SELECT id_multimedia, id_reportaje, id_reportero, path, tipo, estado " +
-			"FROM MULTIMEDIA_REPORTAJE " +
-			"WHERE id_reportaje = ? " +
-			"ORDER BY id_multimedia";
+			"FROM MULTIMEDIA_REPORTAJE WHERE id_reportaje = ? ORDER BY id_multimedia";
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
 		List<MultimediaDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
@@ -112,7 +106,7 @@ public class RevisarReportajeModel {
 	// ── Comentarios ───────────────────────────────────────────────────────
 
 	/**
-	 * Devuelve los comentarios de revision (excluye los de finalizacion) con el nombre del autor.
+	 * Comentarios del reportaje (excluye los de finalizacion), con nombre del autor.
 	 */
 	public List<ComentarioRevisionDTO> getComentariosRevision(int idReportaje) {
 		String sql =
@@ -125,30 +119,27 @@ public class RevisarReportajeModel {
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
 		List<ComentarioRevisionDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
-			String estadoStr   = "PENDIENTE";
-			String nombreAutor = (String) r[6];
 			res.add(new ComentarioRevisionDTO(
 				((Number) r[0]).intValue(),
 				((Number) r[1]).intValue(),
 				((Number) r[2]).intValue(),
 				(String)  r[3],
 				(String)  r[4],
-				estadoStr,
-				nombreAutor
+				"PENDIENTE",
+				(String)  r[6]
 			));
 		}
 		return res;
 	}
 
 	/**
-	 * Anade un comentario de revision al reportaje.
-	 * Solo se puede comentar si el reportero aun no ha finalizado su revision.
+	 * Anade un comentario de revision.
+	 * Solo posible si este reportero no ha finalizado aun su revision.
 	 */
 	public void addComentarioRevision(int idReportaje, int idReportero, String comentario) {
 		if (comentario == null || comentario.trim().isEmpty())
 			throw new ApplicationException("El comentario no puede estar vacio.");
 
-		// Verificar que el reportero esta asignado al evento del reportaje
 		String checkAsig =
 			"SELECT 1 FROM ASIGNACION_REPORTERO ar " +
 			"JOIN REPORTAJE r ON r.id_evento = ar.id_evento " +
@@ -156,13 +147,12 @@ public class RevisarReportajeModel {
 		if (db.executeQueryArray(checkAsig, idReportaje, idReportero).isEmpty())
 			throw new ApplicationException("El reportero no esta asignado al evento de este reportaje.");
 
-		// Verificar que este reportero no ha finalizado ya su revision
 		if (haFinalizadoRevision(idReportaje, idReportero))
-			throw new ApplicationException("Ya has finalizado tu revision de este reportaje. No puedes anadir mas comentarios.");
+			throw new ApplicationException(
+				"Ya has finalizado tu revision. No puedes anadir mas comentarios.");
 
 		String fechaHora = LocalDateTime.now()
 			.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-
 		db.executeUpdate(
 			"INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora, es_finalizacion) " +
 			"VALUES (?, ?, ?, ?, 0)",
@@ -170,11 +160,9 @@ public class RevisarReportajeModel {
 		);
 	}
 
-	// ── Finalizacion individual por reportero ─────────────────────────────
+	// ── Finalizacion individual ───────────────────────────────────────────
 
-	/**
-	 * Comprueba si este reportero ya ha finalizado su revision de este reportaje.
-	 */
+	/** Comprueba si ESTE reportero ya ha finalizado su revision de este reportaje. */
 	public boolean haFinalizadoRevision(int idReportaje, int idReportero) {
 		String sql =
 			"SELECT 1 FROM COMENTARIO_REVISION " +
@@ -183,21 +171,18 @@ public class RevisarReportajeModel {
 	}
 
 	/**
-	 * Devuelve true si TODOS los reporteros asignados al evento han finalizado su revision.
+	 * Devuelve true si TODOS los reporteros asignados han finalizado su revision.
 	 */
 	public boolean todosHanFinalizadoRevision(int idReportaje) {
-		// Obtener id_evento del reportaje
 		String sqlEvento = "SELECT id_evento FROM REPORTAJE WHERE id_reportaje = ? LIMIT 1";
 		List<Object[]> rowsEvento = db.executeQueryArray(sqlEvento, idReportaje);
 		if (rowsEvento.isEmpty()) return false;
 		int idEvento = ((Number) rowsEvento.get(0)[0]).intValue();
 
-		// Obtener todos los reporteros asignados al evento
 		String sqlAsignados = "SELECT id_reportero FROM ASIGNACION_REPORTERO WHERE id_evento = ?";
 		List<Object[]> asignados = db.executeQueryArray(sqlAsignados, idEvento);
 		if (asignados.isEmpty()) return false;
 
-		// Verificar que cada uno ha finalizado
 		for (Object[] row : asignados) {
 			int idRep = ((Number) row[0]).intValue();
 			if (!haFinalizadoRevision(idReportaje, idRep)) return false;
@@ -206,12 +191,14 @@ public class RevisarReportajeModel {
 	}
 
 	/**
-	 * Finaliza la revision de ESTE reportero para este reportaje.
-	 * Cada reportero finaliza de forma independiente.
-	 * Solo se puede finalizar si hay al menos un comentario previo de este reportero.
+	 * Finaliza la revision de ESTE reportero.
+	 *
+	 * Cambio respecto a la version anterior:
+	 *   - Ya NO es necesario haber anadido un comentario previo.
+	 *   - Cualquier reportero asignado puede finalizar su revision directamente.
 	 */
 	public void finalizarRevision(int idReportaje, int idReportero) {
-		// Verificar que el reportero esta asignado al evento
+		// Verificar que esta asignado
 		String checkAsig =
 			"SELECT 1 FROM ASIGNACION_REPORTERO ar " +
 			"JOIN REPORTAJE r ON r.id_evento = ar.id_evento " +
@@ -219,20 +206,19 @@ public class RevisarReportajeModel {
 		if (db.executeQueryArray(checkAsig, idReportaje, idReportero).isEmpty())
 			throw new ApplicationException("El reportero no esta asignado al evento de este reportaje.");
 
-		// Verificar que el reportero no ha finalizado ya
+		// Verificar que no ha finalizado ya
 		if (haFinalizadoRevision(idReportaje, idReportero))
 			throw new ApplicationException("Ya has finalizado tu revision de este reportaje.");
 
-		// Verificar que el reportero tiene al menos un comentario
-		String checkComentario =
+		// Verificar que hay solicitud activa (evitar finalizacion sin solicitud)
+		String checkSolicitud =
 			"SELECT 1 FROM COMENTARIO_REVISION " +
-			"WHERE id_reportaje = ? AND id_reportero = ? AND es_finalizacion = 0 LIMIT 1";
-		if (db.executeQueryArray(checkComentario, idReportaje, idReportero).isEmpty())
-			throw new ApplicationException("Debes anadir al menos un comentario antes de finalizar tu revision.");
+			"WHERE id_reportaje = ? AND es_finalizacion = 0 LIMIT 1";
+		if (db.executeQueryArray(checkSolicitud, idReportaje).isEmpty())
+			throw new ApplicationException("No existe ninguna solicitud de revision activa para este reportaje.");
 
 		String fechaHora = LocalDateTime.now()
 			.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
-
 		db.executeUpdate(
 			"INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora, es_finalizacion) " +
 			"VALUES (?, ?, ?, ?, 1)",

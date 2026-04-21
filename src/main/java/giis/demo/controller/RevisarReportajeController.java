@@ -78,7 +78,7 @@ public class RevisarReportajeController {
 		}
 		if (reportajeSeleccionado == null) return;
 
-		// Cargar contenido del reportaje
+		// Cargar contenido
 		view.setTitulo(reportajeSeleccionado.getTitulo());
 
 		VersionReportajeDTO ultimaVersion = model.getUltimaVersion(reportajeSeleccionado.getIdReportaje());
@@ -90,14 +90,14 @@ public class RevisarReportajeController {
 			view.setCuerpo("");
 		}
 
-		// Cargar multimedia (todo: borrador y definitivo)
+		// Multimedia (borrador y definitivo)
 		List<MultimediaDTO> multimedia = model.getMultimedia(reportajeSeleccionado.getIdReportaje());
 		view.setMultimedia(multimedia);
 
-		// Cargar comentarios
+		// Comentarios
 		cargarComentarios();
 
-		// Actualizar estado de los botones segun si este reportero ya finalizo
+		// Estado del reportero: puede o no anadir comentarios y finalizar
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
 		if (reportero != null) {
 			boolean yaFinalizo = model.haFinalizadoRevision(
@@ -139,7 +139,7 @@ public class RevisarReportajeController {
 		cargarComentarios();
 	}
 
-	// ── Finalizar revision (individual por reportero) ─────────────────────
+	// ── Finalizar revision (individual) ──────────────────────────────────
 
 	private void onFinalizarRevision() {
 		if (reportajeSeleccionado == null) {
@@ -149,18 +149,22 @@ public class RevisarReportajeController {
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
 		if (reportero == null) return;
 
-		boolean todosFinalizados = model.todosHanFinalizadoRevision(
+		// Calcular cuantos quedan por finalizar tras esta accion
+		boolean todosFinalizaran = model.todosHanFinalizadoRevision(
 			reportajeSeleccionado.getIdReportaje());
 
-		String infoTodos = todosFinalizados
-			? "\nTodos los reporteros habran finalizado. El responsable podra finalizar el reportaje."
-			: "\nAun hay reporteros que no han finalizado su revision.";
+		// todosHanFinalizadoRevision comprueba todos EXCEPTO si yo ya finalice;
+		// como yo aun no he finalizado, si devuelve true es porque todos los demas si han finalizado
+		String infoEstado = todosFinalizaran
+			? "\nCon tu finalizacion TODOS los reporteros habran terminado.\n" +
+			  "El reportero responsable podra finalizar el reportaje."
+			: "\nTodavia quedan otros reporteros por finalizar su revision.";
 
 		if (!view.confirm(
 				"Vas a finalizar TU revision del reportaje:\n\n" +
 				"Titulo: " + reportajeSeleccionado.getTitulo() + "\n\n" +
-				"Ya no podras anadir mas comentarios a este reportaje." +
-				infoTodos + "\n\n¿Confirmas?",
+				"No podras anadir mas comentarios a este reportaje." +
+				infoEstado + "\n\n¿Confirmas?",
 				"Finalizar mi revision")) return;
 
 		model.finalizarRevision(
@@ -169,8 +173,6 @@ public class RevisarReportajeController {
 		);
 
 		view.showInfo("Tu revision ha sido finalizada correctamente.");
-
-		// Actualizar estado — el reportaje puede desaparecer de la lista
-		cargarReportajes();
+		cargarReportajes(); // el reportaje desaparece de la lista de pendientes
 	}
 }

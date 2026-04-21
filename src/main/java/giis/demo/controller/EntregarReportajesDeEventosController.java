@@ -7,9 +7,9 @@ import javax.swing.event.ListSelectionEvent;
 
 import giis.demo.model.ComentarioRevisionDTO;
 import giis.demo.model.EventoDTO;
+import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.MultimediaDTO;
 import giis.demo.model.ReportajeDTO;
-import giis.demo.model.EntregarReportajesDeEventosModel;
 import giis.demo.model.ReporteroDTO;
 import giis.demo.model.VersionReportajeDTO;
 import giis.demo.util.SwingUtil;
@@ -22,12 +22,8 @@ public class EntregarReportajesDeEventosController {
 
 	private List<EventoDTO> eventos = new ArrayList<>();
 	private EventoDTO       eventoSeleccionado;
-
-	// Id del reportaje del evento actualmente seleccionado (-1 si no hay)
-	private int idReportajeActual = -1;
-
-	// True cuando el reportero seleccionado es responsable del evento seleccionado
-	private boolean modoPrivilegiado = false;
+	private int             idReportajeActual = -1;
+	private boolean         modoPrivilegiado  = false;
 
 	public EntregarReportajesDeEventosController(EntregarReportajesDeEventosModel model,
 	                                              EntregarReportajesDeEventosView  view) {
@@ -46,6 +42,7 @@ public class EntregarReportajesDeEventosController {
 		view.addCambiarEstadoListener      (e -> SwingUtil.exceptionWrapper(() -> onCambiarEstado()));
 		view.addSolicitarRevisionListener  (e -> SwingUtil.exceptionWrapper(() -> onSolicitarRevision()));
 		view.addFinalizarListener          (e -> SwingUtil.exceptionWrapper(() -> onFinalizar()));
+
 		SwingUtil.exceptionWrapper(() -> {
 			List<ReporteroDTO> reporteros = model.getReporteros();
 			view.setReporteros(reporteros);
@@ -53,6 +50,7 @@ public class EntregarReportajesDeEventosController {
 		});
 	}
 
+	// ── Carga de eventos ─────────────────────────────────────────────────
 
 	private void cargarEventos() {
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
@@ -67,13 +65,14 @@ public class EntregarReportajesDeEventosController {
 		eventos = model.getEventosAsignadosAReportero(reportero.getIdReportero(), conReportaje);
 		view.setEventos(eventos);
 		view.setAutor(reportero.getNombre());
-		eventoSeleccionado  = null;
-		idReportajeActual   = -1;
-		modoPrivilegiado    = false;
+		eventoSeleccionado = null;
+		idReportajeActual  = -1;
+		modoPrivilegiado   = false;
 		view.limpiarFormulario();
 		view.setModoPrivilegiado(false);
 	}
 
+	// ── Seleccion de evento ──────────────────────────────────────────────
 
 	private void onEventoSeleccionado(ListSelectionEvent e) {
 		if (e.getValueIsAdjusting()) return;
@@ -98,25 +97,15 @@ public class EntregarReportajesDeEventosController {
 
 		ReportajeDTO reportaje = model.getReportaje(eventoSeleccionado.getIdEvento());
 
-		// Detectar si el reportero es responsable de este evento
 		boolean esResponsable = (rep != null)
 			&& model.esResponsableDeEvento(eventoSeleccionado.getIdEvento(), rep.getIdReportero());
-		// El modo privilegiado solo aplica cuando hay un reportaje existente
 		modoPrivilegiado = esResponsable && (reportaje != null);
 		view.setModoPrivilegiado(modoPrivilegiado);
 
 		if (reportaje != null) {
 			idReportajeActual = reportaje.getIdReportaje();
-
 			view.setTitulo(reportaje.getTitulo());
-
-			if (modoPrivilegiado) {
-				// Responsable: titulo siempre editable
-				view.setTituloEditable(true);
-			} else {
-				// Reportero normal: titulo bloqueado tras primera entrega
-				view.setTituloEditable(false);
-			}
+			view.setTituloEditable(modoPrivilegiado); // responsable puede cambiar titulo
 
 			VersionReportajeDTO ultimaVersion = model.getUltimaVersion(reportaje.getIdReportaje());
 			if (ultimaVersion != null) {
@@ -127,36 +116,27 @@ public class EntregarReportajesDeEventosController {
 				view.setCuerpo("");
 			}
 
-			// Cargar multimedia
 			cargarMultimedia();
-
-			// Multimedia habilitada para cualquier reportero asignado
 			view.setMultimediaEnabled(true);
 
 			if (modoPrivilegiado) {
-				// Cargar tabla de revisiones
 				cargarRevisiones();
-
-				// Habilitar Finalizar si todos han enviado revision y no esta ya finalizado
-				boolean todosFin    = model.todosHanEnviadoRevision(eventoSeleccionado.getIdEvento());
-				boolean yaFinaliz   = model.estaFinalizadoPorResponsable(idReportajeActual, rep.getIdReportero());
-				view.setFinalizarEnabled(todosFin && !yaFinaliz);
-
+				// Habilitar Finalizar solo si no hay revision pendiente
+				// (bien porque no se solicito, bien porque todos finalizaron)
+				boolean puedeFinalizar = !model.isPendienteRevision(idReportajeActual);
+				view.setFinalizarEnabled(puedeFinalizar);
 			} else {
-				// Modo normal: avisar si no puede modificar contenido textual
 				if (rep != null && !model.reporteroPuedeModificar(eventoSeleccionado.getIdEvento(), rep.getIdReportero()))
-					view.showInfo("Solo puedes consultar y añadir multimedia a este reportaje. No eres el reportero que realizo la entrega original.");
+					view.showInfo("Solo puedes consultar y anadir multimedia a este reportaje. No eres el reportero que realizo la entrega original.");
 				boolean pendiente = model.isPendienteRevision(reportaje.getIdReportaje());
 				view.setPendienteRevision(pendiente);
 			}
-
 		} else {
 			idReportajeActual = -1;
 			view.setTitulo("");
 			view.setSubtitulo("");
 			view.setCuerpo("");
 			view.setTituloEditable(true);
-			// Sin reportaje aun: multimedia deshabilitada
 			view.setMultimediaEnabled(false);
 			view.setMultimedia(new ArrayList<>());
 		}
@@ -170,46 +150,31 @@ public class EntregarReportajesDeEventosController {
 		return -1;
 	}
 
+	// ── Multimedia ────────────────────────────────────────────────────────
 
 	private void cargarMultimedia() {
-		if (idReportajeActual <= 0) {
-			view.setMultimedia(new ArrayList<>());
-			return;
-		}
-		List<MultimediaDTO> lista = model.getMultimedia(idReportajeActual);
-		view.setMultimedia(lista);
+		if (idReportajeActual <= 0) { view.setMultimedia(new ArrayList<>()); return; }
+		view.setMultimedia(model.getMultimedia(idReportajeActual));
 	}
 
 	private void cargarRevisiones() {
-		if (idReportajeActual <= 0) {
-			view.setRevisiones(new ArrayList<>());
-			return;
-		}
-		List<ComentarioRevisionDTO> lista = model.getComentariosRevision(idReportajeActual);
-		view.setRevisiones(lista);
+		if (idReportajeActual <= 0) { view.setRevisiones(new ArrayList<>()); return; }
+		view.setRevisiones(model.getComentariosRevision(idReportajeActual));
 	}
 
 	private void onAnadirMultimedia() {
 		if (idReportajeActual <= 0) {
-			view.showInfo("Primero debe existir un reportaje entregado para añadir multimedia.");
+			view.showInfo("Primero debe existir un reportaje entregado para anadir multimedia.");
 			return;
 		}
-
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
-		if (reportero == null) {
-			view.showInfo("Selecciona un reportero primero.");
-			return;
-		}
+		if (reportero == null) return;
 
 		String[] datos = view.mostrarDialogoAnadir();
-		if (datos == null) return;  // Cancelado
-
-		String path = datos[0];
-		String tipo = datos[1];
+		if (datos == null) return;
 
 		model.addMultimedia(idReportajeActual, reportero.getIdReportero(),
-		                    eventoSeleccionado.getIdEvento(), path, tipo);
-
+		                    eventoSeleccionado.getIdEvento(), datos[0], datos[1]);
 		cargarMultimedia();
 	}
 
@@ -224,15 +189,30 @@ public class EntregarReportajesDeEventosController {
 		if (!view.confirm("Vas a eliminar el elemento multimedia seleccionado.\n¿Confirmas?",
 				"Confirmar eliminacion")) return;
 
-		if (modoPrivilegiado) {
-			// El responsable puede eliminar cualquier multimedia sin restricciones
+		if (modoPrivilegiado)
 			model.removeMultimediaPrivilegiado(idMultimedia);
-		} else {
+		else
 			model.removeMultimedia(idMultimedia, reportero.getIdReportero());
-		}
 		cargarMultimedia();
 	}
 
+	private void onCambiarEstado() {
+		int idMultimedia = view.getIdMultimediaSeleccionado();
+		if (idMultimedia <= 0) { view.showInfo("Selecciona un elemento multimedia."); return; }
+		ReporteroDTO reportero = view.getReporteroSeleccionado();
+		if (reportero == null) return;
+
+		String estadoActual = view.getEstadoMultimediaSeleccionado();
+		String nuevoEstado  = "BORRADOR".equals(estadoActual) ? "DEFINITIVO" : "BORRADOR";
+
+		if (!view.confirm("Vas a cambiar el estado a " + nuevoEstado + ".\n¿Confirmas?",
+				"Cambiar estado")) return;
+
+		model.cambiarEstadoMultimedia(idMultimedia, reportero.getIdReportero(), nuevoEstado);
+		cargarMultimedia();
+	}
+
+	// ── Validar titulo ────────────────────────────────────────────────────
 
 	private void onValidarTitulo() {
 		try {
@@ -247,85 +227,65 @@ public class EntregarReportajesDeEventosController {
 			view.showError(ex.getMessage());
 		}
 	}
-	
-	private void onCambiarEstado() {
-	    int idMultimedia = view.getIdMultimediaSeleccionado();
-	    if (idMultimedia <= 0) {
-	        view.showInfo("Selecciona un elemento multimedia.");
-	        return;
-	    }
-	    ReporteroDTO reportero = view.getReporteroSeleccionado();
-	    if (reportero == null) return;
 
-	    String estadoActual = view.getEstadoMultimediaSeleccionado();
-	    String nuevoEstado  = "BORRADOR".equals(estadoActual) ? "DEFINITIVO" : "BORRADOR";
-
-	    if (!view.confirm("Vas a cambiar el estado a " + nuevoEstado + ".\n¿Confirmas?",
-	            "Cambiar estado")) return;
-
-	    model.cambiarEstadoMultimedia(idMultimedia, reportero.getIdReportero(), nuevoEstado);
-	    cargarMultimedia();
-	}
+	// ── Solicitar revision ────────────────────────────────────────────────
 
 	private void onSolicitarRevision() {
-	    if (eventoSeleccionado == null) {
-	        view.showInfo("Selecciona un evento primero.");
-	        return;
-	    }
-	    ReporteroDTO reportero = view.getReporteroSeleccionado();
-	    if (reportero == null) return;
+		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }
+		ReporteroDTO reportero = view.getReporteroSeleccionado();
+		if (reportero == null) return;
 
-	    if (!view.confirm(
-	            "Vas a marcar el reportaje como pendiente de revision.\n" +
-	            "No podras modificarlo hasta que finalice.\n¿Confirmas?",
-	            "Solicitar revision")) return;
+		if (!view.confirm(
+				"Vas a marcar el reportaje como pendiente de revision.\n" +
+				"Todos los reporteros asignados deberan finalizar su revision.\n" +
+				"No podras modificar el reportaje hasta que finalice.\n¿Confirmas?",
+				"Solicitar revision")) return;
 
-	    model.solicitarRevision(eventoSeleccionado.getIdEvento(), reportero.getIdReportero());
-	    view.setPendienteRevision(true);
-	    view.showInfo("Revision solicitada correctamente.");
+		model.solicitarRevision(eventoSeleccionado.getIdEvento(), reportero.getIdReportero());
+		view.setPendienteRevision(true);
+		view.showInfo("Revision solicitada correctamente.");
 	}
+
+	// ── Finalizar (modo privilegiado) ─────────────────────────────────────
 
 	private void onFinalizar() {
-	    if (eventoSeleccionado == null) {
-	        view.showInfo("Selecciona un evento primero.");
-	        return;
-	    }
-	    ReporteroDTO reportero = view.getReporteroSeleccionado();
-	    if (reportero == null) return;
+		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }
+		ReporteroDTO reportero = view.getReporteroSeleccionado();
+		if (reportero == null) return;
 
-	    if (!view.confirm(
-	            "Vas a guardar los cambios actuales y finalizar la revision del reportaje.\n" +
-	            "Esta accion no se puede deshacer.\n¿Confirmas?",
-	            "Finalizar revision")) return;
+		if (!view.confirm(
+				"Vas a guardar los cambios y FINALIZAR el reportaje.\n\n" +
+				"Evento: " + eventoSeleccionado.getNombre() + "\n\n" +
+				"Esta accion no se puede deshacer.\n¿Confirmas?",
+				"Finalizar reportaje")) return;
 
-	    // Primero guardar el contenido con privilegios (titulo editable)
-	    model.guardarVersionPrivilegiada(
-	        eventoSeleccionado.getIdEvento(),
-	        reportero.getIdReportero(),
-	        view.getTitulo(),
-	        view.getSubtitulo(),
-	        view.getCuerpo()
-	    );
+		// Guardar cambios del formulario con privilegios
+		model.guardarVersionPrivilegiada(
+			eventoSeleccionado.getIdEvento(),
+			reportero.getIdReportero(),
+			view.getTitulo(),
+			view.getSubtitulo(),
+			view.getCuerpo()
+		);
 
-	    // Luego marcar como finalizado
-	    model.finalizarReportajeResponsable(eventoSeleccionado.getIdEvento(), reportero.getIdReportero());
+		// Finalizar el evento
+		model.finalizarReportajeResponsable(
+			eventoSeleccionado.getIdEvento(), reportero.getIdReportero());
 
-	    view.setFinalizarEnabled(false);
-	    cargarRevisiones();
-	    view.showInfo("Reportaje finalizado correctamente.");
+		view.setFinalizarEnabled(false);
+		view.showInfo("Reportaje finalizado correctamente. El evento ha sido marcado como finalizado.");
+
+		// Cambiar a filtro CON reportaje y recargar
+		view.setFiltroSeleccionado("Eventos CON reportaje");
+		cargarEventos();
 	}
 
-	private void onEntregar() {
-		if (eventoSeleccionado == null) {
-			view.showInfo("Selecciona un evento primero.");
-			return;
-		}
+	// ── Entregar ──────────────────────────────────────────────────────────
 
+	private void onEntregar() {
+		if (eventoSeleccionado == null) { view.showInfo("Selecciona un evento primero."); return; }
 		ReporteroDTO reportero = view.getReporteroSeleccionado();
-		if (reportero == null) {
-			view.showInfo("Selecciona un reportero primero.");
-			return;
-		}
+		if (reportero == null) { view.showInfo("Selecciona un reportero primero."); return; }
 
 		String titulo    = view.getTitulo();
 		String subtitulo = view.getSubtitulo();
@@ -334,12 +294,9 @@ public class EntregarReportajesDeEventosController {
 		ReportajeDTO existente = model.getReportaje(eventoSeleccionado.getIdEvento());
 
 		if (modoPrivilegiado) {
-			// Modo privilegiado: guardar con permisos de responsable (titulo editable)
 			String msg = "Vas a guardar los cambios del reportaje (modo responsable):\n\n"
-					+ "Evento:  " + eventoSeleccionado.getNombre()
-					+ " (" + eventoSeleccionado.getFechaEvento() + ")\n"
-					+ "Titulo:  " + titulo + "\n\n"
-					+ "Confirmas?";
+					+ "Evento: " + eventoSeleccionado.getNombre() + "\n"
+					+ "Titulo: " + titulo + "\n\nConfirmas?";
 			if (!view.confirm(msg, "Confirmar guardado privilegiado")) return;
 
 			model.guardarVersionPrivilegiada(
@@ -347,26 +304,22 @@ public class EntregarReportajesDeEventosController {
 				titulo, subtitulo, cuerpo
 			);
 
-			// Refrescar titulo por si se habia cambiado
 			ReportajeDTO actualizado = model.getReportaje(eventoSeleccionado.getIdEvento());
 			if (actualizado != null) view.setTitulo(actualizado.getTitulo());
 
-			// Actualizar estado del boton Finalizar
-			boolean todosFin  = model.todosHanEnviadoRevision(eventoSeleccionado.getIdEvento());
-			boolean yaFinaliz = model.estaFinalizadoPorResponsable(idReportajeActual, reportero.getIdReportero());
-			view.setFinalizarEnabled(todosFin && !yaFinaliz);
-
+			// Recalcular si puede finalizar
+			boolean puedeFinalizar = !model.isPendienteRevision(idReportajeActual);
+			view.setFinalizarEnabled(puedeFinalizar);
+			cargarRevisiones();
 			view.showInfo("Cambios guardados correctamente.");
 
 		} else {
-			// Modo normal
 			String tipoEntrega = (existente == null) ? "primera entrega" : "nueva version";
 			String msg = "Vas a registrar la " + tipoEntrega + " del reportaje:\n\n"
 					+ "Evento:  " + eventoSeleccionado.getNombre()
 					+ " (" + eventoSeleccionado.getFechaEvento() + ")\n"
 					+ "Autor:   " + reportero.getNombre() + "\n"
-					+ "Titulo:  " + titulo + "\n\n"
-					+ "Confirmas la entrega?";
+					+ "Titulo:  " + titulo + "\n\nConfirmas la entrega?";
 
 			if (!view.confirm(msg, "Confirmar entrega")) return;
 
@@ -375,7 +328,6 @@ public class EntregarReportajesDeEventosController {
 				titulo, subtitulo, cuerpo
 			);
 
-			// Tras la primera entrega habilitamos multimedia
 			ReportajeDTO reportajeNuevo = model.getReportaje(eventoSeleccionado.getIdEvento());
 			if (reportajeNuevo != null) {
 				idReportajeActual = reportajeNuevo.getIdReportaje();
@@ -384,7 +336,7 @@ public class EntregarReportajesDeEventosController {
 			}
 
 			view.showInfo("Reportaje entregado correctamente.");
-		    view.setFiltroSeleccionado("Eventos CON reportaje");
+			view.setFiltroSeleccionado("Eventos CON reportaje");
 			cargarMultimedia();
 		}
 	}

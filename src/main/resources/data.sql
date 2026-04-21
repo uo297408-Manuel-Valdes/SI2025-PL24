@@ -11,6 +11,7 @@ INSERT INTO agencia_prensa (nombre) VALUES ('Agencia Sur');
 INSERT INTO empresa (nombre, embargos) VALUES ('El Comercio', 1);
 INSERT INTO empresa (nombre) VALUES ('La Nueva España');
 INSERT INTO empresa (nombre) VALUES ('El País');
+INSERT INTO empresa (nombre, embargos) VALUES ('La Voz de Asturias',1);
 
 -- ===============================
 -- PAISES Y PROVINCIAS
@@ -85,6 +86,7 @@ INSERT INTO empresa_tematica (id_empresa, id_tematica) VALUES (2, 2);
 
 INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 2, 0);
 INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 3, 1);
+INSERT INTO tarifa (id_agencia, id_empresa, pendiente) values (1, 4, 0);
 
 
 

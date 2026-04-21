@@ -12,6 +12,7 @@ public class EntregarReportajesDeEventosModel {
 
 	private final Database db = new Database();
 
+	// ── Reporteros ────────────────────────────────────────────────────────
 
 	public List<ReporteroDTO> getReporteros() {
 		String sql = "SELECT id_reportero, id_agencia, nombre, tipo_reportero FROM REPORTERO ORDER BY nombre";
@@ -28,18 +29,36 @@ public class EntregarReportajesDeEventosModel {
 		return res;
 	}
 
+	// ── Eventos ───────────────────────────────────────────────────────────
 
+	/**
+	 * Devuelve los eventos asignados al reportero que aun NO han sido finalizados
+	 * por el reportero responsable.
+	 * Un evento esta finalizado cuando su responsable tiene es_finalizacion=1
+	 * en comentario_revision para el reportaje del evento.
+	 */
 	public List<EventoDTO> getEventosAsignadosAReportero(int idReportero, boolean conReportaje) {
 		String condicion = conReportaje
-			? "AND EXISTS     (SELECT 1 FROM REPORTAJE r WHERE r.id_evento = e.id_evento)"
-			: "AND NOT EXISTS (SELECT 1 FROM REPORTAJE r WHERE r.id_evento = e.id_evento)";
+			? "AND EXISTS     (SELECT 1 FROM REPORTAJE rep WHERE rep.id_evento = e.id_evento)"
+			: "AND NOT EXISTS (SELECT 1 FROM REPORTAJE rep WHERE rep.id_evento = e.id_evento)";
+
 		String sql =
 			"SELECT e.id_evento, e.id_agencia, e.nombre, e.fecha_inicio " +
 			"FROM EVENTO e " +
 			"JOIN ASIGNACION_REPORTERO ar ON ar.id_evento = e.id_evento " +
 			"WHERE ar.id_reportero = ? " +
 			condicion + " " +
+			"AND NOT EXISTS ( " +
+			"  SELECT 1 FROM REPORTAJE r2 " +
+			"  JOIN COMENTARIO_REVISION cr ON cr.id_reportaje = r2.id_reportaje " +
+			"  JOIN ASIGNACION_REPORTERO ar2 ON ar2.id_reportero = cr.id_reportero " +
+			"    AND ar2.id_evento = e.id_evento " +
+			"  WHERE r2.id_evento = e.id_evento " +
+			"  AND ar2.es_responsable = 1 " +
+			"  AND cr.es_finalizacion = 1 " +
+			") " +
 			"ORDER BY e.fecha_inicio, e.nombre";
+
 		List<Object[]> rows = db.executeQueryArray(sql, idReportero);
 		List<EventoDTO> res = new ArrayList<>();
 		for (Object[] r : rows) {
@@ -52,6 +71,8 @@ public class EntregarReportajesDeEventosModel {
 		}
 		return res;
 	}
+
+	// ── Reportaje ─────────────────────────────────────────────────────────
 
 	public ReportajeDTO getReportaje(int idEvento) {
 		String sql =
@@ -72,8 +93,7 @@ public class EntregarReportajesDeEventosModel {
 		String sql =
 			"SELECT id_version, id_reportaje, subtitulo, cuerpo, cambios " +
 			"FROM VERSION_REPORTAJE " +
-			"WHERE id_reportaje = ? " +
-			"ORDER BY id_version DESC LIMIT 1";
+			"WHERE id_reportaje = ? ORDER BY id_version DESC LIMIT 1";
 		List<Object[]> rows = db.executeQueryArray(sql, idReportaje);
 		if (rows.isEmpty()) return null;
 		Object[] r = rows.get(0);
@@ -98,10 +118,8 @@ public class EntregarReportajesDeEventosModel {
 			throw new ApplicationException("Ya existe otro reportaje con ese titulo.");
 	}
 
-	/**
-	 * Entrega o modifica el reportaje.
-	 * En modificacion: solo puede el autor original, y no puede estar pendiente de revision.
-	 */
+	// ── Entrega y modificacion ────────────────────────────────────────────
+
 	public void entregarReportaje(int idEvento, int idReportero,
 	                               String titulo, String subtitulo, String cuerpo) {
 		if (titulo    == null || titulo.trim().isEmpty())
@@ -178,6 +196,7 @@ public class EntregarReportajesDeEventosModel {
 		);
 	}
 
+	// ── Multimedia ────────────────────────────────────────────────────────
 
 	public List<MultimediaDTO> getMultimedia(int idReportaje) {
 		String sql =
@@ -262,24 +281,30 @@ public class EntregarReportajesDeEventosModel {
 			nuevoEstado, idMultimedia);
 	}
 
+	// ── Revision ──────────────────────────────────────────────────────────
 
 	/**
 	 * Un reportaje esta pendiente de revision si:
 	 *   - Tiene al menos una solicitud (es_finalizacion=0)
-	 *   - Y algun reportero asignado aun NO ha finalizado su revision (es_finalizacion=1)
+	 *   - Algun reportero asignado aun NO ha finalizado (es_finalizacion=1)
+	 *   - El responsable NO ha marcado el reportaje como finalizado todavia
 	 */
 	public boolean isPendienteRevision(int idReportaje) {
-		// Hay solicitud
+		// Hay solicitud de revision
 		String checkSolicitud =
 			"SELECT 1 FROM COMENTARIO_REVISION " +
 			"WHERE id_reportaje = ? AND es_finalizacion = 0 LIMIT 1";
 		if (db.executeQueryArray(checkSolicitud, idReportaje).isEmpty()) return false;
 
-		// Algun reportero asignado no ha finalizado aun
+		// El responsable ya finalizo → ya no esta pendiente
+		if (estaFinalizadoPorResponsableDeReportaje(idReportaje)) return false;
+
+		// Algun reportero asignado aun no ha finalizado su revision
 		String checkPendiente =
 			"SELECT 1 FROM ASIGNACION_REPORTERO ar " +
 			"JOIN REPORTAJE r ON r.id_evento = ar.id_evento " +
 			"WHERE r.id_reportaje = ? " +
+			"AND ar.es_responsable = 0 " +  // solo los no responsables
 			"AND NOT EXISTS ( " +
 			"  SELECT 1 FROM COMENTARIO_REVISION cr " +
 			"  WHERE cr.id_reportaje = ? " +
@@ -290,19 +315,42 @@ public class EntregarReportajesDeEventosModel {
 	}
 
 	/**
-	 * Devuelve true si TODOS los reporteros asignados al evento
-	 * han finalizado su revision (tienen es_finalizacion=1 para este reportaje).
+	 * Comprueba si el responsable del evento al que pertenece el reportaje
+	 * ha insertado su es_finalizacion=1 (ha marcado el reportaje como finalizado).
+	 */
+	public boolean estaFinalizadoPorResponsableDeReportaje(int idReportaje) {
+		String sql =
+			"SELECT 1 FROM COMENTARIO_REVISION cr " +
+			"JOIN ASIGNACION_REPORTERO ar ON ar.id_reportero = cr.id_reportero " +
+			"JOIN REPORTAJE r ON r.id_reportaje = cr.id_reportaje " +
+			"  AND ar.id_evento = r.id_evento " +
+			"WHERE cr.id_reportaje = ? " +
+			"AND ar.es_responsable = 1 " +
+			"AND cr.es_finalizacion = 1 LIMIT 1";
+		return !db.executeQueryArray(sql, idReportaje).isEmpty();
+	}
+
+	// Alias para compatibilidad con el controller
+	public boolean estaFinalizadoPorResponsable(int idReportaje, int idReportero) {
+		String sql =
+			"SELECT 1 FROM COMENTARIO_REVISION " +
+			"WHERE id_reportaje = ? AND id_reportero = ? AND es_finalizacion = 1 LIMIT 1";
+		return !db.executeQueryArray(sql, idReportaje, idReportero).isEmpty();
+	}
+
+	/**
+	 * Devuelve true si TODOS los reporteros NO responsables han finalizado su revision.
 	 */
 	public boolean todosHanFinalizadoRevision(int idEvento) {
 		ReportajeDTO reportaje = getReportaje(idEvento);
 		if (reportaje == null) return false;
 
-		// Obtener todos los reporteros asignados
-		String sqlAsignados = "SELECT id_reportero FROM ASIGNACION_REPORTERO WHERE id_evento = ?";
+		String sqlAsignados =
+			"SELECT id_reportero FROM ASIGNACION_REPORTERO " +
+			"WHERE id_evento = ? AND es_responsable = 0";
 		List<Object[]> asignados = db.executeQueryArray(sqlAsignados, idEvento);
 		if (asignados.isEmpty()) return true;
 
-		// Verificar que CADA UNO tiene es_finalizacion=1 para este reportaje
 		for (Object[] row : asignados) {
 			int idRep = ((Number) row[0]).intValue();
 			String sqlFin =
@@ -314,48 +362,9 @@ public class EntregarReportajesDeEventosModel {
 		return true;
 	}
 
-	// Alias mantenido por compatibilidad con el controller existente
+	// Alias para compatibilidad
 	public boolean todosHanEnviadoRevision(int idEvento) {
 		return todosHanFinalizadoRevision(idEvento);
-	}
-
-	public boolean estaFinalizadoPorResponsable(int idReportaje, int idReportero) {
-		String sql =
-			"SELECT 1 FROM COMENTARIO_REVISION " +
-			"WHERE id_reportaje = ? AND id_reportero = ? AND es_finalizacion = 1 LIMIT 1";
-		return !db.executeQueryArray(sql, idReportaje, idReportero).isEmpty();
-	}
-
-	/**
-	 * El responsable finaliza el reportaje.
-	 * Solo posible si NO hay revision pendiente (o no se solicito ninguna).
-	 * Finaliza el evento marcando finalizada=1.
-	 */
-	public void finalizarReportajeResponsable(int idEvento, int idReportero) {
-		if (!esResponsableDeEvento(idEvento, idReportero))
-			throw new ApplicationException("Solo el reportero responsable puede finalizar el reportaje.");
-
-		ReportajeDTO reportaje = getReportaje(idEvento);
-		if (reportaje == null)
-			throw new ApplicationException("No existe reportaje para este evento.");
-
-		// Si hay revision solicitada, todos deben haberla finalizado
-		String checkSolicitud =
-			"SELECT 1 FROM COMENTARIO_REVISION " +
-			"WHERE id_reportaje = ? AND es_finalizacion = 0 LIMIT 1";
-		boolean hayRevision = !db.executeQueryArray(checkSolicitud, reportaje.getIdReportaje()).isEmpty();
-
-		if (hayRevision && !todosHanFinalizadoRevision(idEvento))
-			throw new ApplicationException(
-				"No todos los reporteros han finalizado su revision. " +
-				"No es posible finalizar el reportaje hasta que todos completen la revision.");
-
-		// Verificar que no esta ya finalizado
-		String checkFin = "SELECT 1 FROM EVENTO WHERE id_evento = ? AND finalizada = 1 LIMIT 1";
-		if (!db.executeQueryArray(checkFin, idEvento).isEmpty())
-			throw new ApplicationException("El evento ya ha sido finalizado.");
-
-		db.executeUpdate("UPDATE EVENTO SET finalizada = 1 WHERE id_evento = ?", idEvento);
 	}
 
 	public boolean esResponsableDeEvento(int idEvento, int idReportero) {
@@ -393,11 +402,6 @@ public class EntregarReportajesDeEventosModel {
 		return res;
 	}
 
-	/**
-	 * Solicita revision insertando un registro con es_finalizacion=0.
-	 * Solo puede el reportero que hizo la entrega.
-	 * No se puede solicitar si ya esta pendiente de revision.
-	 */
 	public void solicitarRevision(int idEvento, int idReportero) {
 		ReportajeDTO reportaje = getReportaje(idEvento);
 		if (reportaje == null)
@@ -417,6 +421,48 @@ public class EntregarReportajesDeEventosModel {
 		);
 	}
 
+	/**
+	 * El responsable FINALIZA el reportaje insertando es_finalizacion=1 para él.
+	 * Esta accion:
+	 *   - No toca el campo evento.finalizada (usado por otros compañeros)
+	 *   - Requiere que no haya revision pendiente (o que no se haya solicitado ninguna)
+	 *   - Tras esto el evento desaparece de la lista de trabajo de todos los reporteros
+	 */
+	public void finalizarReportajeResponsable(int idEvento, int idReportero) {
+		if (!esResponsableDeEvento(idEvento, idReportero))
+			throw new ApplicationException("Solo el reportero responsable puede finalizar el reportaje.");
+
+		ReportajeDTO reportaje = getReportaje(idEvento);
+		if (reportaje == null)
+			throw new ApplicationException("No existe reportaje para este evento.");
+
+		// Si hay revision solicitada, todos los no responsables deben haberla finalizado
+		String checkSolicitud =
+			"SELECT 1 FROM COMENTARIO_REVISION " +
+			"WHERE id_reportaje = ? AND es_finalizacion = 0 LIMIT 1";
+		boolean hayRevision = !db.executeQueryArray(checkSolicitud, reportaje.getIdReportaje()).isEmpty();
+
+		if (hayRevision && !todosHanFinalizadoRevision(idEvento))
+			throw new ApplicationException(
+				"No todos los reporteros han finalizado su revision. " +
+				"No es posible finalizar el reportaje hasta que todos completen la revision.");
+
+		// Verificar que el responsable no ha finalizado ya
+		if (estaFinalizadoPorResponsable(reportaje.getIdReportaje(), idReportero))
+			throw new ApplicationException("El reportaje ya ha sido finalizado por el responsable.");
+
+		String fechaHora = LocalDateTime.now()
+			.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+
+		// Insertar es_finalizacion=1 para el responsable — marca el reportaje como finalizado
+		db.executeUpdate(
+			"INSERT INTO COMENTARIO_REVISION(id_reportaje, id_reportero, comentario, fecha_hora, es_finalizacion) " +
+			"VALUES (?, ?, ?, ?, 1)",
+			reportaje.getIdReportaje(), idReportero, "Reportaje finalizado por responsable", fechaHora
+		);
+	}
+
+	// ── Helpers privados ──────────────────────────────────────────────────
 
 	private String generarCambios(ReportajeDTO reportaje, String nuevoSubtitulo, String nuevoCuerpo) {
 		String ahora = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));

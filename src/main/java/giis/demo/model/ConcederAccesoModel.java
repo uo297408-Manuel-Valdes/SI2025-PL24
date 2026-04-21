@@ -10,6 +10,8 @@ public class ConcederAccesoModel {
 
 	private final Database db = new Database();
 
+	// ── Agencias ──────────────────────────────────────────────────────────
+
 	public List<AgenciaDTO> getAgencias() {
 		String sql = "SELECT id_agencia, nombre FROM AGENCIA_PRENSA ORDER BY nombre";
 		List<Object[]> rows = db.executeQueryArray(sql);
@@ -20,12 +22,17 @@ public class ConcederAccesoModel {
 		return res;
 	}
 
+	// ── Eventos ───────────────────────────────────────────────────────────
+
 	/**
-	 * Eventos finalizados de la agencia que tienen reportaje entregado,
-	 * filtrados por si el reportaje tiene o no fecha de embargo.
+	 * Eventos de la agencia que tienen reportaje entregado y han sido
+	 * FINALIZADOS por el reportero responsable.
+	 *
+	 * Un evento esta finalizado cuando su responsable ha insertado
+	 * un registro con es_finalizacion=1 en comentario_revision.
 	 *
 	 * @param idAgencia    Agencia seleccionada
-	 * @param conEmbargo   true  → reportajes CON fecha_embargo (en periodo de embargo)
+	 * @param conEmbargo   true  → reportajes CON fecha_embargo
 	 *                     false → reportajes SIN fecha_embargo
 	 */
 	public List<EventoDTO> getEventosCubiertos(int idAgencia, boolean conEmbargo) {
@@ -38,8 +45,16 @@ public class ConcederAccesoModel {
 			"FROM EVENTO e " +
 			"JOIN REPORTAJE r ON r.id_evento = e.id_evento " +
 			"WHERE e.id_agencia = ? " +
-			"AND e.finalizada = 1 " +
 			filtroEmbargo + " " +
+			// El responsable ha finalizado = tiene es_finalizacion=1 para este reportaje
+			"AND EXISTS ( " +
+			"  SELECT 1 FROM COMENTARIO_REVISION cr " +
+			"  JOIN ASIGNACION_REPORTERO ar ON ar.id_reportero = cr.id_reportero " +
+			"    AND ar.id_evento = e.id_evento " +
+			"  WHERE cr.id_reportaje = r.id_reportaje " +
+			"  AND ar.es_responsable = 1 " +
+			"  AND cr.es_finalizacion = 1 " +
+			") " +
 			"ORDER BY e.fecha_inicio, e.nombre";
 
 		List<Object[]> rows = db.executeQueryArray(sql, idAgencia);
@@ -55,25 +70,18 @@ public class ConcederAccesoModel {
 		return res;
 	}
 
+	// ── Empresas aptas ────────────────────────────────────────────────────
+
 	/**
 	 * Devuelve las empresas APTAS para recibir el reportaje de un evento.
 	 *
-	 * Reglas:
-	 *  - La empresa debe tener ofrecimiento ACEPTADO para este evento.
-	 *  - La empresa debe tener tarifa plana al corriente (pendiente=0).
-	 *  - Si el reportaje tiene embargo (conEmbargo=true) y NO es acceso especial:
-	 *      solo empresas con embargos=1 (interesadas en reportajes con embargo).
-	 *  - Si es acceso especial (accesoEspecial=true):
-	 *      se ignora el campo embargos; cualquier empresa con tarifa al corriente es apta.
+	 * Una empresa es apta si:
+	 *   1. Tiene el ofrecimiento ACEPTADO para este evento.
+	 *   2. Tiene tarifa plana al corriente (pendiente=0).
+	 *   3. Si el reportaje tiene embargo y NO es acceso especial:
+	 *      solo empresas con embargos=1.
 	 *
-	 * Justificante: siempre "T.P.: Al corriente de pagos".
-	 *
-	 * @param idEvento       Evento seleccionado
-	 * @param sinAcceso      true  → empresas SIN acceso concedido aun
-	 *                       false → empresas CON acceso ya concedido
-	 * @param conEmbargo     true  → el reportaje tiene embargo (aplica filtro embargos)
-	 *                       false → sin embargo, no se filtra por embargos
-	 * @param accesoEspecial true  → omite la restriccion de embargos por empresa
+	 * Justificante: "T.P.: Al corriente de pagos".
 	 */
 	public List<EmpresaDTO> getEmpresasAptas(int idEvento, boolean sinAcceso,
 	                                          boolean conEmbargo, boolean accesoEspecial) {
@@ -83,8 +91,6 @@ public class ConcederAccesoModel {
 			: "AND EXISTS (SELECT 1 FROM ACCESO_REPORTAJE acc " +
 			  "WHERE acc.id_evento = ofr.id_evento AND acc.id_empresa = emp.id_empresa)";
 
-		// Solo se restringe por embargos cuando el reportaje tiene embargo
-		// y el usuario NO ha marcado acceso especial
 		String filtroEmbargos = (conEmbargo && !accesoEspecial)
 			? "AND emp.embargos = 1"
 			: "";
@@ -120,6 +126,8 @@ public class ConcederAccesoModel {
 		return res;
 	}
 
+	// ── Acceso ────────────────────────────────────────────────────────────
+
 	public AccesoDTO getAcceso(int idEmpresa, int idEvento) {
 		String sql =
 			"SELECT o.id_acceso, o.id_evento, o.id_empresa, o.descargado " +
@@ -140,40 +148,32 @@ public class ConcederAccesoModel {
 
 	/**
 	 * Concede acceso al reportaje del evento a las empresas seleccionadas.
-	 *
-	 * Validaciones:
-	 *  - El evento debe estar finalizado y tener reportaje.
-	 *  - La empresa debe tener ofrecimiento ACEPTADO.
-	 *  - La empresa debe tener tarifa plana al corriente.
-	 *  - Si el reportaje tiene embargo y NO es acceso especial:
-	 *      la empresa debe tener embargos=1.
-	 *  - La empresa no debe tener acceso ya concedido.
-	 *
-	 * @param idEvento       Evento al que se concede acceso
-	 * @param idsEmpresas    Lista de empresas seleccionadas
-	 * @param accesoEspecial true → omite restriccion de embargos por empresa
 	 */
 	public void concederAcceso(int idEvento, List<Integer> idsEmpresas, boolean accesoEspecial) {
 		if (idsEmpresas == null || idsEmpresas.isEmpty())
 			throw new ApplicationException("Debes seleccionar al menos una empresa para conceder acceso.");
 
-		// El evento debe estar finalizado y tener reportaje
+		// El reportaje debe estar finalizado por el responsable
 		String checkFin =
-			"SELECT r.fecha_embargo FROM REPORTAJE r " +
-			"JOIN EVENTO e ON e.id_evento = r.id_evento " +
-			"WHERE r.id_evento = ? AND e.finalizada = 1 LIMIT 1";
-		List<Object[]> rowsFin = db.executeQueryArray(checkFin, idEvento);
-		if (rowsFin.isEmpty())
+			"SELECT 1 FROM REPORTAJE r " +
+			"JOIN COMENTARIO_REVISION cr ON cr.id_reportaje = r.id_reportaje " +
+			"JOIN ASIGNACION_REPORTERO ar ON ar.id_reportero = cr.id_reportero " +
+			"  AND ar.id_evento = r.id_evento " +
+			"WHERE r.id_evento = ? " +
+			"AND ar.es_responsable = 1 " +
+			"AND cr.es_finalizacion = 1 LIMIT 1";
+		if (db.executeQueryArray(checkFin, idEvento).isEmpty())
 			throw new ApplicationException(
-				"El evento no esta finalizado o no tiene reportaje entregado.");
+				"El reportaje aun no ha sido finalizado por el reportero responsable.");
 
 		// Determinar si el reportaje tiene embargo
-		boolean tieneEmbargo = rowsFin.get(0)[0] != null;
+		String checkEmbargo = "SELECT fecha_embargo FROM REPORTAJE WHERE id_evento = ? LIMIT 1";
+		List<Object[]> rowsEmb = db.executeQueryArray(checkEmbargo, idEvento);
+		boolean tieneEmbargo = !rowsEmb.isEmpty() && rowsEmb.get(0)[0] != null;
 
 		for (Integer idEmpresa : idsEmpresas) {
 			if (idEmpresa == null) continue;
 
-			// La empresa debe haber aceptado el ofrecimiento
 			String checkOfr =
 				"SELECT 1 FROM OFRECER_REPORTAJE " +
 				"WHERE id_evento = ? AND id_empresa = ? AND decision = 'ACEPTADO' LIMIT 1";
@@ -182,7 +182,6 @@ public class ConcederAccesoModel {
 					"La empresa con id " + idEmpresa +
 					" no tiene un ofrecimiento aceptado para este evento.");
 
-			// La empresa debe tener tarifa plana al corriente
 			String checkTarifa =
 				"SELECT 1 FROM TARIFA t " +
 				"JOIN EVENTO e ON e.id_agencia = t.id_agencia " +
@@ -192,30 +191,25 @@ public class ConcederAccesoModel {
 					"La empresa con id " + idEmpresa +
 					" no tiene tarifa plana al corriente de pagos.");
 
-			// Si hay embargo y NO es acceso especial, la empresa debe tener embargos=1
 			if (tieneEmbargo && !accesoEspecial) {
-				String checkEmbargo =
+				String checkEmbargoEmp =
 					"SELECT 1 FROM EMPRESA WHERE id_empresa = ? AND embargos = 1 LIMIT 1";
-				if (db.executeQueryArray(checkEmbargo, idEmpresa).isEmpty())
+				if (db.executeQueryArray(checkEmbargoEmp, idEmpresa).isEmpty())
 					throw new ApplicationException(
-						"La empresa con id " + idEmpresa +
-						" no esta interesada en reportajes con embargo. " +
-						"Usa 'Conceder acceso especial' para distribuirlo igualmente.");
+						"Este reportaje no tiene embargo, por lo que el acceso especial no cambia nada");
 			}
 
-			// No debe tener acceso ya concedido
 			String checkAcc =
-				"SELECT 1 FROM ACCESO_REPORTAJE " +
-				"WHERE id_evento = ? AND id_empresa = ? LIMIT 1";
+				"SELECT 1 FROM ACCESO_REPORTAJE WHERE id_evento = ? AND id_empresa = ? LIMIT 1";
 			if (!db.executeQueryArray(checkAcc, idEvento, idEmpresa).isEmpty())
 				throw new ApplicationException(
 					"La empresa con id " + idEmpresa +
 					" ya tiene acceso concedido a este reportaje.");
 		}
 
-		String insert = "INSERT INTO ACCESO_REPORTAJE(id_evento, id_empresa) VALUES (?, ?)";
+		String insert = "INSERT INTO ACCESO_REPORTAJE(id_evento, id_empresa, especial) VALUES (?, ?, ?)";
 		for (Integer idEmpresa : idsEmpresas) {
-			db.executeUpdate(insert, idEvento, idEmpresa);
+		    db.executeUpdate(insert, idEvento, idEmpresa, accesoEspecial ? 1 : 0);
 		}
 	}
 

@@ -135,14 +135,17 @@ public class ConcederAccesoController {
 		}
 
 		boolean accesoEspecial = view.isAccesoEspecial();
+		boolean conEmbargo     = view.getFiltroEmbargo().equals("Reportajes con embargo"); 
+
 		String nombreEvento    = view.getNombreEventoSeleccionado();
 		String listaEmpresas   = seleccionadas.stream()
 			.map(EmpresaDTO::getNombre)
 			.collect(Collectors.joining(", "));
 
-		String advertencia = accesoEspecial
-			? "\n\n⚠ ACCESO ESPECIAL: se concede aunque la empresa no este interesada en embargos."
-			: "";
+
+		String advertencia = (accesoEspecial && !conEmbargo)   
+				? "\n\nEste reportaje no tiene embargo por lo que darle acceso especial no cambia nada."
+						: "";
 
 		String msg = "Vas a conceder acceso al reportaje de:\n\n"
 				+ "Evento:   " + nombreEvento + "\n"

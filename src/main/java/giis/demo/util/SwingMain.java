@@ -122,7 +122,7 @@ public class SwingMain {
 		frame.getContentPane().add(btnHU33550);
 		
 		
-		JButton btnHU33551 = new JButton("HU 33551/33558/34025/34026/34030 - Entregar Reportajes");
+		JButton btnHU33551 = new JButton("HU 33551/33558/34025/34026/34030/34361/34359 - Entregar Reportajes");
 		btnHU33551.addActionListener(e -> {
 			EntregarReportajesDeEventosController controller =
 				new EntregarReportajesDeEventosController(
@@ -169,7 +169,7 @@ public class SwingMain {
 		});
 		frame.getContentPane().add(btnHU33553);
 		
-		JButton btnHU33554 = new JButton("HU 33554/34032/34033 - Conceder Acceso");
+		JButton btnHU33554 = new JButton("HU 33554/34032/34033/34361/34369 - Conceder Acceso");
 		btnHU33554.addActionListener(e -> {
 			ConcederAccesoController controller =
 				new ConcederAccesoController(

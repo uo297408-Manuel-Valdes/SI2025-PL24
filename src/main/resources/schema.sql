@@ -95,6 +95,7 @@ CREATE TABLE acceso_reportaje (
   id_evento INTEGER NOT NULL,
   id_empresa INTEGER NOT NULL,
   descargado INTEGER DEFAULT 0 CHECK (descargado IN (0,1)),
+  especial INTEGER DEFAULT 0 CHECK 	(especial IN (0,1)),
   UNIQUE (id_evento, id_empresa),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa)

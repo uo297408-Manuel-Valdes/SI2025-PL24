@@ -43,8 +43,8 @@ public class AsignarReporterosAEventosModelTest {
 			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (2, 1, 1, 'Luis Gómez', 'Gráfico')",
 			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (3, 1, 1, 'Marta Ruiz', 'Camarógrafo')",
 			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (4, 1, 1, 'Laura Martínez', 'Básico')",
-			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (5, 2, 1, 'Pedro Sur', 'Básico')",
-			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (6, 1, 1, 'Carmen Cámara', 'Camarógrafo')",
+			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (5, 2, 1, 'Pedro Lopez', 'Básico')",
+			"INSERT INTO reportero(id_reportero, id_agencia, id_provincia, nombre, tipo_reportero) VALUES (6, 1, 1, 'Carmen Perez', 'Camarógrafo')",
 
 			"INSERT INTO evento_tematica(id_evento, id_tematica) VALUES (1, 1)",
 
